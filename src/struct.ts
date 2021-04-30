@@ -43,8 +43,7 @@ export class PrimitiveStruct implements Struct {
     }
 
     genStructDefinition() {
-        // const lifetimeSpecifier = this.has_ref ? `<'a>` : ''
-        const lifetimeSpecifier = ''
+        const lifetimeSpecifier = this.has_ref() ? `<'a>` : ''
         return `pub struct ${this.name} ${lifetimeSpecifier} ${this.genFieldsBlock()}`
     }
 
