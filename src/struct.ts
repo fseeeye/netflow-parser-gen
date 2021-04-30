@@ -1,11 +1,13 @@
 import endent from "endent"
+import { snakeCase } from "snake-case"
+import { generatePrimitiveParser } from "./parser"
+import { be_u16, PrimitiveNomType, u8 } from "./types"
 
-type Primitive = 'u8' | 'u16' | 'u32' | 'ref'
 
 interface Field {
     name: string
-    value?: number
-    type_: Primitive
+    // value?: number
+    type_: PrimitiveNomType
 }
 
 interface Struct {
@@ -25,7 +27,7 @@ export class PrimitiveStruct implements Struct {
 
     genFieldsBlock() {
         const fieldLines = this.fields.map((field) => {
-            return `pub ${field.name} : ${field.type_},`
+            return `pub ${field.name} : ${field.type_.toRustType()},`
         })
         return endent`{
             ${fieldLines.join('\n')}
@@ -43,6 +45,10 @@ export class PrimitiveStruct implements Struct {
         return [attributes, definition].join('\n')
     }
 
+    snakeCaseName() {
+        return snakeCase(this.name)
+    }
+
 }
 
 function test() {
@@ -51,14 +57,18 @@ function test() {
         name: 'MBAPHeader',
         has_ref: false,
         fields: [
-            { name: 'transaction_id', type_: 'u8' },
-            { name: 'protocol_id', type_: 'u16' },
-            { name: 'length', type_: 'u16' },
-            { name: 'unit_id', type_: 'u8' },
+            { name: 'transaction_id', type_: u8 },
+            { name: 'protocol_id', type_: be_u16 },
+            { name: 'length', type_: be_u16 },
+            { name: 'unit_id', type_: u8 },
         ]
     }
 
     const header = new PrimitiveStruct(MBAPHeader.name, MBAPHeader.has_ref, MBAPHeader.fields)
 
     console.log(header.compile())
+    console.log()
+    console.log(generatePrimitiveParser(header))
 }
+
+test()
