@@ -1,18 +1,18 @@
 import endent from "endent"
 import { snakeCase } from "snake-case"
 import { generatePrimitiveParser } from "./parser"
-import { be_u16, PrimitiveNomType, u8 } from "./types"
+import { be_u16, PrimitiveNomType, Reference, u8 } from "./types"
 
 
 interface Field {
     name: string
     // value?: number
-    type_: PrimitiveNomType
+    type_: PrimitiveNomType | Reference
 }
 
 interface Struct {
     name: string
-    has_ref: boolean
+    // has_ref: boolean
     fields: Field[]
 }
 
@@ -21,7 +21,6 @@ export class PrimitiveStruct implements Struct {
 
     constructor(
         readonly name: string,
-        readonly has_ref: boolean,
         readonly fields: Field[],
     ) { }
 
@@ -34,8 +33,18 @@ export class PrimitiveStruct implements Struct {
         }`
     }
 
+    /**
+     * TODO:
+     * 实现引用类型 field
+     */
+    has_ref() {
+        // 如果 field 带引用，则 struct 需要声明 lifetime
+        return false
+    }
+
     genStructDefinition() {
-        const lifetimeSpecifier = this.has_ref ? `<'a>` : ''
+        // const lifetimeSpecifier = this.has_ref ? `<'a>` : ''
+        const lifetimeSpecifier = ''
         return `pub struct ${this.name} ${lifetimeSpecifier} ${this.genFieldsBlock()}`
     }
 
@@ -55,7 +64,6 @@ function test() {
 
     const MBAPHeader: Struct = {
         name: 'MBAPHeader',
-        has_ref: false,
         fields: [
             { name: 'transaction_id', type_: u8 },
             { name: 'protocol_id', type_: be_u16 },
@@ -64,7 +72,7 @@ function test() {
         ]
     }
 
-    const header = new PrimitiveStruct(MBAPHeader.name, MBAPHeader.has_ref, MBAPHeader.fields)
+    const header = new PrimitiveStruct(MBAPHeader.name, MBAPHeader.fields)
 
     console.log(header.compile())
     console.log()

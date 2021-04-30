@@ -16,6 +16,7 @@ type NomFunction = NomNumberFunction | NomBytesFunction
 interface Type {
     name: string
     parser: NomFunction
+    toRustType: () => string
 }
 
 class NomType implements Type {
@@ -27,12 +28,32 @@ class NomType implements Type {
     toRustType() {
         return this.name
     }
+
+    generateParser(fieldName: string) {
+        return `let (input, ${fieldName}) = ${this.parser}(input)?;`
+    }
 }
 
 export class PrimitiveNomType extends NomType {
 
+}
+
+export class Reference implements Type {
+    readonly name = 'reference'
+    readonly parser = NomBytesFunction.take
+
+    constructor(
+        readonly refType: string,
+        readonly len: number,
+    ) {
+    }
+
+    toRustType() {
+        return `&'a ${this.refType}`
+    }
+
     generateParser(fieldName: string) {
-        return `let (input, ${fieldName}) = ${this.parser}(input)?;`
+        return `let (input, ${fieldName}) = take(${this.len})(input)?;`
     }
 }
 
