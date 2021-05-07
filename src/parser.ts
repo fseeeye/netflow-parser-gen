@@ -38,8 +38,12 @@ export class ParserGenerator {
         }`
     }
 
+    static generateParserName(struct: Struct) {
+        return `parse_${struct.snakeCaseName()}`
+    }
+
     static generateParser(struct: Struct) {
-        const name = `parse_${struct.snakeCaseName()}`
+        const name = ParserGenerator.generateParserName(struct)
         const functionSignature = `pub fn ${name}(input: &[u8]) -> IResult<&[u8], ${struct.name}>`
         const parserBlock = ParserGenerator.generateParserBlock(struct)
         const nomImportsBlock = ParserGenerator.generateNomImports()
