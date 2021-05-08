@@ -14,7 +14,8 @@ test('test struct with reference', () => {
   const writeFileRecordSubRequest = new Struct('WriteFileRecordSubRequest', fields)
   console.log(writeFileRecordSubRequest.compile())
   console.log()
-  console.log(StructParserGenerator.generateParser(writeFileRecordSubRequest))
+  const gen = new StructParserGenerator(writeFileRecordSubRequest)
+  console.log(gen.generateParser())
 
 })
 
@@ -30,5 +31,6 @@ test('test struct with numeric types only', () => {
 
   console.log(header.compile())
   console.log()
-  console.log(StructParserGenerator.generateParser(header))
+  const gen = new StructParserGenerator(header)
+  console.log(gen.generateParser())
 })

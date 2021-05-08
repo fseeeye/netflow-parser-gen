@@ -23,7 +23,7 @@ export class Struct {
         return `pub`
     }
 
-    private generateFields() {
+    protected generateFields() {
         const fieldLines = this.fields.map((field) => {
             return `${this.visibilitySpecifier()} ${field.name} : ${field.rustType()},`
         })
@@ -32,34 +32,22 @@ export class Struct {
         }`
     }
 
-    /**
-     * TODO:
-     * 实现引用类型 field
-     */
     public hasReference() {
         // 如果 field 带引用，则 struct 需要声明 lifetime
         return this.fields.filter((field) => field.isRef).length !== 0
     }
 
-    protected lifetimeSpecifier(): string {
+    private lifetimeSpecifier(): string {
         return this.hasReference() ? `<'a>` : ''
-    }
-
-    protected header() {
-        return `pub struct `
     }
 
     private definition() {
         const lifetimeSpecifier = this.lifetimeSpecifier()
-        return `${this.header()}${this.name} ${lifetimeSpecifier} ${this.generateFields()}`
-    }
-
-    protected attributes() {
-        return generateAttributesCode()
+        return `pub struct ${this.name} ${lifetimeSpecifier} ${this.generateFields()}`
     }
 
     compile() {
-        const attributes = this.attributes()
+        const attributes = generateAttributesCode()
         const definition = this.definition()
         return [attributes, definition].join('\n')
     }
@@ -67,5 +55,4 @@ export class Struct {
     snakeCaseName() {
         return snakeCase(this.name)
     }
-
 }

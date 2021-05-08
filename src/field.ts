@@ -57,7 +57,6 @@ export const PrimitiveNumericType = {
 }
 
 
-
 export class NumericField extends BaseField {
     constructor(
         readonly name: string,

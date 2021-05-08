@@ -1,19 +1,24 @@
 import endent from "endent"
 import { Struct } from "./struct"
 
+export function generateNomImport() {
+    const code = endent`
+    use nom::bytes::complete::{tag, take};
+    use nom::number::complete::{be_u32, be_u16, u8};
+    use nom::sequence::tuple;
+    use nom::IResult;
+    `
+    return code
+}
+
 export class StructParserGenerator {
 
-    private static generateNomImports() {
-        const code = endent`
-        use nom::bytes::complete::{tag, take};
-        use nom::number::complete::{be_u32, be_u16, u8};
-        use nom::sequence::tuple;
-        use nom::IResult;
-        `
-        return code
-    }
+    constructor(
+        readonly struct: Struct,
+    ) { }
 
-    private static generateResultSection(struct: Struct) {
+    protected generateResultSection() {
+        const struct = this.struct
         const code = endent`
         Ok((
             input,
@@ -25,12 +30,12 @@ export class StructParserGenerator {
         return code
     }
 
-    private static generateParserBlock(struct: Struct) {
-        const fieldParsers = struct.fields.map((field) => {
+    protected generateParserBlock() {
+        const fieldParsers = this.struct.fields.map((field) => {
             return field.generateParserCode()
         })
 
-        const resultSection = StructParserGenerator.generateResultSection(struct)
+        const resultSection = this.generateResultSection()
 
         return endent`{
             ${fieldParsers.join('\n')}
@@ -42,16 +47,23 @@ export class StructParserGenerator {
         return `parse_${struct.snakeCaseName()}`
     }
 
-    static generateParser(struct: Struct, pub: boolean = true) {
-        const name = StructParserGenerator.generateParserName(struct)
-        const visibilitySpecifier = pub ? `pub ` : ``
-        const functionSignature = `${visibilitySpecifier}fn ${name}(input: &[u8]) -> IResult<&[u8], ${struct.name}>`
-        const parserBlock = StructParserGenerator.generateParserBlock(struct)
-        const nomImportsBlock = StructParserGenerator.generateNomImports()
+    generateParserName() {
+        return StructParserGenerator.generateParserName(this.struct)
+    }
+
+    protected generateFunctionSignature() {
+        const name = this.generateParserName()
+        return `fn ${name}(input: &[u8]) -> IResult<&[u8], ${this.struct.name}>`
+    }
+
+    generateParser(pub: boolean = true) {
+        const visibilitySpecifier = pub ? `pub` : ``
+        const functionSignature = `${visibilitySpecifier} ${this.generateFunctionSignature()}`
+        const parserBlock = this.generateParserBlock()
 
         return endent`
-        ${nomImportsBlock}
         ${functionSignature} ${parserBlock}
         `
     }
 }
+
