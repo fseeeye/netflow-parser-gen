@@ -42,9 +42,10 @@ export class StructParserGenerator {
         return `parse_${struct.snakeCaseName()}`
     }
 
-    static generateParser(struct: Struct) {
+    static generateParser(struct: Struct, pub: boolean = true) {
         const name = StructParserGenerator.generateParserName(struct)
-        const functionSignature = `pub fn ${name}(input: &[u8]) -> IResult<&[u8], ${struct.name}>`
+        const visibilitySpecifier = pub ? `pub ` : ``
+        const functionSignature = `${visibilitySpecifier}fn ${name}(input: &[u8]) -> IResult<&[u8], ${struct.name}>`
         const parserBlock = StructParserGenerator.generateParserBlock(struct)
         const nomImportsBlock = StructParserGenerator.generateNomImports()
 
