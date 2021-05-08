@@ -1,7 +1,7 @@
 import endent from "endent"
 import { Struct } from "./struct"
 
-export class ParserGenerator {
+export class StructParserGenerator {
 
     private static generateNomImports() {
         const code = endent`
@@ -30,7 +30,7 @@ export class ParserGenerator {
             return field.generateParserCode()
         })
 
-        const resultSection = ParserGenerator.generateResultSection(struct)
+        const resultSection = StructParserGenerator.generateResultSection(struct)
 
         return endent`{
             ${fieldParsers.join('\n')}
@@ -43,10 +43,10 @@ export class ParserGenerator {
     }
 
     static generateParser(struct: Struct) {
-        const name = ParserGenerator.generateParserName(struct)
+        const name = StructParserGenerator.generateParserName(struct)
         const functionSignature = `pub fn ${name}(input: &[u8]) -> IResult<&[u8], ${struct.name}>`
-        const parserBlock = ParserGenerator.generateParserBlock(struct)
-        const nomImportsBlock = ParserGenerator.generateNomImports()
+        const parserBlock = StructParserGenerator.generateParserBlock(struct)
+        const nomImportsBlock = StructParserGenerator.generateNomImports()
 
         return endent`
         ${nomImportsBlock}

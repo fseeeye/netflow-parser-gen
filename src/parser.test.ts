@@ -1,6 +1,6 @@
 import { Field, NumericField, PrimitiveNumericType, BytesReferenceField } from "./field"
 import { Struct } from "./struct"
-import { ParserGenerator } from "./parser"
+import { StructParserGenerator } from "./parser"
 
 test('test struct with reference', () => {
   const fields: Field[] = [
@@ -14,7 +14,7 @@ test('test struct with reference', () => {
   const writeFileRecordSubRequest = new Struct('WriteFileRecordSubRequest', fields)
   console.log(writeFileRecordSubRequest.compile())
   console.log()
-  console.log(ParserGenerator.generateParser(writeFileRecordSubRequest))
+  console.log(StructParserGenerator.generateParser(writeFileRecordSubRequest))
 
 })
 
@@ -30,5 +30,5 @@ test('test struct with numeric types only', () => {
 
   console.log(header.compile())
   console.log()
-  console.log(ParserGenerator.generateParser(header))
+  console.log(StructParserGenerator.generateParser(header))
 })
