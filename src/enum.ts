@@ -6,13 +6,6 @@ import { generateAttributesCode, Struct } from "./struct"
 
 
 export class StructEnumVariant extends Struct {
-    constructor(
-        readonly name: string,
-        readonly fields: Field[],
-        readonly enumName: string,
-    ) {
-        super(name, fields)
-    }
 
     protected visibilitySpecifier() {
         return ``

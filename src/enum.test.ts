@@ -13,22 +13,18 @@ test('test enum definition without reference', () => {
         new StructEnumVariant(
             'ReadCoils',
             SimpleReadRequestFields.slice(),
-            enumName,
         ),
         new StructEnumVariant(
             'ReadDiscreteInputs',
             SimpleReadRequestFields.slice(),
-            enumName,
         ),
         new StructEnumVariant(
             'ReadHoldingRegisters',
             SimpleReadRequestFields.slice(),
-            enumName,
         ),
         new StructEnumVariant(
             'ReadInputRegisters',
             SimpleReadRequestFields.slice(),
-            enumName,
         ),
         new StructEnumVariant(
             'WriteSingleCoil',
@@ -36,7 +32,6 @@ test('test enum definition without reference', () => {
                 new NumericField('output_address', PrimitiveNumericType.be_u16),
                 new NumericField('output_value', PrimitiveNumericType.be_u16),
             ],
-            enumName,
         )
     ]
     const structEnum = new StructEnum(enumName, variants, functionCodeField, new Map([
@@ -51,7 +46,6 @@ test('test enum definition without reference', () => {
 })
 
 test('enum definition with reference', () => {
-    const enumName = 'RequestData'
     const functionCodeField = new NumericField('function_code', PrimitiveNumericType.u8)
     const variants = [
         new StructEnumVariant(
@@ -63,7 +57,6 @@ test('enum definition with reference', () => {
                 new NumericField('record_len', PrimitiveNumericType.be_u16),
                 new BytesReferenceField('record_data', 'record_len'),
             ],
-            enumName,
         ),
         new StructEnumVariant(
             'WriteSingleRegister',
@@ -71,7 +64,6 @@ test('enum definition with reference', () => {
                 new NumericField('register_address', PrimitiveNumericType.be_u16),
                 new NumericField('register_value', PrimitiveNumericType.be_u16),
             ],
-            enumName,
         )
     ]
     const structEnum = new StructEnum('RequestData', variants, functionCodeField, new Map([
