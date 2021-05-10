@@ -13,18 +13,22 @@ test('test enum definition without reference', () => {
         new StructEnumVariant(
             'ReadCoils',
             SimpleReadRequestFields.slice(),
+            0x01
         ),
         new StructEnumVariant(
             'ReadDiscreteInputs',
             SimpleReadRequestFields.slice(),
+            0x02
         ),
         new StructEnumVariant(
             'ReadHoldingRegisters',
             SimpleReadRequestFields.slice(),
+            0x03
         ),
         new StructEnumVariant(
             'ReadInputRegisters',
             SimpleReadRequestFields.slice(),
+            0x04
         ),
         new StructEnumVariant(
             'WriteSingleCoil',
@@ -32,15 +36,10 @@ test('test enum definition without reference', () => {
                 new NumericField('output_address', PrimitiveNumericType.be_u16),
                 new NumericField('output_value', PrimitiveNumericType.be_u16),
             ],
+            0x05
         )
     ]
-    const structEnum = new StructEnum(enumName, variants, functionCodeField, new Map([
-        [0x01, variants[0]],
-        [0x02, variants[1]],
-        [0x03, variants[2]],
-        [0x04, variants[3]],
-        [0x05, variants[4]],
-    ]))
+    const structEnum = new StructEnum(enumName, variants, functionCodeField)
     const gen = new StructEnumParserGenerator(structEnum)
     console.log(gen.compile())
 })
@@ -57,6 +56,7 @@ test('enum definition with reference', () => {
                 new NumericField('record_len', PrimitiveNumericType.be_u16),
                 new BytesReferenceField('record_data', 'record_len'),
             ],
+            0x17
         ),
         new StructEnumVariant(
             'WriteSingleRegister',
@@ -64,12 +64,10 @@ test('enum definition with reference', () => {
                 new NumericField('register_address', PrimitiveNumericType.be_u16),
                 new NumericField('register_value', PrimitiveNumericType.be_u16),
             ],
+            0x06
         )
     ]
-    const structEnum = new StructEnum('RequestData', variants, functionCodeField, new Map([
-        [0x17, variants[0]],
-        [0x06, variants[1]],
-    ]))
+    const structEnum = new StructEnum('RequestData', variants, functionCodeField)
     const gen = new StructEnumParserGenerator(structEnum)
     console.log(gen.compile())
 })

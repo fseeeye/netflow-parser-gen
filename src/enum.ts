@@ -4,8 +4,16 @@ import { Field } from "./field"
 import { generateNomImport, StructParserGenerator } from "./parser"
 import { generateAttributesCode, Struct } from "./struct"
 
+type ChoiceType = string | number
 
 export class StructEnumVariant extends Struct {
+    constructor(
+        readonly name: string,
+        readonly fields: Field[],
+        readonly choice: ChoiceType,
+    ) {
+        super(name, fields)
+    }
 
     protected visibilitySpecifier() {
         return ``
@@ -23,19 +31,19 @@ export class StructEnum {
         readonly name: string,
         readonly variants: StructEnumVariant[],
         readonly choiceField: Field,
-        readonly variantMap: Map<number | string, StructEnumVariant>,
+        // readonly variantMap: Map<number | string, StructEnumVariant>,
     ) {
-        this.validateVariants()
+        // this.validateVariants()
     }
 
-    private validateVariants(): void {
-        const variantNames = this.variants.map((variant) => variant.name)
-        for (const [_, variant] of this.variantMap) {
-            if (variantNames.includes(variant.name) === false) {
-                throw Error(`variant ${variant.name} not found!`)
-            }
-        }
-    }
+    // private validateVariants(): void {
+    //     const variantNames = this.variants.map((variant) => variant.name)
+    //     for (const [_, variant] of this.variantMap) {
+    //         if (variantNames.includes(variant.name) === false) {
+    //             throw Error(`variant ${variant.name} not found!`)
+    //         }
+    //     }
+    // }
 
     private generateVariants() {
         const variants = this.variants.map((variant) => variant.compile())
@@ -95,9 +103,21 @@ export class StructEnumVariantParserGenerator extends StructParserGenerator {
     }
 }
 
-function generateChoiceLiteral(value: number | string) {
+function calculateNumberHexLength(value: number) {
+    let curr = value
+    let len = 0
+    while (curr > 0) {
+        curr = curr >> 1
+        len++
+    }
+    return Math.ceil(len / 8) * 2
+}
+
+function generateChoiceLiteral(value: ChoiceType) {
     if (typeof value === 'number') {
-        return `0x${value.toString(16)}`
+        const hexLen = calculateNumberHexLength(value)
+        const hex = value.toString(16).padStart(hexLen, '0')
+        return `0x${hex}`
     }
     return value
 }
@@ -122,9 +142,9 @@ export class StructEnumParserGenerator {
     private generateMatchBlock() {
         const structEnum = this.structEnum
         // console.log(structEnum.variantMap)
-        const choiceArms = Array.from(structEnum.variantMap.entries()).map(([choice, variant]) => {
+        const choiceArms = structEnum.variants.map((variant) => {
             const variantParserName = StructParserGenerator.generateParserName(variant)
-            const choiceLiteral = generateChoiceLiteral(choice)
+            const choiceLiteral = generateChoiceLiteral(variant.choice)
             return endent`
             ${choiceLiteral} => ${variantParserName}(input),
             `
