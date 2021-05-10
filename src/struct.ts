@@ -1,12 +1,28 @@
 import endent from "endent"
 import { snakeCase } from "snake-case"
-import { Field, validateFieldsDependency } from "./field"
+import { Field } from "./field"
 
 export const DEFAULT_ATTRIBUTES = [`Debug`, `PartialEq`]
 
 export function generateAttributesCode(attributes: string[] = DEFAULT_ATTRIBUTES) {
     return `#[derive(${attributes.join(',')})]`
 }
+
+
+function validateFieldsDependency(fields: Field[]): boolean {
+    for (let i = 0; i < fields.length; i++) {
+        const field = fields[i]
+        if (field.isRef === true && field.validateDependency !== undefined) {
+            const prevFields = fields.slice(0, i)
+            if (field.validateDependency(prevFields) === false) {
+                console.log(`dependency not found for ${field.name}!`)
+                return false
+            }
+        }
+    }
+    return true
+}
+
 
 export class Struct {
 

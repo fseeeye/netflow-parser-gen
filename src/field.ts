@@ -99,17 +99,3 @@ export class BytesReferenceField extends BaseField {
     }
 }
 
-export function validateFieldsDependency(fields: Field[]): boolean {
-    for (let i = 0; i < fields.length; i++) {
-        const field = fields[i]
-        if (field.isRef === true && field.validateDependency !== undefined) {
-            const prevFields = fields.slice(0, i)
-            if (field.validateDependency(prevFields) === false) {
-                console.log(`dependency not found for ${field.name}!`)
-                return false
-            }
-        }
-    }
-    return true
-}
-
