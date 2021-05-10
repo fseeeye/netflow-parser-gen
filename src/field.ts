@@ -123,6 +123,9 @@ export class StructField extends BaseField {
     }
 
     rustType() {
+        if (this.isRef) {
+            return `${this.struct.name} <'a>`
+        }
         return this.struct.name
     }
 
