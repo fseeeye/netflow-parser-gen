@@ -83,7 +83,7 @@ export class NumericField extends BaseField {
 }
 
 
-export class BytesReferenceField extends BaseField {
+export class BytesRefField extends BaseField {
     isRef: boolean = true
 
     constructor(

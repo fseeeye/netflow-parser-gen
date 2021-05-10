@@ -1,4 +1,4 @@
-import { Field, NumericField, PrimitiveNumericType, BytesReferenceField, StructField } from "./field"
+import { Field, NumericField, PrimitiveNumericType, BytesRefField, StructField } from "./field"
 import { Struct } from "./struct"
 import { StructParserGenerator } from "./parser"
 
@@ -8,7 +8,7 @@ test('test struct with reference', () => {
     new NumericField('file_number', PrimitiveNumericType.be_u16),
     new NumericField('record_number', PrimitiveNumericType.be_u16),
     new NumericField('record_len', PrimitiveNumericType.be_u16),
-    new BytesReferenceField('record_data', 'record_len'),
+    new BytesRefField('record_data', 'record_len'),
   ]
 
   const writeFileRecordSubRequest = new Struct('WriteFileRecordSubRequest', fields)
@@ -63,7 +63,7 @@ test('test struct with struct field with reference', () => {
     new NumericField('protocol_id', PrimitiveNumericType.be_u16),
     new NumericField('length', PrimitiveNumericType.be_u16),
     new NumericField('unit_id', PrimitiveNumericType.u8),
-    new BytesReferenceField('data', 'length'),
+    new BytesRefField('data', 'length'),
   ]
 
   const header = new Struct('MBAPHeaderV2', mbapHeaderFields)

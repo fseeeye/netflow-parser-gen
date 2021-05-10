@@ -1,5 +1,5 @@
 import { StructEnumVariant, StructEnum, StructEnumParserGenerator } from "./enum"
-import { BytesReferenceField, NumericField, PrimitiveNumericType } from "./field"
+import { BytesRefField, NumericField, PrimitiveNumericType } from "./field"
 
 const SimpleReadRequestFields = [
     new NumericField('start_address', PrimitiveNumericType.be_u16),
@@ -54,7 +54,7 @@ test('enum definition with reference', () => {
                 new NumericField('file_number', PrimitiveNumericType.be_u16),
                 new NumericField('record_number', PrimitiveNumericType.be_u16),
                 new NumericField('record_len', PrimitiveNumericType.be_u16),
-                new BytesReferenceField('record_data', 'record_len'),
+                new BytesRefField('record_data', 'record_len'),
             ],
             0x17
         ),
