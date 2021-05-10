@@ -62,10 +62,25 @@ export class Struct {
         return `pub struct ${this.name} ${lifetimeSpecifier} ${this.generateFields()}`
     }
 
-    compile() {
+    compileSelfDefinition() {
         const attributes = generateAttributesCode()
         const definition = this.definition()
         return [attributes, definition].join('\n')
+    }
+
+    compileUDFDefnitions() {
+        const userDefinedFields = this.fields.filter((field) => field.isUserDefined).map((field) => {
+            if (field.definition === undefined) {
+                const fieldSignature = '`' + `${field.name}:${field.rustType()}` + '`'
+                throw Error(`user defined field ${fieldSignature} has no definition!`)
+            }
+            return field.definition()
+        })
+        return userDefinedFields.join(`\n\n`)
+    }
+
+    compileDefinition() {
+        return [this.compileUDFDefnitions(), this.compileSelfDefinition()].join(`\n\n`)
     }
 
     snakeCaseName() {

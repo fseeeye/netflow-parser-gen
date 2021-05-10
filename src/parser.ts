@@ -32,7 +32,7 @@ export class StructParserGenerator {
 
     protected generateParserBlock() {
         const fieldParsers = this.struct.fields.map((field) => {
-            return field.generateParserCode()
+            return field.generateParseStatement()
         })
 
         const resultSection = this.generateResultSection()
@@ -64,6 +64,23 @@ export class StructParserGenerator {
         return endent`
         ${functionSignature} ${parserBlock}
         `
+    }
+
+    generateUDFParsers() {
+        const userDefinedFields = this.struct.fields.filter((field) => field.isUserDefined)
+        const userDefinedFieldParsers = userDefinedFields.map((field) => {
+            if (field.parserImplementation === undefined) {
+                throw Error(`User defined field ${field.name} has no parser implementation!`)
+            }
+            return field.parserImplementation()
+        })
+        return userDefinedFieldParsers.join(`\n\n`)
+    }
+
+    compileParser() {
+        const udfParsers = this.generateUDFParsers()
+        const structParser = this.generateParser()
+        return [udfParsers, structParser].join(`\n\n`)
     }
 }
 

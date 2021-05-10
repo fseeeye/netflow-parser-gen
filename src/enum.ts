@@ -19,7 +19,7 @@ export class StructEnumVariant extends Struct {
         return ``
     }
 
-    compile() {
+    compileSelfDefinition() {
         return `${this.name} ${this.generateFields()}`
     }
 
@@ -46,7 +46,7 @@ export class StructEnum {
     // }
 
     private generateVariants() {
-        const variants = this.variants.map((variant) => variant.compile())
+        const variants = this.variants.map((variant) => variant.compileSelfDefinition())
         return endent`{
             ${variants.join(`,\n`)}
         }`
