@@ -87,13 +87,34 @@ export class NumericField extends BaseField {
     }
 }
 
+interface LengthVariable {
+    name: string
+    length: () => string
+}
+
+export class LengthVariableInBytes implements LengthVariable {
+    constructor(
+        readonly name: string,
+        readonly scale: number = 1
+    ) { }
+
+    length() {
+        if (this.scale === 1) {
+            return this.name
+        }
+        else {
+            return `${this.name} * ${this.scale}`
+        }
+    }
+}
+
 
 export class BytesRefField extends BaseField {
     isRef: boolean = true
 
     constructor(
         readonly name: string,
-        readonly lengthVariable: string
+        readonly lengthVariable: LengthVariableInBytes
     ) {
         super(name)
     }
@@ -103,11 +124,11 @@ export class BytesRefField extends BaseField {
     }
 
     parserInvocation() {
-        return `${NomBytesFunction.take}(${this.lengthVariable})`
+        return `${NomBytesFunction.take}(${this.lengthVariable.length()})`
     }
 
     validateDependency(prevFields: Field[]): boolean {
-        const dependencyFields = prevFields.filter(field => field.name === this.lengthVariable)
+        const dependencyFields = prevFields.filter(field => field.name === this.lengthVariable.name)
         return dependencyFields.length !== 0
     }
 }
@@ -151,7 +172,7 @@ function isUserDefinedType(elementType: any): elementType is UserDefinedType {
 export class VecField extends BaseField {
     constructor(
         readonly name: string,
-        readonly lengthVariable: string,
+        readonly lengthVariable: LengthVariableInBytes,
         readonly elementType: NumericType | UserDefinedType,
     ) {
         super(name)
@@ -177,7 +198,7 @@ export class VecField extends BaseField {
 
     parserInvocation() {
         const elementParserFunc = this.elementParserFunc()
-        return `${NomMultiFunction.count}(${elementParserFunc}, ${this.lengthVariable} as usize)`
+        return `${NomMultiFunction.count}(${elementParserFunc}, ${this.lengthVariable.length()} as usize)`
     }
 
 }

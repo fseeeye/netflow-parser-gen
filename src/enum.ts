@@ -36,6 +36,10 @@ export class StructEnum {
         // this.validateVariants()
     }
 
+    rustType() {
+        return this.name
+    }
+
     // private validateVariants(): void {
     //     const variantNames = this.variants.map((variant) => variant.name)
     //     for (const [_, variant] of this.variantMap) {
