@@ -1,3 +1,4 @@
+import { snakeCase } from "snake-case"
 import { StructParserGenerator } from "./parser"
 import { Struct } from "./struct"
 
@@ -11,6 +12,10 @@ enum NomNumberFunction {
 enum NomBytesFunction {
     take = 'take',
     tag = 'tag',
+}
+
+enum NomMultiFunction {
+    count = 'count',
 }
 
 export enum RustPrimitiveType {
@@ -137,4 +142,42 @@ export class StructField extends BaseField {
         const gen = new StructParserGenerator(this.struct)
         return gen.generateParser()
     }
+}
+
+function isUserDefinedType(elementType: any): elementType is UserDefinedType {
+    return elementType.parseFunc === undefined
+}
+
+export class VecField extends BaseField {
+    constructor(
+        readonly name: string,
+        readonly lengthVariable: string,
+        readonly elementType: NumericType | UserDefinedType,
+    ) {
+        super(name)
+    }
+
+    rustType() {
+        if (isUserDefinedType(this.elementType)) {
+            return `Vec<${this.elementType}>`
+        }
+        else {
+            return `Vec<${this.elementType.rustType}>`
+        }
+    }
+
+    elementParserFunc() {
+        if (isUserDefinedType(this.elementType)) {
+            return `parse_${snakeCase(this.elementType)}`
+        }
+        else {
+            return this.elementType.parseFunc
+        }
+    }
+
+    parserInvocation() {
+        const elementParserFunc = this.elementParserFunc()
+        return `${NomMultiFunction.count}(${elementParserFunc}, ${this.lengthVariable} as usize)`
+    }
+
 }
