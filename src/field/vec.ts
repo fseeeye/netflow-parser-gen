@@ -1,20 +1,24 @@
-import { snakeCase } from "snake-case"
-import { BaseField, isUserDefinedType, NomMultiFunction, UserDefinedType } from "./base"
+import { Struct } from "../struct"
+import { BaseField, NomMultiFunction } from "./base"
 import { NumericType } from "./numeric"
 import { LengthVariableInBytes } from "./ref"
+
+function isUserDefinedType(elementType: any): elementType is Struct {
+    return elementType.isUserDefinedType === true
+}
 
 export class VecField extends BaseField {
     constructor(
         readonly name: string,
         readonly lengthVariable: LengthVariableInBytes,
-        readonly elementType: NumericType | UserDefinedType,
+        readonly elementType: NumericType | Struct,
     ) {
         super(name)
     }
 
     rustType() {
         if (isUserDefinedType(this.elementType)) {
-            return `Vec<${this.elementType}>`
+            return `Vec<${this.elementType.name}>`
         }
         else {
             return `Vec<${this.elementType.rustType}>`
@@ -23,7 +27,7 @@ export class VecField extends BaseField {
 
     elementParserFunc() {
         if (isUserDefinedType(this.elementType)) {
-            return `parse_${snakeCase(this.elementType)}`
+            return `parse_${this.elementType.snakeCaseName()}`
         }
         else {
             return this.elementType.parseFunc

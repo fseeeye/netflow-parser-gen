@@ -25,6 +25,7 @@ function validateFieldsDependency(fields: Field[]): boolean {
 
 
 export class Struct {
+    isUserDefinedType: boolean = true
 
     constructor(
         readonly name: string,

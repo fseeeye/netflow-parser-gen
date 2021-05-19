@@ -83,7 +83,7 @@ test('test struct with vec field of user defined type', () => {
     }`)
     const read_file_record_fields: Field[] = [
         new NumericField('byte_count', PrimitiveNumericType.u8),
-        new VecField('sub_requests', new LengthVariableInBytes('byte_count'), 'ReadFileSubRequest'),
+        new VecField('sub_requests', new LengthVariableInBytes('byte_count'), readFileSubReq),
     ]
     const readFileRecord = new Struct('ReadFileRecord', read_file_record_fields)
     // console.log(readFileRecord.compileDefinition())

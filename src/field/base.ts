@@ -51,7 +51,3 @@ export abstract class BaseField implements Field {
         return `let (input, ${this.name}) = ${this.parserInvocation()}(input)?;`
     }
 }
-
-export function isUserDefinedType(elementType: any): elementType is UserDefinedType {
-    return elementType.parseFunc === undefined
-}
