@@ -32,8 +32,12 @@ export class NumericType implements FieldType {
         return false
     }
 
-    parserFunctionName() {
+    parserFunctionName(): string {
         return this._parserFunctionName
+    }
+
+    isRef() {
+        return false
     }
 
 }
