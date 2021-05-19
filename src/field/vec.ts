@@ -7,6 +7,17 @@ function isUserDefinedType(elementType: any): elementType is Struct {
     return elementType.isUserDefinedType === true
 }
 
+export class CountVariable implements LengthVariable {
+    constructor(
+        readonly name: string,
+        readonly unitSize: number,
+    ) { }
+
+    length() {
+        return `(${this.name} as usize / ${this.unitSize} as usize)`
+    }
+}
+
 export class VecField extends BaseField {
     constructor(
         readonly name: string,

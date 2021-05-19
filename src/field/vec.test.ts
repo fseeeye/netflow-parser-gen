@@ -5,6 +5,7 @@ import { Struct } from "../struct"
 import { StructParserGenerator } from "../parser"
 import endent from "endent"
 import { Field } from "./base"
+import { CountVariable } from "./vec"
 
 
 test('test struct with vec of primitive field', () => {
@@ -83,7 +84,7 @@ test('test struct with vec field of user defined type', () => {
     }`)
     const read_file_record_fields: Field[] = [
         new NumericField('byte_count', PrimitiveNumericType.u8),
-        new VecField('sub_requests', new LengthVariableInBytes('byte_count'), readFileSubReq),
+        new VecField('sub_requests', new CountVariable('byte_count', 7), readFileSubReq),
     ]
     const readFileRecord = new Struct('ReadFileRecord', read_file_record_fields)
     // console.log(readFileRecord.compileDefinition())
@@ -98,7 +99,7 @@ test('test struct with vec field of user defined type', () => {
     expect(gen.generateParser()).toEqual(endent`
     pub fn parse_read_file_record(input: &[u8]) -> IResult<&[u8], ReadFileRecord> {
         let (input, byte_count) = u8(input)?;
-        let (input, sub_requests) = count(parse_read_file_sub_request, byte_count as usize)(input)?;
+        let (input, sub_requests) = count(parse_read_file_sub_request, (byte_count as usize / 7 as usize) as usize)(input)?;
         Ok((
             input,
             ReadFileRecord {
