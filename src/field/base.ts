@@ -22,13 +22,13 @@ export enum RustPrimitiveType {
     bytesRefWithLifetime = `&'a [u8]`
 }
 
-export type UserDefinedType = string
+export type UserDefinedTypeName = string
 
 export interface Field {
     name: string
     isRef: boolean
     isUserDefined: boolean
-    rustType(): RustPrimitiveType | UserDefinedType
+    rustType(): RustPrimitiveType | UserDefinedTypeName
     parserInvocation: () => string
     definition?: () => string
     parserImplementation?: () => string
@@ -44,7 +44,7 @@ export abstract class BaseField implements Field {
         readonly name: string
     ) { }
 
-    abstract rustType(): RustPrimitiveType | UserDefinedType
+    abstract rustType(): RustPrimitiveType | UserDefinedTypeName
     abstract parserInvocation(): string
 
     generateParseStatement() {
