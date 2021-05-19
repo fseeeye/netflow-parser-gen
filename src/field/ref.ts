@@ -1,6 +1,6 @@
 import { BaseField, Field, NomBytesFunction, RustPrimitiveType } from "./base"
 
-interface LengthVariable {
+export interface LengthVariable {
     name: string
     length: () => string
 }
@@ -27,7 +27,7 @@ export class BytesRefField extends BaseField {
 
     constructor(
         readonly name: string,
-        readonly lengthVariable: LengthVariableInBytes
+        readonly lengthVariable: LengthVariable
     ) {
         super(name)
     }

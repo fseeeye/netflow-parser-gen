@@ -1,7 +1,7 @@
 import { Struct } from "../struct"
 import { BaseField, NomMultiFunction } from "./base"
 import { NumericType } from "./numeric"
-import { LengthVariableInBytes } from "./ref"
+import { LengthVariable } from "./ref"
 
 function isUserDefinedType(elementType: any): elementType is Struct {
     return elementType.isUserDefinedType === true
@@ -10,7 +10,7 @@ function isUserDefinedType(elementType: any): elementType is Struct {
 export class VecField extends BaseField {
     constructor(
         readonly name: string,
-        readonly lengthVariable: LengthVariableInBytes,
+        readonly lengthVariable: LengthVariable,
         readonly elementType: NumericType | Struct,
     ) {
         super(name)
