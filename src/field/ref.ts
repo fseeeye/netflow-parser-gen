@@ -2,7 +2,7 @@ import { BaseField, Field, NomBytesFunction, RustPrimitiveType } from "./base"
 
 export interface LengthVariable {
     name: string
-    length: () => string
+    count: () => string
 }
 
 export class LengthVariableInBytes implements LengthVariable {
@@ -11,7 +11,7 @@ export class LengthVariableInBytes implements LengthVariable {
         readonly scale: number = 1
     ) { }
 
-    length() {
+    count() {
         if (this.scale === 1) {
             return this.name
         }
@@ -37,7 +37,7 @@ export class BytesRefField extends BaseField {
     }
 
     parserInvocation() {
-        return `${NomBytesFunction.take}(${this.lengthVariable.length()})`
+        return `${NomBytesFunction.take}(${this.lengthVariable.count()})`
     }
 
     validateDependency(prevFields: Field[]): boolean {

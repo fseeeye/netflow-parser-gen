@@ -13,7 +13,7 @@ export class CountVariable implements LengthVariable {
         readonly unitSize: number,
     ) { }
 
-    length() {
+    count() {
         return `(${this.name} as usize / ${this.unitSize} as usize)`
     }
 }
@@ -47,7 +47,7 @@ export class VecField extends BaseField {
 
     parserInvocation() {
         const elementParserFunc = this.elementParserFunc()
-        return `${NomMultiFunction.count}(${elementParserFunc}, ${this.lengthVariable.length()} as usize)`
+        return `${NomMultiFunction.count}(${elementParserFunc}, ${this.lengthVariable.count()} as usize)`
     }
 
 }
