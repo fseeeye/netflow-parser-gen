@@ -1,10 +1,10 @@
 import {
     NumericField, PrimitiveNumericType, VecField, LengthVariableInBytes
-} from "./field"
-import { Struct } from "./struct"
-import { StructParserGenerator } from "./parser"
+} from "."
+import { Struct } from "../struct"
+import { StructParserGenerator } from "../parser"
 import endent from "endent"
-import { Field } from "./field/base"
+import { Field } from "./base"
 
 
 test('test struct with vec of primitive field', () => {
