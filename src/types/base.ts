@@ -1,6 +1,6 @@
 
 export interface FieldType {
-    name(): string
+    typeName(): string
     isUserDefined(): boolean
     parserFunctionName(): string
     parserFunctionDefinition?: () => string

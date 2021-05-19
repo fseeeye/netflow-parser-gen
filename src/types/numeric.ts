@@ -24,7 +24,7 @@ export class NumericType implements FieldType {
         private readonly _parserFunctionName: NomNumberFunction,
     ) { }
 
-    name() {
+    typeName() {
         return this._name
     }
 

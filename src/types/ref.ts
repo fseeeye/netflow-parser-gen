@@ -4,7 +4,7 @@ import { FieldType } from "./base"
 
 export class BytesReference implements FieldType {
 
-    name() {
+    typeName() {
         return `&[u8]`
     }
 
