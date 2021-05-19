@@ -1,6 +1,6 @@
 import endent from "endent"
 import { snakeCase } from "snake-case"
-import { Field } from "./field"
+import { Field } from "./field/base"
 
 export const DEFAULT_ATTRIBUTES = [`Debug`, `PartialEq`]
 

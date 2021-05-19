@@ -1,7 +1,8 @@
-import { Field, NumericField, PrimitiveNumericType, BytesRefField, StructField, LengthVariableInBytes } from "./field"
+import { NumericField, PrimitiveNumericType, BytesRefField, StructField, LengthVariableInBytes } from "./field"
 import { Struct } from "./struct"
 import { StructParserGenerator } from "./parser"
 import endent from "endent"
+import { Field } from "./field/base"
 
 test('test struct with reference', () => {
     const fields: Field[] = [
