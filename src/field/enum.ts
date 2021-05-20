@@ -34,4 +34,8 @@ export class EnumField extends BaseField {
         const gen = new StructEnumParserGenerator(this.structEnum)
         return gen.generateParser()
     }
+
+    generateParseStatement() {
+        return `let (input, ${this.name}) = ${this.parserInvocation()}(input, ${this.structEnum.choiceField.name})?;`
+    }
 }

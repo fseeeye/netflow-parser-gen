@@ -124,7 +124,7 @@ test('test struct with enum field', () => {
     
     pub fn parse_request(input: &[u8]) -> IResult<&[u8], Request> {
         let (input, function_code) = u8(input)?;
-        let (input, request_data) = parse_request_data(input)?;
+        let (input, request_data) = parse_request_data(input, function_code)?;
         Ok((
             input,
             Request {
