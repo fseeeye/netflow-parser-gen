@@ -6,7 +6,7 @@ import { Field } from "./base"
 import { NumericField } from "./numeric"
 import { StructField } from "./struct"
 import { BytesReferenceField } from "./ref"
-import { LengthVariableInBytes } from "../len"
+import { CountVariable } from "../len"
 
 test('test struct with struct field', () => {
     const mbapHeaderFields: Field[] = [
@@ -75,7 +75,7 @@ test('test struct with struct field with reference', () => {
         new NumericField('protocol_id', RustNumericType.be_u16),
         new NumericField('length', RustNumericType.be_u16),
         new NumericField('unit_id', RustNumericType.u8),
-        new BytesReferenceField('data', new LengthVariableInBytes('length')),
+        new BytesReferenceField('data', new CountVariable('length')),
     ]
 
     const header = new Struct('MBAPHeaderV2', mbapHeaderFields)

@@ -1,5 +1,5 @@
 import endent from "endent"
-import { CountVariable, LengthVariableInBytes } from "../len"
+import { CountVariable } from "../len"
 import { RustNumericType } from "../types/numeric"
 import { StructParserGenerator } from "../types/parser"
 import { Struct } from "../types/struct"
@@ -12,7 +12,7 @@ test('test struct with vec of primitive field', () => {
         new NumericField('start_address', RustNumericType.u8),
         new NumericField('output_count', RustNumericType.be_u16),
         new NumericField('byte_count', RustNumericType.u8),
-        new VecField('output_values', new LengthVariableInBytes('output_count'), RustNumericType.be_u16),
+        new VecField('output_values', new CountVariable('output_count'), RustNumericType.be_u16),
     ]
     const writeMultipleRegister = new Struct('WriteMultipleRegisters', fields)
     // console.log(writeMultipleRegister.compileDefinition())
@@ -51,7 +51,6 @@ test('test struct with vec field of user defined type', () => {
         new NumericField('file_number', RustNumericType.be_u16),
         new NumericField('record_number', RustNumericType.be_u16),
         new NumericField('record_len', RustNumericType.be_u16),
-        // new BytesRefField('record_data', new LengthVariable('record_len')),
     ]
     const readFileSubReq = new Struct('ReadFileSubRequest', read_file_sub_req_fields)
     // console.log(readFileSubReq.compileDefinition())
@@ -83,7 +82,7 @@ test('test struct with vec field of user defined type', () => {
     }`)
     const read_file_record_fields: Field[] = [
         new NumericField('byte_count', RustNumericType.u8),
-        new VecField('sub_requests', new CountVariable('byte_count', 7), readFileSubReq),
+        new VecField('sub_requests', new CountVariable('byte_count', 7, 'div'), readFileSubReq),
     ]
     const readFileRecord = new Struct('ReadFileRecord', read_file_record_fields)
     // console.log(readFileRecord.compileDefinition())

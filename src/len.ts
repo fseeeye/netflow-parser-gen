@@ -1,32 +1,35 @@
-export interface LengthVariable {
-    name: string
-    count: () => string
-}
+export type CountMode = 'mul' | 'div'
 
-export class LengthVariableInBytes implements LengthVariable {
+export class CountVariable {
     constructor(
         readonly name: string,
-        readonly scale: number = 1
-    ) { }
-
-    count() {
-        if (this.scale === 1) {
-            return this.name
-        }
-        else {
-            return `${this.name} * ${this.scale}`
+        readonly unitSize: number = 1,
+        readonly mode: CountMode = 'mul',
+    ) {
+        if (unitSize === 0) {
+            throw Error(`unit size should not be 0!`)
         }
     }
-}
 
-export class CountVariable implements LengthVariable {
-    constructor(
-        readonly name: string,
-        readonly unitSize: number,
-    ) { }
+    private multiply() {
+        return `(${this.name} * ${this.unitSize})`
+    }
 
-    count() {
+    private divide() {
         return `(${this.name} as usize / ${this.unitSize} as usize)`
     }
+
+    count() {
+        if (this.unitSize === 1) {
+            return this.name
+        }
+        if (this.mode === 'mul') {
+            return this.multiply()
+        }
+        else {
+            return this.divide()
+        }
+    }
+
 }
 

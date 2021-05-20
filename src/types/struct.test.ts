@@ -1,11 +1,11 @@
 import endent from "endent"
 import { RustNumericType } from "./numeric"
 import { StructParserGenerator } from "./parser"
-import { LengthVariableInBytes } from "../len"
 import { Field } from "../field/base"
 import { NumericField } from "../field/numeric"
 import { BytesReferenceField } from "../field/ref"
 import { Struct } from "./struct"
+import { CountVariable } from "../len"
 
 test('test struct with reference', () => {
     const fields: Field[] = [
@@ -13,7 +13,7 @@ test('test struct with reference', () => {
         new NumericField('file_number', RustNumericType.be_u16),
         new NumericField('record_number', RustNumericType.be_u16),
         new NumericField('record_len', RustNumericType.be_u16),
-        new BytesReferenceField('record_data', new LengthVariableInBytes('record_len')),
+        new BytesReferenceField('record_data', new CountVariable('record_len')),
     ]
 
     const writeFileRecordSubRequest = new Struct('WriteFileRecordSubRequest', fields)

@@ -1,8 +1,8 @@
 import endent from "endent"
 import { NumericField } from "../field/numeric"
 import { BytesReferenceField } from "../field/ref"
+import { CountVariable } from "../len"
 import { StructEnumVariant, StructEnum, StructEnumParserGenerator } from "./enum"
-import { LengthVariableInBytes } from "../len"
 import { RustNumericType } from "./numeric"
 
 
@@ -161,7 +161,7 @@ test('enum definition with reference', () => {
                 new NumericField('file_number', RustNumericType.be_u16),
                 new NumericField('record_number', RustNumericType.be_u16),
                 new NumericField('record_len', RustNumericType.be_u16),
-                new BytesReferenceField('record_data', new LengthVariableInBytes('record_len')),
+                new BytesReferenceField('record_data', new CountVariable('record_len')),
             ],
             0x17
         ),
