@@ -4,10 +4,23 @@ import { generateAttributesCode } from "../utils"
 import { Struct } from "./struct"
 import { Field } from "../field/base"
 import { FieldType } from "./base"
+import { StructEnumVariantParserGenerator } from "../parser/enum"
 
 export type ChoiceType = string | number
 
-export class StructEnumVariant extends Struct {
+interface EnumVariant {
+    name: string
+    inlineParsable: boolean
+    choice: ChoiceType
+    definition(): string
+    hasReference(): boolean
+    parserInvocation(): string
+    parserImplementation(enumName: string): string
+}
+
+export class StructEnumVariant extends Struct implements EnumVariant {
+    inlineParsable: boolean = false
+
     constructor(
         readonly name: string,
         readonly fields: Field[],
@@ -24,18 +37,24 @@ export class StructEnumVariant extends Struct {
         return `${this.name} ${this.generateFields()}`
     }
 
+    parserInvocation() {
+        return this.parserFunctionName()
+    }
+
+    parserImplementation(enumName: string) {
+        const gen = new StructEnumVariantParserGenerator(this, enumName)
+        return gen.generateParser(false)
+    }
+
 }
 
 export class StructEnum implements FieldType {
 
     constructor(
         readonly name: string,
-        readonly variants: StructEnumVariant[],
+        readonly variants: EnumVariant[],
         readonly choiceField: Field,
-        // readonly variantMap: Map<number | string, StructEnumVariant>,
-    ) {
-        // this.validateVariants()
-    }
+    ) { }
 
     typeName() {
         return this.name
@@ -53,15 +72,6 @@ export class StructEnum implements FieldType {
         return this.hasReference()
     }
 
-    // private validateVariants(): void {
-    //     const variantNames = this.variants.map((variant) => variant.name)
-    //     for (const [_, variant] of this.variantMap) {
-    //         if (variantNames.includes(variant.name) === false) {
-    //             throw Error(`variant ${variant.name} not found!`)
-    //         }
-    //     }
-    // }
-
     private generateVariants() {
         const variants = this.variants.map((variant) => variant.definition())
         return endent`{
@@ -76,10 +86,6 @@ export class StructEnum implements FieldType {
     private lifetimeSpecifier(): string {
         return this.hasReference() ? `<'a>` : ''
     }
-
-    // definition() {
-    //     return `pub enum ${this.name} ${this.lifetimeSpecifier()} ${this.generateVariants()}`
-    // }
 
     definition() {
         const attributes = generateAttributesCode()

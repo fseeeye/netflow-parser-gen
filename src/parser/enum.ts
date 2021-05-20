@@ -69,7 +69,7 @@ export class StructEnumParserGenerator {
         const structEnum = this.structEnum
         // console.log(structEnum.variantMap)
         const choiceArms = structEnum.variants.map((variant) => {
-            const variantParserName = variant.parserFunctionName()
+            const variantParserName = variant.parserInvocation()
             const choiceLiteral = generateChoiceLiteral(variant.choice)
             return endent`
             ${choiceLiteral} => ${variantParserName}(input),
@@ -86,10 +86,11 @@ export class StructEnumParserGenerator {
         `
     }
 
-    generateVariantParsers() {
-        const parsers = this.structEnum.variants.map((variant) => {
-            const gen = new StructEnumVariantParserGenerator(variant, this.structEnum.name)
-            return gen.generateParser(false)
+    generateVariantParserFunctions() {
+        const parsers = this.structEnum.variants.filter(variant => variant.inlineParsable === false).map((variant) => {
+            // const gen = new StructEnumVariantParserGenerator(variant, this.structEnum.name)
+            // return gen.generateParser(false)
+            return variant.parserImplementation(this.structEnum.name)
         })
 
         return parsers.join(`\n\n`)
@@ -108,7 +109,7 @@ export class StructEnumParserGenerator {
     generateParser() {
         // const nomImports = generateNomImport()
         // const enumDef = this.structEnum.definition()
-        const variantParsers = this.generateVariantParsers()
+        const variantParsers = this.generateVariantParserFunctions()
         const enumParser = this.generateEnumParser()
         return [variantParsers, enumParser].join(`\n\n`)
     }
