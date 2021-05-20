@@ -1,8 +1,9 @@
 import endent from "endent"
 import { snakeCase } from "snake-case"
-import { Field } from "./field"
+import { Field, FieldType } from "./base"
 import { generateNomImport, StructParserGenerator } from "./parser"
-import { generateAttributesCode, Struct } from "./struct"
+import { generateAttributesCode } from "./utils"
+import { Struct } from "./struct"
 
 type ChoiceType = string | number
 
@@ -19,13 +20,13 @@ export class StructEnumVariant extends Struct {
         return ``
     }
 
-    compileSelfDefinition() {
+    definition() {
         return `${this.name} ${this.generateFields()}`
     }
 
 }
 
-export class StructEnum {
+export class StructEnum implements FieldType {
 
     constructor(
         readonly name: string,
@@ -36,8 +37,20 @@ export class StructEnum {
         // this.validateVariants()
     }
 
-    rustType() {
+    typeName() {
         return this.name
+    }
+
+    isUserDefined() {
+        return true
+    }
+
+    parserFunctionName() {
+        return `parse_${this.snakeCaseName()}`
+    }
+
+    isRef() {
+        return this.hasReference()
     }
 
     // private validateVariants(): void {
@@ -50,7 +63,7 @@ export class StructEnum {
     // }
 
     private generateVariants() {
-        const variants = this.variants.map((variant) => variant.compileSelfDefinition())
+        const variants = this.variants.map((variant) => variant.definition())
         return endent`{
             ${variants.join(`,\n`)}
         }`
@@ -64,13 +77,13 @@ export class StructEnum {
         return this.hasReference() ? `<'a>` : ''
     }
 
-    definition() {
-        return `pub enum ${this.name} ${this.lifetimeSpecifier()} ${this.generateVariants()}`
-    }
+    // definition() {
+    //     return `pub enum ${this.name} ${this.lifetimeSpecifier()} ${this.generateVariants()}`
+    // }
 
-    compile() {
+    definition() {
         const attributes = generateAttributesCode()
-        const definition = this.definition()
+        const definition = `pub enum ${this.name} ${this.lifetimeSpecifier()} ${this.generateVariants()}`
         return [attributes, definition].join(`\n`)
     }
 
@@ -102,7 +115,7 @@ export class StructEnumVariantParserGenerator extends StructParserGenerator {
     }
 
     protected generateFunctionSignature() {
-        const name = this.generateParserName()
+        const name = this.struct.parserFunctionName()
         return `fn ${name}(input: &[u8]) -> IResult<&[u8], ${this.enumName}>`
     }
 }
@@ -133,7 +146,7 @@ export class StructEnumParserGenerator {
 
     functionSignature() {
         const structEnum = this.structEnum
-        const choiceParameter = `${structEnum.choiceField.name}: ${structEnum.choiceField.rustType()}`
+        const choiceParameter = `${structEnum.choiceField.name}: ${structEnum.choiceField.typeName()}`
         return `pub fn parse_${structEnum.snakeCaseName()}(input: &[u8], ${choiceParameter}) -> IResult<&[u8], ${structEnum.name}>`
     }
 
@@ -147,7 +160,7 @@ export class StructEnumParserGenerator {
         const structEnum = this.structEnum
         // console.log(structEnum.variantMap)
         const choiceArms = structEnum.variants.map((variant) => {
-            const variantParserName = StructParserGenerator.generateParserName(variant)
+            const variantParserName = variant.parserFunctionName()
             const choiceLiteral = generateChoiceLiteral(variant.choice)
             return endent`
             ${choiceLiteral} => ${variantParserName}(input),
@@ -183,9 +196,9 @@ export class StructEnumParserGenerator {
         `
     }
 
-    compile() {
+    generateParser() {
         const nomImports = generateNomImport()
-        const enumDef = this.structEnum.compile()
+        const enumDef = this.structEnum.definition()
         const variantParsers = this.generateVariantParsers()
         const enumParser = this.generateEnumParser()
         return [nomImports, enumDef, variantParsers, enumParser].join(`\n\n`)

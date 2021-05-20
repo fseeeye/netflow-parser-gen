@@ -1,16 +1,16 @@
-import { NomBytesFunction } from "../field/base"
 import { FieldType } from "./base"
+import { NomBytesFunction } from "./nom"
 
 
-export const BytesReference: FieldType & any = {
+export const BytesReference: FieldType = {
 
     typeName() {
         return `&'a [u8]`
     },
 
-    nameWithLifetime() {
-        return `&'a [u8]`
-    },
+    // nameWithLifetime() {
+    //     return `&'a [u8]`
+    // },
 
     isUserDefined() {
         return false

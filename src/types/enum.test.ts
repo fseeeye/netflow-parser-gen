@@ -1,15 +1,18 @@
 import endent from "endent"
+import { NumericField, BytesReferenceField } from "./base"
 import { StructEnumVariant, StructEnum, StructEnumParserGenerator } from "./enum"
-import { BytesRefField, LengthVariableInBytes, NumericField, PrimitiveNumericType } from "./field"
+import { LengthVariableInBytes } from "./len"
+import { RustNumericType } from "./numeric"
+
 
 const SimpleReadRequestFields = [
-    new NumericField('start_address', PrimitiveNumericType.be_u16),
-    new NumericField('count', PrimitiveNumericType.be_u16),
+    new NumericField('start_address', RustNumericType.be_u16),
+    new NumericField('count', RustNumericType.be_u16),
 ]
 
 test('test enum definition without reference', () => {
     const enumName = 'RequestData'
-    const functionCodeField = new NumericField('function_code', PrimitiveNumericType.u8)
+    const functionCodeField = new NumericField('function_code', RustNumericType.u8)
     const variants: StructEnumVariant[] = [
         new StructEnumVariant(
             'ReadCoils',
@@ -34,8 +37,8 @@ test('test enum definition without reference', () => {
         new StructEnumVariant(
             'WriteSingleCoil',
             [
-                new NumericField('output_address', PrimitiveNumericType.be_u16),
-                new NumericField('output_value', PrimitiveNumericType.be_u16),
+                new NumericField('output_address', RustNumericType.be_u16),
+                new NumericField('output_value', RustNumericType.be_u16),
             ],
             0x05
         )
@@ -43,7 +46,7 @@ test('test enum definition without reference', () => {
     const structEnum = new StructEnum(enumName, variants, functionCodeField)
     const gen = new StructEnumParserGenerator(structEnum)
     // console.log(gen.compile())
-    expect(gen.compile()).toEqual(endent`
+    expect(gen.generateParser()).toEqual(endent`
     use nom::bytes::complete::{tag, take};
     use nom::multi::count;
     use nom::number::complete::{be_u32, be_u16, u8};
@@ -148,24 +151,24 @@ test('test enum definition without reference', () => {
 })
 
 test('enum definition with reference', () => {
-    const functionCodeField = new NumericField('function_code', PrimitiveNumericType.u8)
+    const functionCodeField = new NumericField('function_code', RustNumericType.u8)
     const variants = [
         new StructEnumVariant(
             'WriteFileRecordSubRequest',
             [
-                new NumericField('ref_type', PrimitiveNumericType.u8),
-                new NumericField('file_number', PrimitiveNumericType.be_u16),
-                new NumericField('record_number', PrimitiveNumericType.be_u16),
-                new NumericField('record_len', PrimitiveNumericType.be_u16),
-                new BytesRefField('record_data', new LengthVariableInBytes('record_len')),
+                new NumericField('ref_type', RustNumericType.u8),
+                new NumericField('file_number', RustNumericType.be_u16),
+                new NumericField('record_number', RustNumericType.be_u16),
+                new NumericField('record_len', RustNumericType.be_u16),
+                new BytesReferenceField('record_data', new LengthVariableInBytes('record_len')),
             ],
             0x17
         ),
         new StructEnumVariant(
             'WriteSingleRegister',
             [
-                new NumericField('register_address', PrimitiveNumericType.be_u16),
-                new NumericField('register_value', PrimitiveNumericType.be_u16),
+                new NumericField('register_address', RustNumericType.be_u16),
+                new NumericField('register_value', RustNumericType.be_u16),
             ],
             0x06
         )
@@ -173,7 +176,7 @@ test('enum definition with reference', () => {
     const structEnum = new StructEnum('RequestData', variants, functionCodeField)
     const gen = new StructEnumParserGenerator(structEnum)
     // console.log(gen.compile())
-    expect(gen.compile()).toEqual(endent`
+    expect(gen.generateParser()).toEqual(endent`
     use nom::bytes::complete::{tag, take};
     use nom::multi::count;
     use nom::number::complete::{be_u32, be_u16, u8};

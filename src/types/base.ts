@@ -1,5 +1,5 @@
-import { NomBytesFunction } from "../field/base"
-import { LengthVariable } from "../field/ref"
+import { LengthVariable } from "./len"
+import { NomBytesFunction } from "./nom"
 import { NumericType } from "./numeric"
 import { BytesReference } from "./ref"
 
@@ -13,7 +13,7 @@ export interface FieldType {
 }
 
 
-export interface FieldProps {
+export interface Field {
     name: string
     isRef(): boolean
     isUserDefined(): boolean
@@ -26,7 +26,7 @@ export interface FieldProps {
 }
 
 
-export abstract class BasicField implements FieldProps {
+export abstract class BasicField implements Field {
     constructor(
         readonly name: string,
         readonly fieldType: FieldType

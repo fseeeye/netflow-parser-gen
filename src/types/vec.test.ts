@@ -1,23 +1,21 @@
-import {
-    NumericField, PrimitiveNumericType, VecField, LengthVariableInBytes
-} from "."
-import { Struct } from "../struct"
-import { StructParserGenerator } from "../parser"
 import endent from "endent"
-import { Field } from "./base"
-import { CountVariable } from "./vec"
-
+import { Field, NumericField } from "./base"
+import { CountVariable, LengthVariableInBytes } from "./len"
+import { RustNumericType } from "./numeric"
+import { StructParserGenerator } from "./parser"
+import { Struct } from "./struct"
+import { VecField } from "./vec"
 
 test('test struct with vec of primitive field', () => {
     const fields: Field[] = [
-        new NumericField('start_address', PrimitiveNumericType.u8),
-        new NumericField('output_count', PrimitiveNumericType.be_u16),
-        new NumericField('byte_count', PrimitiveNumericType.u8),
-        new VecField('output_values', new LengthVariableInBytes('output_count'), PrimitiveNumericType.be_u16),
+        new NumericField('start_address', RustNumericType.u8),
+        new NumericField('output_count', RustNumericType.be_u16),
+        new NumericField('byte_count', RustNumericType.u8),
+        new VecField('output_values', new LengthVariableInBytes('output_count'), RustNumericType.be_u16),
     ]
     const writeMultipleRegister = new Struct('WriteMultipleRegisters', fields)
     // console.log(writeMultipleRegister.compileDefinition())
-    expect(writeMultipleRegister.compileSelfDefinition()).toEqual(endent`
+    expect(writeMultipleRegister.definition()).toEqual(endent`
     #[derive(Debug,PartialEq)]
     pub struct WriteMultipleRegisters  {
         pub start_address : u8,
@@ -48,15 +46,15 @@ test('test struct with vec of primitive field', () => {
 
 test('test struct with vec field of user defined type', () => {
     const read_file_sub_req_fields: Field[] = [
-        new NumericField('ref_type', PrimitiveNumericType.u8),
-        new NumericField('file_number', PrimitiveNumericType.be_u16),
-        new NumericField('record_number', PrimitiveNumericType.be_u16),
-        new NumericField('record_len', PrimitiveNumericType.be_u16),
+        new NumericField('ref_type', RustNumericType.u8),
+        new NumericField('file_number', RustNumericType.be_u16),
+        new NumericField('record_number', RustNumericType.be_u16),
+        new NumericField('record_len', RustNumericType.be_u16),
         // new BytesRefField('record_data', new LengthVariable('record_len')),
     ]
     const readFileSubReq = new Struct('ReadFileSubRequest', read_file_sub_req_fields)
     // console.log(readFileSubReq.compileDefinition())
-    expect(readFileSubReq.compileSelfDefinition()).toEqual(endent`
+    expect(readFileSubReq.definition()).toEqual(endent`
     #[derive(Debug,PartialEq)]
     pub struct ReadFileSubRequest  {
         pub ref_type : u8,
@@ -83,12 +81,12 @@ test('test struct with vec field of user defined type', () => {
         ))
     }`)
     const read_file_record_fields: Field[] = [
-        new NumericField('byte_count', PrimitiveNumericType.u8),
+        new NumericField('byte_count', RustNumericType.u8),
         new VecField('sub_requests', new CountVariable('byte_count', 7), readFileSubReq),
     ]
     const readFileRecord = new Struct('ReadFileRecord', read_file_record_fields)
     // console.log(readFileRecord.compileDefinition())
-    expect(readFileRecord.compileSelfDefinition()).toEqual(endent`
+    expect(readFileRecord.definition()).toEqual(endent`
     #[derive(Debug,PartialEq)]
     pub struct ReadFileRecord  {
         pub byte_count : u8,

@@ -1,20 +1,11 @@
 import { FieldType } from "./base"
+import { NomNumberFunction } from "./nom"
 
 enum RustNumericTypeName {
     u8 = 'u8',
     u16 = 'u16',
     u32 = 'u32',
     u64 = 'u64',
-}
-
-enum NomNumberFunction {
-    u8 = 'u8',
-    be_u16 = 'be_u16',
-    be_u32 = 'be_u32',
-    be_u64 = 'be_u64',
-    le_u16 = 'le_u16',
-    le_u32 = 'le_u32',
-    le_u64 = 'le_u64',
 }
 
 

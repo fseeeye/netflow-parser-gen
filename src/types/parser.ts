@@ -45,21 +45,21 @@ export class StructParserGenerator {
     }
 
     static generateParserName(struct: Struct) {
-        return `parse_${struct.snakeCaseName()}`
+        return struct.parserFunctionName()
     }
 
-    generateParserName() {
-        return StructParserGenerator.generateParserName(this.struct)
-    }
+    // generateParserName() {
+    //     return this.struct.parserFunctionName()
+    // }
 
     protected generateFunctionSignature() {
-        const name = this.generateParserName()
+        const name = this.struct.parserFunctionName()
         return `fn ${name}(input: &[u8]) -> IResult<&[u8], ${this.struct.name}>`
     }
 
     generateParser(pub: boolean = true) {
-        const visibilitySpecifier = pub ? `pub` : ``
-        const functionSignature = `${visibilitySpecifier} ${this.generateFunctionSignature()}`
+        const visibilitySpecifier = pub ? `pub ` : ``
+        const functionSignature = `${visibilitySpecifier}${this.generateFunctionSignature()}`
         const parserBlock = this.generateParserBlock()
 
         return endent`
@@ -67,8 +67,8 @@ export class StructParserGenerator {
         `
     }
 
-    generateUDFParsers() {
-        const userDefinedFields = this.struct.fields.filter((field) => field.isUserDefined)
+    private generateUserDefinedFieldParsers() {
+        const userDefinedFields = this.struct.fields.filter((field) => field.isUserDefined())
         const userDefinedFieldParsers = userDefinedFields.map((field) => {
             if (field.parserImplementation === undefined) {
                 throw Error(`User defined field ${field.name} has no parser implementation!`)
@@ -78,8 +78,8 @@ export class StructParserGenerator {
         return userDefinedFieldParsers.join(`\n\n`)
     }
 
-    compileParser() {
-        const udfParsers = this.generateUDFParsers()
+    generateParserWithUserDefinedFields() {
+        const udfParsers = this.generateUserDefinedFieldParsers()
         const structParser = this.generateParser()
         return [udfParsers, structParser].join(`\n\n`)
     }

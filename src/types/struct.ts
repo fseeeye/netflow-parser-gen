@@ -1,17 +1,15 @@
 import endent from "endent"
 import { snakeCase } from "snake-case"
-import { generateAttributesCode } from "../struct"
-import { FieldProps, FieldType } from "./base"
+import { Field, FieldType } from "./base"
+import { StructParserGenerator } from "./parser"
+import { generateAttributesCode } from "./utils"
 
 export class Struct implements FieldType {
 
     constructor(
         readonly name: string,
-        readonly fields: FieldProps[],
+        readonly fields: Field[],
     ) {
-        // if (validateFieldsDependency(fields) === false) {
-        //     throw Error(`dependency check failed`)
-        // }
     }
 
     typeName() {
@@ -31,7 +29,8 @@ export class Struct implements FieldType {
     }
 
     parserFunctionDefinition() {
-        return ``
+        const gen = new StructParserGenerator(this)
+        return gen.generateParser()
     }
 
     protected visibilitySpecifier(): string {
@@ -63,7 +62,7 @@ export class Struct implements FieldType {
         return [attributes, def].join(`\n`)
     }
 
-    compileUDFDefinitions() {
+    userDefinedFieldDefinitions() {
         const userDefinedFields = this.fields.filter((field) => field.isUserDefined()).map((field) => {
             if (field.definition === undefined) {
                 const fieldSignature = '`' + `${field.name}:${field.typeName()}` + '`'
@@ -74,11 +73,54 @@ export class Struct implements FieldType {
         return userDefinedFields.join(`\n\n`)
     }
 
-    definitionWithUDF() {
-        return [this.compileUDFDefinitions(), this.definition()].join(`\n\n`)
+    definitionWithFields() {
+        return [this.userDefinedFieldDefinitions(), this.definition()].join(`\n\n`)
     }
 
     snakeCaseName() {
         return snakeCase(this.name)
+    }
+}
+
+
+export class StructField implements Field {
+    readonly name: string
+
+    constructor(
+        readonly struct: Struct,
+        readonly fieldName?: string,
+    ) {
+        this.name = this.fieldName || this.struct.snakeCaseName()
+    }
+
+    isRef() {
+        return this.struct.isRef()
+    }
+
+    isUserDefined() {
+        return true
+    }
+
+    definition() {
+        return this.struct.definition()
+    }
+
+    typeName() {
+        if (this.isRef()) {
+            return `${this.struct.name} <'a>`
+        }
+        return this.struct.name
+    }
+
+    parserInvocation() {
+        return this.struct.parserFunctionName()
+    }
+
+    parserImplementation() {
+        return this.struct.parserFunctionDefinition()
+    }
+
+    generateParseStatement() {
+        return `let (input, ${this.name}) = ${this.parserInvocation()}(input)?;`
     }
 }
