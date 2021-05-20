@@ -1,8 +1,9 @@
 import endent from "endent"
 import { snakeCase } from "snake-case"
-import { Field, FieldType } from "./base"
+import { Field } from "../field/base"
+import { FieldType } from "./base"
 import { StructParserGenerator } from "./parser"
-import { generateAttributesCode } from "./utils"
+import { generateAttributesCode } from "../utils"
 
 export class Struct implements FieldType {
 
@@ -79,48 +80,5 @@ export class Struct implements FieldType {
 
     snakeCaseName() {
         return snakeCase(this.name)
-    }
-}
-
-
-export class StructField implements Field {
-    readonly name: string
-
-    constructor(
-        readonly struct: Struct,
-        readonly fieldName?: string,
-    ) {
-        this.name = this.fieldName || this.struct.snakeCaseName()
-    }
-
-    isRef() {
-        return this.struct.isRef()
-    }
-
-    isUserDefined() {
-        return true
-    }
-
-    definition() {
-        return this.struct.definition()
-    }
-
-    typeName() {
-        if (this.isRef()) {
-            return `${this.struct.name} <'a>`
-        }
-        return this.struct.name
-    }
-
-    parserInvocation() {
-        return this.struct.parserFunctionName()
-    }
-
-    parserImplementation() {
-        return this.struct.parserFunctionDefinition()
-    }
-
-    generateParseStatement() {
-        return `let (input, ${this.name}) = ${this.parserInvocation()}(input)?;`
     }
 }

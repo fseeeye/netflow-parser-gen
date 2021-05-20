@@ -1,9 +1,10 @@
 import endent from "endent"
-import { Field, NumericField } from "./base"
-import { CountVariable, LengthVariableInBytes } from "./len"
-import { RustNumericType } from "./numeric"
-import { StructParserGenerator } from "./parser"
-import { Struct } from "./struct"
+import { CountVariable, LengthVariableInBytes } from "../len"
+import { RustNumericType } from "../types/numeric"
+import { StructParserGenerator } from "../types/parser"
+import { Struct } from "../types/struct"
+import { Field } from "./base"
+import { NumericField } from "./numeric"
 import { VecField } from "./vec"
 
 test('test struct with vec of primitive field', () => {

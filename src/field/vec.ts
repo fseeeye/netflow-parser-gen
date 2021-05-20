@@ -1,7 +1,7 @@
-import { Field, FieldType, } from "./base"
-import { LengthVariable } from "./len"
-import { NomMultiFunction } from "./nom"
-
+import { FieldType } from "../types/base"
+import { LengthVariable } from "../len"
+import { NomMultiFunction } from "../nom"
+import { Field } from "./base"
 
 
 export class VecField implements Field {

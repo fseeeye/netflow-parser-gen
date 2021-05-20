@@ -1,7 +1,8 @@
 import endent from "endent"
-import { NumericField, BytesReferenceField } from "./base"
+import { NumericField } from "../field/numeric"
+import { BytesReferenceField } from "../field/ref"
 import { StructEnumVariant, StructEnum, StructEnumParserGenerator } from "./enum"
-import { LengthVariableInBytes } from "./len"
+import { LengthVariableInBytes } from "../len"
 import { RustNumericType } from "./numeric"
 
 

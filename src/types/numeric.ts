@@ -1,5 +1,5 @@
 import { FieldType } from "./base"
-import { NomNumberFunction } from "./nom"
+import { NomNumberFunction } from "../nom"
 
 enum RustNumericTypeName {
     u8 = 'u8',

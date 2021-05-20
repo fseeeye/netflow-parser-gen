@@ -1,9 +1,10 @@
 import endent from "endent"
 import { snakeCase } from "snake-case"
-import { Field, FieldType } from "./base"
 import { generateNomImport, StructParserGenerator } from "./parser"
-import { generateAttributesCode } from "./utils"
+import { generateAttributesCode } from "../utils"
 import { Struct } from "./struct"
+import { Field } from "../field/base"
+import { FieldType } from "./base"
 
 type ChoiceType = string | number
 
