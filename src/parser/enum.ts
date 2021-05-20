@@ -107,10 +107,10 @@ export class StructEnumParserGenerator {
 
     generateParser() {
         // const nomImports = generateNomImport()
-        const enumDef = this.structEnum.definition()
+        // const enumDef = this.structEnum.definition()
         const variantParsers = this.generateVariantParsers()
         const enumParser = this.generateEnumParser()
-        return [enumDef, variantParsers, enumParser].join(`\n\n`)
+        return [variantParsers, enumParser].join(`\n\n`)
     }
 
 }

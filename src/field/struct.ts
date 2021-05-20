@@ -1,3 +1,4 @@
+import { StructParserGenerator } from "../parser/struct"
 import { Struct } from "../types/struct"
 import { BaseField } from "./base"
 
@@ -35,7 +36,8 @@ export class StructField extends BaseField {
     }
 
     parserImplementation() {
-        return this.struct.parserFunctionDefinition()
+        const gen = new StructParserGenerator(this.struct)
+        return gen.generateParser()
     }
 
     generateParseStatement() {

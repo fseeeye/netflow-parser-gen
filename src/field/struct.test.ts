@@ -133,7 +133,3 @@ test('test struct with struct field with reference', () => {
         ))
     }`)
 })
-
-test('test struct with enum field', () => {
-
-})

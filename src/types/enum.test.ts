@@ -12,7 +12,7 @@ const SimpleReadRequestFields = [
     new NumericField('count', RustNumericType.be_u16),
 ]
 
-test('test enum definition without reference', () => {
+export function getRequestDataEnum() {
     const enumName = 'RequestData'
     const functionCodeField = new NumericField('function_code', RustNumericType.u8)
     const variants: StructEnumVariant[] = [
@@ -46,9 +46,12 @@ test('test enum definition without reference', () => {
         )
     ]
     const structEnum = new StructEnum(enumName, variants, functionCodeField)
-    const gen = new StructEnumParserGenerator(structEnum)
-    // console.log(gen.compile())
-    expect(gen.generateParser()).toEqual(endent`
+    return structEnum
+}
+
+test('test enum definition without reference', () => {
+    const structEnum = getRequestDataEnum()
+    expect(structEnum.definition()).toEqual(endent`
     #[derive(Debug,PartialEq)]
     pub enum RequestData  {
         ReadCoils {
@@ -71,8 +74,10 @@ test('test enum definition without reference', () => {
              output_address : u16,
              output_value : u16,
         }
-    }
-    
+    }`)
+    const gen = new StructEnumParserGenerator(structEnum)
+    // console.log(gen.compile())
+    expect(gen.generateParser()).toEqual(endent`
     fn parse_read_coils(input: &[u8]) -> IResult<&[u8], RequestData> {
         let (input, start_address) = be_u16(input)?;
         let (input, count) = be_u16(input)?;
@@ -146,7 +151,7 @@ test('test enum definition without reference', () => {
     }`)
 })
 
-test('enum definition with reference', () => {
+export function getRequestDataWithRefEnum() {
     const functionCodeField = new NumericField('function_code', RustNumericType.u8)
     const variants = [
         new StructEnumVariant(
@@ -170,9 +175,12 @@ test('enum definition with reference', () => {
         )
     ]
     const structEnum = new StructEnum('RequestData', variants, functionCodeField)
-    const gen = new StructEnumParserGenerator(structEnum)
-    // console.log(gen.compile())
-    expect(gen.generateParser()).toEqual(endent`
+    return structEnum
+}
+
+test('enum definition with reference', () => {
+    const structEnum = getRequestDataWithRefEnum()
+    expect(structEnum.definition()).toEqual(endent`
     #[derive(Debug,PartialEq)]
     pub enum RequestData <'a> {
         WriteFileRecordSubRequest {
@@ -186,8 +194,10 @@ test('enum definition with reference', () => {
              register_address : u16,
              register_value : u16,
         }
-    }
-    
+    }`)
+    const gen = new StructEnumParserGenerator(structEnum)
+    // console.log(gen.compile())
+    expect(gen.generateParser()).toEqual(endent`
     fn parse_write_file_record_sub_request(input: &[u8]) -> IResult<&[u8], RequestData> {
         let (input, ref_type) = u8(input)?;
         let (input, file_number) = be_u16(input)?;

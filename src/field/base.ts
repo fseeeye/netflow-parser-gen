@@ -20,6 +20,7 @@ export abstract class BaseField implements Field {
     abstract isUserDefined(): boolean
     abstract typeName(): string
     abstract parserInvocation(): string
+    abstract definition?(): string
 
     generateParseStatement() {
         return `let (input, ${this.name}) = ${this.parserInvocation()}(input)?;`
