@@ -1,6 +1,6 @@
 import endent from "endent"
 import { StructParserGenerator } from "../parser/struct"
-import { getRequestDataEnum } from "../types/enum.test"
+import { getRequestDataEnum, getRequestDataWithRefEnum } from "../types/enum.test"
 import { RustNumericType } from "../types/numeric"
 import { Struct } from "../types/struct"
 import { EnumField } from "./enum"
@@ -117,6 +117,94 @@ test('test struct with enum field', () => {
             0x03 => parse_read_holding_registers(input),
             0x04 => parse_read_input_registers(input),
             0x05 => parse_write_single_coil(input),
+            _ =>  Err(nom::Err::Error(nom::error::Error::new(input, nom::error::ErrorKind::Verify))),
+        }?;
+        Ok((input, request_data))
+    }
+    
+    pub fn parse_request(input: &[u8]) -> IResult<&[u8], Request> {
+        let (input, function_code) = u8(input)?;
+        let (input, request_data) = parse_request_data(input, function_code)?;
+        Ok((
+            input,
+            Request {
+                function_code,
+                request_data
+            }
+        ))
+    }
+    `)
+})
+
+test('test struct with enum field with lifetime', () => {
+    const structEnum = getRequestDataWithRefEnum()
+    const request = new Struct(
+        'Request',
+        [
+            new NumericField('function_code', RustNumericType.u8),
+            new EnumField(structEnum)
+        ]
+    )
+    // console.log(request.definitionWithFields())
+    expect(request.definitionWithFields()).toEqual(endent`
+    #[derive(Debug,PartialEq)]
+    pub enum RequestData <'a> {
+        WriteFileRecordSubRequest {
+             ref_type : u8,
+             file_number : u16,
+             record_number : u16,
+             record_len : u16,
+             record_data : &'a [u8],
+        },
+        WriteSingleRegister {
+             register_address : u16,
+             register_value : u16,
+        }
+    }
+    
+    #[derive(Debug,PartialEq)]
+    pub struct Request <'a> {
+        pub function_code : u8,
+        pub request_data : RequestData <'a>,
+    }
+    `)
+    const gen = new StructParserGenerator(request)
+    // console.log(gen.generateParserWithUserDefinedFields())
+    expect(gen.generateParserWithUserDefinedFields()).toEqual(endent`
+    fn parse_write_file_record_sub_request(input: &[u8]) -> IResult<&[u8], RequestData> {
+        let (input, ref_type) = u8(input)?;
+        let (input, file_number) = be_u16(input)?;
+        let (input, record_number) = be_u16(input)?;
+        let (input, record_len) = be_u16(input)?;
+        let (input, record_data) = take(record_len)(input)?;
+        Ok((
+            input,
+            RequestData::WriteFileRecordSubRequest {
+                ref_type,
+                file_number,
+                record_number,
+                record_len,
+                record_data
+            }
+        ))
+    }
+    
+    fn parse_write_single_register(input: &[u8]) -> IResult<&[u8], RequestData> {
+        let (input, register_address) = be_u16(input)?;
+        let (input, register_value) = be_u16(input)?;
+        Ok((
+            input,
+            RequestData::WriteSingleRegister {
+                register_address,
+                register_value
+            }
+        ))
+    }
+    
+    pub fn parse_request_data(input: &[u8], function_code: u8) -> IResult<&[u8], RequestData> {
+        let (input, request_data) = match function_code {
+            0x17 => parse_write_file_record_sub_request(input),
+            0x06 => parse_write_single_register(input),
             _ =>  Err(nom::Err::Error(nom::error::Error::new(input, nom::error::ErrorKind::Verify))),
         }?;
         Ok((input, request_data))
