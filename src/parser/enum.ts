@@ -1,5 +1,4 @@
 import endent from "endent"
-import { generateNomImport } from "../nom"
 import { ChoiceType, StructEnum, StructEnumVariant } from "../types/enum"
 import { StructParserGenerator } from "./struct"
 
@@ -107,11 +106,11 @@ export class StructEnumParserGenerator {
     }
 
     generateParser() {
-        const nomImports = generateNomImport()
+        // const nomImports = generateNomImport()
         const enumDef = this.structEnum.definition()
         const variantParsers = this.generateVariantParsers()
         const enumParser = this.generateEnumParser()
-        return [nomImports, enumDef, variantParsers, enumParser].join(`\n\n`)
+        return [enumDef, variantParsers, enumParser].join(`\n\n`)
     }
 
 }

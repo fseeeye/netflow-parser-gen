@@ -49,12 +49,6 @@ test('test enum definition without reference', () => {
     const gen = new StructEnumParserGenerator(structEnum)
     // console.log(gen.compile())
     expect(gen.generateParser()).toEqual(endent`
-    use nom::bytes::complete::{tag, take};
-    use nom::multi::count;
-    use nom::number::complete::{be_u32, be_u16, u8};
-    use nom::sequence::tuple;
-    use nom::IResult;
-    
     #[derive(Debug,PartialEq)]
     pub enum RequestData  {
         ReadCoils {
@@ -179,12 +173,6 @@ test('enum definition with reference', () => {
     const gen = new StructEnumParserGenerator(structEnum)
     // console.log(gen.compile())
     expect(gen.generateParser()).toEqual(endent`
-    use nom::bytes::complete::{tag, take};
-    use nom::multi::count;
-    use nom::number::complete::{be_u32, be_u16, u8};
-    use nom::sequence::tuple;
-    use nom::IResult;
-    
     #[derive(Debug,PartialEq)]
     pub enum RequestData <'a> {
         WriteFileRecordSubRequest {
