@@ -1,15 +1,17 @@
 import { FieldType } from "../types/base"
 import { NomMultiFunction } from "../nom"
-import { Field } from "./base"
+import { BaseField } from "./base"
 import { CountVariable } from "../len"
 
 
-export class VecField implements Field {
+export class VecField extends BaseField {
     constructor(
         readonly name: string,
         readonly lengthVariable: CountVariable,
         readonly elementType: FieldType
-    ) { }
+    ) {
+        super(name)
+    }
 
     typeName() {
         return `Vec<${this.elementType.typeName()}>`
@@ -28,7 +30,4 @@ export class VecField implements Field {
         return `${NomMultiFunction.count}(${elementParserFunc}, ${this.lengthVariable.count()} as usize)`
     }
 
-    generateParseStatement() {
-        return `let (input, ${this.name}) = ${this.parserInvocation()}(input)?;`
-    }
 }

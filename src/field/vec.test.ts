@@ -1,7 +1,7 @@
 import endent from "endent"
 import { CountVariable } from "../len"
 import { RustNumericType } from "../types/numeric"
-import { StructParserGenerator } from "../types/parser"
+import { StructParserGenerator } from "../parser/struct"
 import { Struct } from "../types/struct"
 import { Field } from "./base"
 import { NumericField } from "./numeric"

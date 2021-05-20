@@ -1,6 +1,6 @@
 import endent from "endent"
 import { RustNumericType } from "../types/numeric"
-import { StructParserGenerator } from "../types/parser"
+import { StructParserGenerator } from "../parser/struct"
 import { Struct } from "../types/struct"
 import { Field } from "./base"
 import { NumericField } from "./numeric"
@@ -132,4 +132,8 @@ test('test struct with struct field with reference', () => {
             }
         ))
     }`)
+})
+
+test('test struct with enum field', () => {
+
 })

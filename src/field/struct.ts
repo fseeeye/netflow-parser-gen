@@ -1,15 +1,14 @@
 import { Struct } from "../types/struct"
-import { Field } from "./base"
+import { BaseField } from "./base"
 
 
-export class StructField implements Field {
-    readonly name: string
+export class StructField extends BaseField {
 
     constructor(
         readonly struct: Struct,
         readonly fieldName?: string,
     ) {
-        this.name = this.fieldName || this.struct.snakeCaseName()
+        super(fieldName || struct.snakeCaseName())
     }
 
     isRef() {

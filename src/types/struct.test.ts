@@ -1,11 +1,11 @@
 import endent from "endent"
 import { RustNumericType } from "./numeric"
-import { StructParserGenerator } from "./parser"
 import { Field } from "../field/base"
 import { NumericField } from "../field/numeric"
 import { BytesReferenceField } from "../field/ref"
 import { Struct } from "./struct"
 import { CountVariable } from "../len"
+import { StructParserGenerator } from "../parser/struct"
 
 test('test struct with reference', () => {
     const fields: Field[] = [
