@@ -7,7 +7,7 @@ import { StructEnumVariant, StructEnum } from "./enum"
 import { RustNumericType } from "./numeric"
 
 
-const SimpleReadRequestFields = [
+export const SimpleReadRequestFields = [
     new NumericField('start_address', RustNumericType.be_u16),
     new NumericField('count', RustNumericType.be_u16),
 ]

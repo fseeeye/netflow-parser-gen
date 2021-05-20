@@ -5,17 +5,43 @@ import { Struct } from "./struct"
 import { Field } from "../field/base"
 import { FieldType } from "./base"
 import { StructEnumVariantParserGenerator } from "../parser/enum"
+import { NomCombinatorFunction } from "../nom"
 
 export type ChoiceType = string | number
 
-interface EnumVariant {
+export interface EnumVariant {
     name: string
     inlineParsable: boolean
     choice: ChoiceType
     definition(): string
     hasReference(): boolean
     parserInvocation(): string
-    parserImplementation(enumName: string): string
+    parserImplementation: (() => string) | ((enumName: string) => string)
+}
+
+export class EmptyVariant implements EnumVariant {
+    inlineParsable: boolean = true
+
+    constructor(
+        readonly name: string,
+        readonly choice: ChoiceType,
+    ) { }
+
+    definition() {
+        return `${this.name} {}`
+    }
+
+    hasReference() {
+        return false
+    }
+
+    parserInvocation(): string {
+        return NomCombinatorFunction.eof
+    }
+
+    parserImplementation() {
+        return this.parserInvocation()
+    }
 }
 
 export class StructEnumVariant extends Struct implements EnumVariant {

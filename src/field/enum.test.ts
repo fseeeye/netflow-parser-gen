@@ -1,10 +1,12 @@
 import endent from "endent"
 import { StructParserGenerator } from "../parser/struct"
-import { getRequestDataEnum, getRequestDataWithRefEnum } from "../types/enum.test"
+import { EmptyVariant, StructEnum, StructEnumVariant } from "../types/enum"
+import { getRequestDataEnum, getRequestDataWithRefEnum, SimpleReadRequestFields } from "../types/enum.test"
 import { RustNumericType } from "../types/numeric"
 import { Struct } from "../types/struct"
 import { EnumField } from "./enum"
 import { NumericField } from "./numeric"
+import { EnumVariant } from "../types/enum"
 
 test('test struct with enum field', () => {
     const requestDataEnum = getRequestDataEnum()
@@ -222,4 +224,58 @@ test('test struct with enum field with lifetime', () => {
         ))
     }
     `)
+})
+
+
+function getRequestDataEnumWithEmptyVariant() {
+    const enumName = 'RequestData'
+    const functionCodeField = new NumericField('function_code', RustNumericType.u8)
+    const variants: EnumVariant[] = [
+        new StructEnumVariant(
+            'ReadCoils',
+            SimpleReadRequestFields.slice(),
+            0x01
+        ),
+        new StructEnumVariant(
+            'ReadDiscreteInputs',
+            SimpleReadRequestFields.slice(),
+            0x02
+        ),
+        new StructEnumVariant(
+            'ReadHoldingRegisters',
+            SimpleReadRequestFields.slice(),
+            0x03
+        ),
+        new StructEnumVariant(
+            'ReadInputRegisters',
+            SimpleReadRequestFields.slice(),
+            0x04
+        ),
+        new StructEnumVariant(
+            'WriteSingleCoil',
+            [
+                new NumericField('output_address', RustNumericType.be_u16),
+                new NumericField('output_value', RustNumericType.be_u16),
+            ],
+            0x05
+        ),
+        new EmptyVariant(
+            'ReadExceptionStatus',
+            0x07
+        )
+    ]
+    const structEnum = new StructEnum(enumName, variants, functionCodeField)
+    return structEnum
+}
+
+test('test struct with empty variant', () => {
+    const structEnum = getRequestDataEnumWithEmptyVariant()
+    const request = new Struct(
+        'Request',
+        [
+            new NumericField('function_code', RustNumericType.u8),
+            new EnumField(structEnum)
+        ]
+    )
+    console.log(request.definitionWithFields())
 })

@@ -19,6 +19,9 @@ export enum NomNumberFunction {
     le_u64 = 'le_u64',
 }
 
+export enum NomCombinatorFunction {
+    eof = 'eof'
+}
 
 export function generateNomImport() {
     const code = endent`
