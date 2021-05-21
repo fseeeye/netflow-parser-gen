@@ -97,6 +97,9 @@ export class StructEnumParserGenerator {
             (v) => v.name
         )
         const parsers = uniqueVariantNamesWithOwnParsers.map((variant) => {
+            if (variant.parserImplementation === undefined) {
+                throw Error(`variant has no parser implementation!: ${variant.name}`)
+            }
             return variant.parserImplementation(this.structEnum.name)
         })
 

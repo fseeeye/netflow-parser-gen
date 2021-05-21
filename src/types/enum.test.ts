@@ -1,10 +1,13 @@
 import endent from "endent"
+import { createNumericField } from "../api/input"
+import { EnumField } from "../field/enum"
 import { NumericField } from "../field/numeric"
 import { BytesReferenceField } from "../field/ref"
 import { CountVariableImpl } from "../len"
 import { StructEnumParserGenerator } from "../parser/enum"
-import { AnonymousStructEnumVariant, EnumVariant, StructEnum } from "./enum"
+import { AnonymousStructEnumVariant, EmptyVariant, EnumVariant, StructEnum, UserDefinedEnumVariant } from "./enum"
 import { BuiltInNumericType } from "./numeric"
+import { Struct } from "./struct"
 
 
 export const SimpleReadRequestFields = [
@@ -240,4 +243,36 @@ test('enum definition with reference', () => {
         }?;
         Ok((input, request_data))
     }`)
+})
+
+test('enum with user defined variants', () => {
+    const request = new StructEnum(
+        'RequestData',
+        [
+            new AnonymousStructEnumVariant(0x01, 'ReadCoils', [
+                createNumericField({ name: 'start_address', typeName: 'be_u16' }),
+                createNumericField({ name: 'count', typeName: 'be_u16' }),
+            ]),
+            new AnonymousStructEnumVariant(0x04, 'WriteSingleCoil', [
+                createNumericField({ name: 'output_address', typeName: 'be_u16' }),
+                createNumericField({ name: 'output_value', typeName: 'be_u16' }),
+            ]),
+            new EmptyVariant(0x0b),
+        ],
+        createNumericField({ name: 'function_code', typeName: 'u8' })
+    )
+    const exception = new Struct(
+        'Exception',
+        [
+            createNumericField({ name: 'exception_code', typeName: 'u8' })
+        ]
+    )
+    const payload = new StructEnum(
+        'Payload',
+        [
+            new UserDefinedEnumVariant(0x01, 'request', request),
+            new UserDefinedEnumVariant(0x00, 'exception', exception)
+        ],
+        createNumericField({ name: 'function_code', typeName: 'u8' })
+    )
 })

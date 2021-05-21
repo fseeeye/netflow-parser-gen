@@ -15,7 +15,7 @@ export interface EnumVariant {
     definition(): string
     hasReference(): boolean
     parserInvocation(): string
-    parserImplementation: (() => string) | ((enumName: string) => string)
+    parserImplementation?: (enumName: string) => string
 }
 
 export class EmptyVariant implements EnumVariant {
@@ -85,6 +85,36 @@ export class AnonymousStructEnumVariant extends Struct implements EnumVariant {
         const gen = new StructEnumVariantParserGenerator(this, enumName)
         return gen.generateParser(false)
     }
+
+}
+
+export class UserDefinedEnumVariant implements EnumVariant {
+    inlineParsable: boolean = true
+
+    constructor(
+        readonly choice: ChoiceType,
+        readonly name: string,
+        readonly struct: Struct,
+    ) { }
+
+    hasReference() {
+        return this.struct.hasReference()
+    }
+
+    definition() {
+        if (this.hasReference()) {
+            return `${this.name}(${this.name}<'a>)`
+        }
+        return `${this.name}(${this.name})`
+    }
+
+    parserInvocation() {
+        return this.struct.parserFunctionName()
+    }
+
+    // parserImplementation(enumName: string) {
+
+    // } 
 
 }
 
