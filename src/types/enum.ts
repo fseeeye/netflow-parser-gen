@@ -62,9 +62,9 @@ export class StructEnumVariant extends Struct implements EnumVariant {
     inlineParsable: boolean = false
 
     constructor(
+        readonly choice: ChoiceType,
         readonly name: string,
         readonly fields: Field[],
-        readonly choice: ChoiceType,
     ) {
         super(name, fields)
     }

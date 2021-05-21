@@ -17,32 +17,35 @@ export function getRequestDataEnum() {
     const functionCodeField = new NumericField('function_code', RustNumericType.u8)
     const variants: StructEnumVariant[] = [
         new StructEnumVariant(
+            0x01,
             'ReadCoils',
             SimpleReadRequestFields.slice(),
-            0x01
         ),
         new StructEnumVariant(
+            0x02,
             'ReadDiscreteInputs',
             SimpleReadRequestFields.slice(),
-            0x02
+
         ),
         new StructEnumVariant(
+            0x03,
             'ReadHoldingRegisters',
             SimpleReadRequestFields.slice(),
-            0x03
+
         ),
         new StructEnumVariant(
+            0x04,
             'ReadInputRegisters',
             SimpleReadRequestFields.slice(),
-            0x04
+
         ),
         new StructEnumVariant(
+            0x05,
             'WriteSingleCoil',
             [
                 new NumericField('output_address', RustNumericType.be_u16),
                 new NumericField('output_value', RustNumericType.be_u16),
             ],
-            0x05
         )
     ]
     const structEnum = new StructEnum(enumName, variants, functionCodeField)
@@ -155,6 +158,7 @@ export function getRequestDataWithRefEnum() {
     const functionCodeField = new NumericField('function_code', RustNumericType.u8)
     const variants = [
         new StructEnumVariant(
+            0x17,
             'WriteFileRecordSubRequest',
             [
                 new NumericField('ref_type', RustNumericType.u8),
@@ -163,15 +167,15 @@ export function getRequestDataWithRefEnum() {
                 new NumericField('record_len', RustNumericType.be_u16),
                 new BytesReferenceField('record_data', new CountVariable('record_len')),
             ],
-            0x17
         ),
         new StructEnumVariant(
+            0x06,
             'WriteSingleRegister',
             [
                 new NumericField('register_address', RustNumericType.be_u16),
                 new NumericField('register_value', RustNumericType.be_u16),
             ],
-            0x06
+
         )
     ]
     const structEnum = new StructEnum('RequestData', variants, functionCodeField)

@@ -232,32 +232,35 @@ function getRequestDataEnumWithEmptyVariant() {
     const functionCodeField = new NumericField('function_code', RustNumericType.u8)
     const variants: EnumVariant[] = [
         new StructEnumVariant(
+            0x01,
             'ReadCoils',
             SimpleReadRequestFields.slice(),
-            0x01
         ),
         new StructEnumVariant(
+            0x02,
             'ReadDiscreteInputs',
             SimpleReadRequestFields.slice(),
-            0x02
+
         ),
         new StructEnumVariant(
+            0x03,
             'ReadHoldingRegisters',
             SimpleReadRequestFields.slice(),
-            0x03
+
         ),
         new StructEnumVariant(
+            0x04,
             'ReadInputRegisters',
             SimpleReadRequestFields.slice(),
-            0x04
+
         ),
         new StructEnumVariant(
+            0x05,
             'WriteSingleCoil',
             [
                 new NumericField('output_address', RustNumericType.be_u16),
                 new NumericField('output_value', RustNumericType.be_u16),
             ],
-            0x05
         ),
         new EmptyVariant(
             0x07
