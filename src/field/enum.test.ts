@@ -260,8 +260,10 @@ function getRequestDataEnumWithEmptyVariant() {
             0x05
         ),
         new EmptyVariant(
-            'ReadExceptionStatus',
             0x07
+        ),
+        new EmptyVariant(
+            0x0B
         )
     ]
     const structEnum = new StructEnum(enumName, variants, functionCodeField)
@@ -278,4 +280,6 @@ test('test struct with empty variant', () => {
         ]
     )
     console.log(request.definitionWithFields())
+    const gen = new StructParserGenerator(request)
+    console.log(gen.generateParserWithUserDefinedFields())
 })

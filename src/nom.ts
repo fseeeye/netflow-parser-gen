@@ -27,6 +27,7 @@ export function generateNomImport() {
     const code = endent`
     use nom::bytes::complete::{tag, take};
     use nom::multi::count;
+    use nom::combinator::eof;
     use nom::number::complete::{be_u32, be_u16, u8};
     use nom::sequence::tuple;
     use nom::IResult;

@@ -1,5 +1,6 @@
 import endent from "endent"
 import { ChoiceType, StructEnum, StructEnumVariant } from "../types/enum"
+import { removeDuplicateByKey } from "../utils"
 import { StructParserGenerator } from "./struct"
 
 export class StructEnumVariantParserGenerator extends StructParserGenerator {
@@ -87,9 +88,15 @@ export class StructEnumParserGenerator {
     }
 
     generateVariantParserFunctions() {
-        const parsers = this.structEnum.variants.filter(variant => variant.inlineParsable === false).map((variant) => {
-            // const gen = new StructEnumVariantParserGenerator(variant, this.structEnum.name)
-            // return gen.generateParser(false)
+        // 按照 variant 的名字生成解析函数。需要去重，因为一个 variant （例如 Eof）可以对应多个 choice。
+        // const variantsWithOwnParsers = this.structEnum.variants.filter(v => v.inlineParsable === false)
+        // const variantNamesWithOwnParsers = variantsWithOwnParsers.map(v => v.name)
+        // const uniqueVariantNamesWithOwnParsers = variantsWithOwnParsers.filter(({ name }, index) => variantNamesWithOwnParsers.includes(name, index + 1) === false)
+        const uniqueVariantNamesWithOwnParsers = removeDuplicateByKey(
+            this.structEnum.variants.filter(v => v.inlineParsable === false),
+            (v) => v.name
+        )
+        const parsers = uniqueVariantNamesWithOwnParsers.map((variant) => {
             return variant.parserImplementation(this.structEnum.name)
         })
 

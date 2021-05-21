@@ -1,11 +1,10 @@
 import endent from "endent"
 import { snakeCase } from "snake-case"
-import { generateAttributesCode } from "../utils"
+import { generateAttributesCode, removeDuplicateByKey } from "../utils"
 import { Struct } from "./struct"
 import { Field } from "../field/base"
 import { FieldType } from "./base"
 import { StructEnumVariantParserGenerator } from "../parser/enum"
-import { NomCombinatorFunction } from "../nom"
 
 export type ChoiceType = string | number
 
@@ -20,10 +19,11 @@ export interface EnumVariant {
 }
 
 export class EmptyVariant implements EnumVariant {
-    inlineParsable: boolean = true
+    inlineParsable: boolean = false
+    name: string = 'Eof'
 
     constructor(
-        readonly name: string,
+        // readonly name: string,
         readonly choice: ChoiceType,
     ) { }
 
@@ -35,12 +35,26 @@ export class EmptyVariant implements EnumVariant {
         return false
     }
 
-    parserInvocation(): string {
-        return NomCombinatorFunction.eof
+    parserFunctionName(): string {
+        return `parse_${snakeCase(this.name)}`
     }
 
-    parserImplementation() {
-        return this.parserInvocation()
+    parserInvocation(): string {
+        return this.parserFunctionName()
+    }
+
+    parserImplementation(enumName: string) {
+        const typeName = `${enumName}::${this.name}`
+        const functionSignature = endent`fn ${this.parserFunctionName()}(input: &[u8]) -> IResult<&[u8], ${enumName}>`
+        const parserBlock = endent`{
+             let (input, _) = eof(input)?;
+             Ok((
+                 input,
+                 ${typeName} {}
+             ))
+        }
+        `
+        return `${functionSignature} ${parserBlock}`
     }
 }
 
@@ -99,9 +113,12 @@ export class StructEnum implements FieldType {
     }
 
     private generateVariants() {
-        const variants = this.variants.map((variant) => variant.definition())
+        const uniqueVariants = removeDuplicateByKey(
+            this.variants,
+            (v) => v.name
+        ).map(v => v.definition())
         return endent`{
-            ${variants.join(`,\n`)}
+            ${uniqueVariants.join(`,\n`)}
         }`
     }
 
