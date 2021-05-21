@@ -279,7 +279,134 @@ test('test struct with empty variant', () => {
             new EnumField(structEnum)
         ]
     )
-    console.log(request.definitionWithFields())
+    // console.log(request.definitionWithFields())
+    expect(request.definitionWithFields()).toEqual(endent`
+    #[derive(Debug,PartialEq)]
+    pub enum RequestData  {
+        ReadCoils {
+             start_address : u16,
+             count : u16,
+        },
+        ReadDiscreteInputs {
+             start_address : u16,
+             count : u16,
+        },
+        ReadHoldingRegisters {
+             start_address : u16,
+             count : u16,
+        },
+        ReadInputRegisters {
+             start_address : u16,
+             count : u16,
+        },
+        WriteSingleCoil {
+             output_address : u16,
+             output_value : u16,
+        },
+        Eof {}
+    }
+    
+    #[derive(Debug,PartialEq)]
+    pub struct Request  {
+        pub function_code : u8,
+        pub request_data : RequestData,
+    }    
+    `)
     const gen = new StructParserGenerator(request)
-    console.log(gen.generateParserWithUserDefinedFields())
+    // console.log(gen.generateParserWithUserDefinedFields())
+    expect(gen.generateParserWithUserDefinedFields()).toEqual(endent`
+    fn parse_read_coils(input: &[u8]) -> IResult<&[u8], RequestData> {
+        let (input, start_address) = be_u16(input)?;
+        let (input, count) = be_u16(input)?;
+        Ok((
+            input,
+            RequestData::ReadCoils {
+                start_address,
+                count
+            }
+        ))
+    }
+    
+    fn parse_read_discrete_inputs(input: &[u8]) -> IResult<&[u8], RequestData> {
+        let (input, start_address) = be_u16(input)?;
+        let (input, count) = be_u16(input)?;
+        Ok((
+            input,
+            RequestData::ReadDiscreteInputs {
+                start_address,
+                count
+            }
+        ))
+    }
+    
+    fn parse_read_holding_registers(input: &[u8]) -> IResult<&[u8], RequestData> {
+        let (input, start_address) = be_u16(input)?;
+        let (input, count) = be_u16(input)?;
+        Ok((
+            input,
+            RequestData::ReadHoldingRegisters {
+                start_address,
+                count
+            }
+        ))
+    }
+    
+    fn parse_read_input_registers(input: &[u8]) -> IResult<&[u8], RequestData> {
+        let (input, start_address) = be_u16(input)?;
+        let (input, count) = be_u16(input)?;
+        Ok((
+            input,
+            RequestData::ReadInputRegisters {
+                start_address,
+                count
+            }
+        ))
+    }
+    
+    fn parse_write_single_coil(input: &[u8]) -> IResult<&[u8], RequestData> {
+        let (input, output_address) = be_u16(input)?;
+        let (input, output_value) = be_u16(input)?;
+        Ok((
+            input,
+            RequestData::WriteSingleCoil {
+                output_address,
+                output_value
+            }
+        ))
+    }
+    
+    fn parse_eof(input: &[u8]) -> IResult<&[u8], RequestData> {
+         let (input, _) = eof(input)?;
+         Ok((
+             input,
+             RequestData::Eof {}
+         ))
+    }
+    
+    pub fn parse_request_data(input: &[u8], function_code: u8) -> IResult<&[u8], RequestData> {
+        let (input, request_data) = match function_code {
+            0x01 => parse_read_coils(input),
+            0x02 => parse_read_discrete_inputs(input),
+            0x03 => parse_read_holding_registers(input),
+            0x04 => parse_read_input_registers(input),
+            0x05 => parse_write_single_coil(input),
+            0x07 => parse_eof(input),
+            0x0b => parse_eof(input),
+            _ =>  Err(nom::Err::Error(nom::error::Error::new(input, nom::error::ErrorKind::Verify))),
+        }?;
+        Ok((input, request_data))
+    }
+    
+    pub fn parse_request(input: &[u8]) -> IResult<&[u8], Request> {
+        let (input, function_code) = u8(input)?;
+        let (input, request_data) = parse_request_data(input, function_code)?;
+        Ok((
+            input,
+            Request {
+                function_code,
+                request_data
+            }
+        ))
+    }
+    `)
 })
