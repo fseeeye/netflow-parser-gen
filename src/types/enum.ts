@@ -132,7 +132,7 @@ export class StructEnum implements FieldType {
 
     definition() {
         const attributes = generateAttributesCode()
-        const definition = `pub enum ${this.name} ${this.lifetimeSpecifier()} ${this.generateVariants()}`
+        const definition = `pub enum ${this.name}${this.lifetimeSpecifier()} ${this.generateVariants()}`
         return [attributes, definition].join(`\n`)
     }
 

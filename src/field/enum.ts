@@ -20,7 +20,7 @@ export class EnumField extends BaseField {
 
     typeName() {
         if (this.isRef()) {
-            return `${this.structEnum.name} <'a>`
+            return `${this.structEnum.name}<'a>`
         }
         return this.structEnum.name
     }

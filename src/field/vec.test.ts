@@ -18,7 +18,7 @@ test('test struct with vec of primitive field', () => {
     // console.log(writeMultipleRegister.compileDefinition())
     expect(writeMultipleRegister.definition()).toEqual(endent`
     #[derive(Debug, PartialEq)]
-    pub struct WriteMultipleRegisters  {
+    pub struct WriteMultipleRegisters {
         pub start_address: u8,
         pub output_count: u16,
         pub byte_count: u8,
@@ -56,7 +56,7 @@ test('test struct with vec field of user defined type', () => {
     // console.log(readFileSubReq.compileDefinition())
     expect(readFileSubReq.definition()).toEqual(endent`
     #[derive(Debug, PartialEq)]
-    pub struct ReadFileSubRequest  {
+    pub struct ReadFileSubRequest {
         pub ref_type: u8,
         pub file_number: u16,
         pub record_number: u16,
@@ -88,7 +88,7 @@ test('test struct with vec field of user defined type', () => {
     // console.log(readFileRecord.compileDefinition())
     expect(readFileRecord.definition()).toEqual(endent`
     #[derive(Debug, PartialEq)]
-    pub struct ReadFileRecord  {
+    pub struct ReadFileRecord {
         pub byte_count: u8,
         pub sub_requests: Vec<ReadFileSubRequest>,
     }`)

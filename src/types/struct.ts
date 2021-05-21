@@ -59,7 +59,7 @@ export class Struct implements FieldType {
     definition() {
         const attributes = generateAttributesCode()
         const lifetimeSpecifier = this.lifetimeSpecifier()
-        const def = `pub struct ${this.name} ${lifetimeSpecifier} ${this.generateFields()}`
+        const def = `pub struct ${this.name}${lifetimeSpecifier} ${this.generateFields()}`
         return [attributes, def].join(`\n`)
     }
 

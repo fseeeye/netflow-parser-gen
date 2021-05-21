@@ -26,7 +26,7 @@ export class StructField extends BaseField {
 
     typeName() {
         if (this.isRef()) {
-            return `${this.struct.name} <'a>`
+            return `${this.struct.name}<'a>`
         }
         return this.struct.name
     }
