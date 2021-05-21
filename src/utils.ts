@@ -1,7 +1,7 @@
 export const DEFAULT_ATTRIBUTES = [`Debug`, `PartialEq`]
 
 export function generateAttributesCode(attributes: string[] = DEFAULT_ATTRIBUTES) {
-    return `#[derive(${attributes.join(',')})]`
+    return `#[derive(${attributes.join(', ')})]`
 }
 
 export function removeDuplicateByKey<Key, T>(array: T[], getKey: (item: T) => Key): T[] {

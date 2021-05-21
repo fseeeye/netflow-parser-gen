@@ -52,7 +52,7 @@ export function getRequestDataEnum() {
 test('test enum definition without reference', () => {
     const structEnum = getRequestDataEnum()
     expect(structEnum.definition()).toEqual(endent`
-    #[derive(Debug,PartialEq)]
+    #[derive(Debug, PartialEq)]
     pub enum RequestData  {
         ReadCoils {
              start_address : u16,
@@ -181,7 +181,7 @@ export function getRequestDataWithRefEnum() {
 test('enum definition with reference', () => {
     const structEnum = getRequestDataWithRefEnum()
     expect(structEnum.definition()).toEqual(endent`
-    #[derive(Debug,PartialEq)]
+    #[derive(Debug, PartialEq)]
     pub enum RequestData <'a> {
         WriteFileRecordSubRequest {
              ref_type : u8,

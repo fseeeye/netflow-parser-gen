@@ -19,7 +19,7 @@ test('test struct with enum field', () => {
     )
     // console.log(request.definitionWithFields())
     expect(request.definitionWithFields()).toEqual(endent`
-    #[derive(Debug,PartialEq)]
+    #[derive(Debug, PartialEq)]
     pub enum RequestData  {
         ReadCoils {
              start_address : u16,
@@ -43,7 +43,7 @@ test('test struct with enum field', () => {
         }
     }
     
-    #[derive(Debug,PartialEq)]
+    #[derive(Debug, PartialEq)]
     pub struct Request  {
         pub function_code : u8,
         pub request_data : RequestData,
@@ -149,7 +149,7 @@ test('test struct with enum field with lifetime', () => {
     )
     // console.log(request.definitionWithFields())
     expect(request.definitionWithFields()).toEqual(endent`
-    #[derive(Debug,PartialEq)]
+    #[derive(Debug, PartialEq)]
     pub enum RequestData <'a> {
         WriteFileRecordSubRequest {
              ref_type : u8,
@@ -164,7 +164,7 @@ test('test struct with enum field with lifetime', () => {
         }
     }
     
-    #[derive(Debug,PartialEq)]
+    #[derive(Debug, PartialEq)]
     pub struct Request <'a> {
         pub function_code : u8,
         pub request_data : RequestData <'a>,
@@ -281,7 +281,7 @@ test('test struct with empty variant', () => {
     )
     // console.log(request.definitionWithFields())
     expect(request.definitionWithFields()).toEqual(endent`
-    #[derive(Debug,PartialEq)]
+    #[derive(Debug, PartialEq)]
     pub enum RequestData  {
         ReadCoils {
              start_address : u16,
@@ -306,7 +306,7 @@ test('test struct with empty variant', () => {
         Eof {}
     }
     
-    #[derive(Debug,PartialEq)]
+    #[derive(Debug, PartialEq)]
     pub struct Request  {
         pub function_code : u8,
         pub request_data : RequestData,
