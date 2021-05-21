@@ -19,10 +19,10 @@ test('test struct with vec of primitive field', () => {
     expect(writeMultipleRegister.definition()).toEqual(endent`
     #[derive(Debug, PartialEq)]
     pub struct WriteMultipleRegisters  {
-        pub start_address : u8,
-        pub output_count : u16,
-        pub byte_count : u8,
-        pub output_values : Vec<u16>,
+        pub start_address: u8,
+        pub output_count: u16,
+        pub byte_count: u8,
+        pub output_values: Vec<u16>,
     }`)
 
     const gen = new StructParserGenerator(writeMultipleRegister)
@@ -57,10 +57,10 @@ test('test struct with vec field of user defined type', () => {
     expect(readFileSubReq.definition()).toEqual(endent`
     #[derive(Debug, PartialEq)]
     pub struct ReadFileSubRequest  {
-        pub ref_type : u8,
-        pub file_number : u16,
-        pub record_number : u16,
-        pub record_len : u16,
+        pub ref_type: u8,
+        pub file_number: u16,
+        pub record_number: u16,
+        pub record_len: u16,
     }`)
     const subGen = new StructParserGenerator(readFileSubReq)
     // console.log(subGen.compileParser())
@@ -89,8 +89,8 @@ test('test struct with vec field of user defined type', () => {
     expect(readFileRecord.definition()).toEqual(endent`
     #[derive(Debug, PartialEq)]
     pub struct ReadFileRecord  {
-        pub byte_count : u8,
-        pub sub_requests : Vec<ReadFileSubRequest>,
+        pub byte_count: u8,
+        pub sub_requests: Vec<ReadFileSubRequest>,
     }`)
     const gen = new StructParserGenerator(readFileRecord)
     // console.log(gen.compileParser())

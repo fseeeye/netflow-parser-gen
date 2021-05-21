@@ -27,16 +27,16 @@ test('test struct with struct field', () => {
     expect(mdobusPacketPartial.definitionWithFields()).toEqual(endent` 
     #[derive(Debug, PartialEq)]
     pub struct MBAPHeader  {
-        pub transaction_id : u8,
-        pub protocol_id : u16,
-        pub length : u16,
-        pub unit_id : u8,
+        pub transaction_id: u8,
+        pub protocol_id: u16,
+        pub length: u16,
+        pub unit_id: u8,
     }
     
     #[derive(Debug, PartialEq)]
     pub struct ModbusPacketPartial  {
-        pub header : MBAPHeader,
-        pub function_code : u8,
+        pub header: MBAPHeader,
+        pub function_code: u8,
     }`)
     const gen = new StructParserGenerator(mdobusPacketPartial)
     expect(gen.generateParserWithUserDefinedFields()).toEqual(endent`
@@ -89,17 +89,17 @@ test('test struct with struct field with reference', () => {
     expect(mdobusPacketPartialV2.definitionWithFields()).toEqual(endent`
     #[derive(Debug, PartialEq)]
     pub struct MBAPHeaderV2 <'a> {
-        pub transaction_id : u8,
-        pub protocol_id : u16,
-        pub length : u16,
-        pub unit_id : u8,
-        pub data : &'a [u8],
+        pub transaction_id: u8,
+        pub protocol_id: u16,
+        pub length: u16,
+        pub unit_id: u8,
+        pub data: &'a [u8],
     }
 
     #[derive(Debug, PartialEq)]
     pub struct ModbusPacketPartialV2 <'a> {
-        pub header : MBAPHeaderV2 <'a>,
-        pub function_code : u8,
+        pub header: MBAPHeaderV2 <'a>,
+        pub function_code: u8,
     }`)
     const gen = new StructParserGenerator(mdobusPacketPartialV2)
     expect(gen.generateParserWithUserDefinedFields()).toEqual(endent`

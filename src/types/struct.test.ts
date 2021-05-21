@@ -20,11 +20,11 @@ test('test struct with reference', () => {
     expect(writeFileRecordSubRequest.definition()).toEqual(endent`
     #[derive(Debug, PartialEq)]
     pub struct WriteFileRecordSubRequest <'a> {
-        pub ref_type : u8,
-        pub file_number : u16,
-        pub record_number : u16,
-        pub record_len : u16,
-        pub record_data : &'a [u8],
+        pub ref_type: u8,
+        pub file_number: u16,
+        pub record_number: u16,
+        pub record_len: u16,
+        pub record_data: &'a [u8],
     }`)
     const gen = new StructParserGenerator(writeFileRecordSubRequest)
     expect(gen.generateParser()).toEqual(endent`
@@ -60,10 +60,10 @@ test('test struct with numeric types only', () => {
     expect(header.definition()).toEqual(endent`
     #[derive(Debug, PartialEq)]
     pub struct MBAPHeader  {
-        pub transaction_id : u8,
-        pub protocol_id : u16,
-        pub length : u16,
-        pub unit_id : u8,
+        pub transaction_id: u8,
+        pub protocol_id: u16,
+        pub length: u16,
+        pub unit_id: u8,
     }`)
     const gen = new StructParserGenerator(header)
     expect(gen.generateParser()).toEqual(endent`

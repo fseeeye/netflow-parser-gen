@@ -55,24 +55,24 @@ test('test enum definition without reference', () => {
     #[derive(Debug, PartialEq)]
     pub enum RequestData  {
         ReadCoils {
-             start_address : u16,
-             count : u16,
+             start_address: u16,
+             count: u16,
         },
         ReadDiscreteInputs {
-             start_address : u16,
-             count : u16,
+             start_address: u16,
+             count: u16,
         },
         ReadHoldingRegisters {
-             start_address : u16,
-             count : u16,
+             start_address: u16,
+             count: u16,
         },
         ReadInputRegisters {
-             start_address : u16,
-             count : u16,
+             start_address: u16,
+             count: u16,
         },
         WriteSingleCoil {
-             output_address : u16,
-             output_value : u16,
+             output_address: u16,
+             output_value: u16,
         }
     }`)
     const gen = new StructEnumParserGenerator(structEnum)
@@ -184,15 +184,15 @@ test('enum definition with reference', () => {
     #[derive(Debug, PartialEq)]
     pub enum RequestData <'a> {
         WriteFileRecordSubRequest {
-             ref_type : u8,
-             file_number : u16,
-             record_number : u16,
-             record_len : u16,
-             record_data : &'a [u8],
+             ref_type: u8,
+             file_number: u16,
+             record_number: u16,
+             record_len: u16,
+             record_data: &'a [u8],
         },
         WriteSingleRegister {
-             register_address : u16,
-             register_value : u16,
+             register_address: u16,
+             register_value: u16,
         }
     }`)
     const gen = new StructEnumParserGenerator(structEnum)

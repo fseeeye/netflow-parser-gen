@@ -40,7 +40,7 @@ export class Struct implements FieldType {
 
     protected generateFields() {
         const fieldLines = this.fields.map((field) => {
-            return `${this.visibilitySpecifier()} ${field.name} : ${field.typeName()},`
+            return `${this.visibilitySpecifier()} ${field.name}: ${field.typeName()},`
         })
         return endent`{
             ${fieldLines.join('\n')}
