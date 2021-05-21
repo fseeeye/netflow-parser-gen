@@ -3,7 +3,7 @@ import { NumericField } from "../field/numeric"
 import { BytesReferenceField } from "../field/ref"
 import { CountVariableImpl } from "../len"
 import { StructEnumParserGenerator } from "../parser/enum"
-import { StructEnumVariant, StructEnum } from "./enum"
+import { AnonymousStructEnumVariant, EnumVariant, StructEnum } from "./enum"
 import { BuiltInNumericType } from "./numeric"
 
 
@@ -15,31 +15,31 @@ export const SimpleReadRequestFields = [
 export function getRequestDataEnum() {
     const enumName = 'RequestData'
     const functionCodeField = new NumericField('function_code', BuiltInNumericType.u8)
-    const variants: StructEnumVariant[] = [
-        new StructEnumVariant(
+    const variants: EnumVariant[] = [
+        new AnonymousStructEnumVariant(
             0x01,
             'ReadCoils',
             SimpleReadRequestFields.slice(),
         ),
-        new StructEnumVariant(
+        new AnonymousStructEnumVariant(
             0x02,
             'ReadDiscreteInputs',
             SimpleReadRequestFields.slice(),
 
         ),
-        new StructEnumVariant(
+        new AnonymousStructEnumVariant(
             0x03,
             'ReadHoldingRegisters',
             SimpleReadRequestFields.slice(),
 
         ),
-        new StructEnumVariant(
+        new AnonymousStructEnumVariant(
             0x04,
             'ReadInputRegisters',
             SimpleReadRequestFields.slice(),
 
         ),
-        new StructEnumVariant(
+        new AnonymousStructEnumVariant(
             0x05,
             'WriteSingleCoil',
             [
@@ -157,7 +157,7 @@ test('test enum definition without reference', () => {
 export function getRequestDataWithRefEnum() {
     const functionCodeField = new NumericField('function_code', BuiltInNumericType.u8)
     const variants = [
-        new StructEnumVariant(
+        new AnonymousStructEnumVariant(
             0x17,
             'WriteFileRecordSubRequest',
             [
@@ -168,7 +168,7 @@ export function getRequestDataWithRefEnum() {
                 new BytesReferenceField('record_data', new CountVariableImpl('record_len')),
             ],
         ),
-        new StructEnumVariant(
+        new AnonymousStructEnumVariant(
             0x06,
             'WriteSingleRegister',
             [
