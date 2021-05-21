@@ -1,13 +1,13 @@
 import { FieldType } from "../types/base"
 import { NomMultiFunction } from "../nom"
 import { BaseField } from "./base"
-import { CountVariable } from "../len"
+import { CountVariableImpl } from "../len"
 
 
 export class VecField extends BaseField {
     constructor(
         readonly name: string,
-        readonly lengthVariable: CountVariable,
+        readonly lengthVariable: CountVariableImpl,
         readonly elementType: FieldType
     ) {
         super(name)

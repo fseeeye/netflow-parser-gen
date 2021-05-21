@@ -1,6 +1,12 @@
 export type CountMode = 'mul' | 'div'
 
-export class CountVariable {
+export interface CountVariable {
+    name: string
+    unitSize?: number
+    mode?: CountMode
+}
+
+export class CountVariableImpl implements CountVariable {
     constructor(
         readonly name: string,
         readonly unitSize: number = 1,

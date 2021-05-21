@@ -1,7 +1,7 @@
 import endent from "endent"
 import { NumericField } from "../field/numeric"
 import { BytesReferenceField } from "../field/ref"
-import { CountVariable } from "../len"
+import { CountVariableImpl } from "../len"
 import { StructEnumParserGenerator } from "../parser/enum"
 import { StructEnumVariant, StructEnum } from "./enum"
 import { BuiltInNumericType } from "./numeric"
@@ -165,7 +165,7 @@ export function getRequestDataWithRefEnum() {
                 new NumericField('file_number', BuiltInNumericType.be_u16),
                 new NumericField('record_number', BuiltInNumericType.be_u16),
                 new NumericField('record_len', BuiltInNumericType.be_u16),
-                new BytesReferenceField('record_data', new CountVariable('record_len')),
+                new BytesReferenceField('record_data', new CountVariableImpl('record_len')),
             ],
         ),
         new StructEnumVariant(

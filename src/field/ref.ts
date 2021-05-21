@@ -1,11 +1,11 @@
-import { CountVariable } from "../len"
+import { CountVariableImpl } from "../len"
 import { NomBytesFunction } from "../nom"
 import { BaseField } from "./base"
 
 export class BytesReferenceField extends BaseField {
     constructor(
         readonly name: string,
-        readonly lengthVariable: CountVariable
+        readonly lengthVariable: CountVariableImpl
     ) {
         super(name)
     }

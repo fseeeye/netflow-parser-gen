@@ -7,13 +7,15 @@ import { Struct } from "../types/struct"
 import { EnumField } from "./enum"
 import { NumericField } from "./numeric"
 import { EnumVariant } from "../types/enum"
+import { createNumericField } from "../api/input"
 
 test('test struct with enum field', () => {
     const requestDataEnum = getRequestDataEnum()
     const request = new Struct(
         'Request',
         [
-            new NumericField('function_code', BuiltInNumericType.u8),
+            // new NumericField('function_code', BuiltInNumericType.u8),
+            createNumericField({ name: 'function_code', typeName: 'u8' }),
             new EnumField(requestDataEnum)
         ]
     )
@@ -143,7 +145,8 @@ test('test struct with enum field with lifetime', () => {
     const request = new Struct(
         'Request',
         [
-            new NumericField('function_code', BuiltInNumericType.u8),
+            // new NumericField('function_code', BuiltInNumericType.u8),
+            createNumericField({ name: 'function_code', typeName: 'u8' }),
             new EnumField(structEnum)
         ]
     )

@@ -6,7 +6,7 @@ import { Field } from "./base"
 import { NumericField } from "./numeric"
 import { StructField } from "./struct"
 import { BytesReferenceField } from "./ref"
-import { CountVariable } from "../len"
+import { CountVariableImpl } from "../len"
 
 test('test struct with struct field', () => {
     const mbapHeaderFields: Field[] = [
@@ -75,7 +75,7 @@ test('test struct with struct field with reference', () => {
         new NumericField('protocol_id', BuiltInNumericType.be_u16),
         new NumericField('length', BuiltInNumericType.be_u16),
         new NumericField('unit_id', BuiltInNumericType.u8),
-        new BytesReferenceField('data', new CountVariable('length')),
+        new BytesReferenceField('data', new CountVariableImpl('length')),
     ]
 
     const header = new Struct('MBAPHeaderV2', mbapHeaderFields)
