@@ -2,7 +2,7 @@ import endent from "endent"
 import { StructParserGenerator } from "../parser/struct"
 import { EmptyVariant, StructEnum, StructEnumVariant } from "../types/enum"
 import { getRequestDataEnum, getRequestDataWithRefEnum, SimpleReadRequestFields } from "../types/enum.test"
-import { RustNumericType } from "../types/numeric"
+import { BuiltInNumericType } from "../types/numeric"
 import { Struct } from "../types/struct"
 import { EnumField } from "./enum"
 import { NumericField } from "./numeric"
@@ -13,7 +13,7 @@ test('test struct with enum field', () => {
     const request = new Struct(
         'Request',
         [
-            new NumericField('function_code', RustNumericType.u8),
+            new NumericField('function_code', BuiltInNumericType.u8),
             new EnumField(requestDataEnum)
         ]
     )
@@ -143,7 +143,7 @@ test('test struct with enum field with lifetime', () => {
     const request = new Struct(
         'Request',
         [
-            new NumericField('function_code', RustNumericType.u8),
+            new NumericField('function_code', BuiltInNumericType.u8),
             new EnumField(structEnum)
         ]
     )
@@ -229,7 +229,7 @@ test('test struct with enum field with lifetime', () => {
 
 function getRequestDataEnumWithEmptyVariant() {
     const enumName = 'RequestData'
-    const functionCodeField = new NumericField('function_code', RustNumericType.u8)
+    const functionCodeField = new NumericField('function_code', BuiltInNumericType.u8)
     const variants: EnumVariant[] = [
         new StructEnumVariant(
             0x01,
@@ -258,8 +258,8 @@ function getRequestDataEnumWithEmptyVariant() {
             0x05,
             'WriteSingleCoil',
             [
-                new NumericField('output_address', RustNumericType.be_u16),
-                new NumericField('output_value', RustNumericType.be_u16),
+                new NumericField('output_address', BuiltInNumericType.be_u16),
+                new NumericField('output_value', BuiltInNumericType.be_u16),
             ],
         ),
         new EmptyVariant(
@@ -278,7 +278,7 @@ test('test struct with empty variant', () => {
     const request = new Struct(
         'Request',
         [
-            new NumericField('function_code', RustNumericType.u8),
+            new NumericField('function_code', BuiltInNumericType.u8),
             new EnumField(structEnum)
         ]
     )

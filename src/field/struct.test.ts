@@ -1,5 +1,5 @@
 import endent from "endent"
-import { RustNumericType } from "../types/numeric"
+import { BuiltInNumericType } from "../types/numeric"
 import { StructParserGenerator } from "../parser/struct"
 import { Struct } from "../types/struct"
 import { Field } from "./base"
@@ -10,17 +10,17 @@ import { CountVariable } from "../len"
 
 test('test struct with struct field', () => {
     const mbapHeaderFields: Field[] = [
-        new NumericField('transaction_id', RustNumericType.u8),
-        new NumericField('protocol_id', RustNumericType.be_u16),
-        new NumericField('length', RustNumericType.be_u16),
-        new NumericField('unit_id', RustNumericType.u8),
+        new NumericField('transaction_id', BuiltInNumericType.u8),
+        new NumericField('protocol_id', BuiltInNumericType.be_u16),
+        new NumericField('length', BuiltInNumericType.be_u16),
+        new NumericField('unit_id', BuiltInNumericType.u8),
     ]
 
     const header = new Struct('MBAPHeader', mbapHeaderFields)
 
     const fields: Field[] = [
         new StructField(header, 'header'),
-        new NumericField('function_code', RustNumericType.u8),
+        new NumericField('function_code', BuiltInNumericType.u8),
     ]
 
     const mdobusPacketPartial = new Struct('ModbusPacketPartial', fields)
@@ -71,10 +71,10 @@ test('test struct with struct field', () => {
 
 test('test struct with struct field with reference', () => {
     const mbapHeaderFields: Field[] = [
-        new NumericField('transaction_id', RustNumericType.u8),
-        new NumericField('protocol_id', RustNumericType.be_u16),
-        new NumericField('length', RustNumericType.be_u16),
-        new NumericField('unit_id', RustNumericType.u8),
+        new NumericField('transaction_id', BuiltInNumericType.u8),
+        new NumericField('protocol_id', BuiltInNumericType.be_u16),
+        new NumericField('length', BuiltInNumericType.be_u16),
+        new NumericField('unit_id', BuiltInNumericType.u8),
         new BytesReferenceField('data', new CountVariable('length')),
     ]
 
@@ -82,7 +82,7 @@ test('test struct with struct field with reference', () => {
 
     const fields: Field[] = [
         new StructField(header, 'header'),
-        new NumericField('function_code', RustNumericType.u8),
+        new NumericField('function_code', BuiltInNumericType.u8),
     ]
 
     const mdobusPacketPartialV2 = new Struct('ModbusPacketPartialV2', fields)

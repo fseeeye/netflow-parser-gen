@@ -1,5 +1,5 @@
 import endent from "endent"
-import { RustNumericType } from "./numeric"
+import { BuiltInNumericType } from "./numeric"
 import { Field } from "../field/base"
 import { NumericField } from "../field/numeric"
 import { BytesReferenceField } from "../field/ref"
@@ -9,10 +9,10 @@ import { StructParserGenerator } from "../parser/struct"
 
 test('test struct with reference', () => {
     const fields: Field[] = [
-        new NumericField('ref_type', RustNumericType.u8),
-        new NumericField('file_number', RustNumericType.be_u16),
-        new NumericField('record_number', RustNumericType.be_u16),
-        new NumericField('record_len', RustNumericType.be_u16),
+        new NumericField('ref_type', BuiltInNumericType.u8),
+        new NumericField('file_number', BuiltInNumericType.be_u16),
+        new NumericField('record_number', BuiltInNumericType.be_u16),
+        new NumericField('record_len', BuiltInNumericType.be_u16),
         new BytesReferenceField('record_data', new CountVariable('record_len')),
     ]
 
@@ -49,10 +49,10 @@ test('test struct with reference', () => {
 
 test('test struct with numeric types only', () => {
     const fields: Field[] = [
-        new NumericField('transaction_id', RustNumericType.u8),
-        new NumericField('protocol_id', RustNumericType.be_u16),
-        new NumericField('length', RustNumericType.be_u16),
-        new NumericField('unit_id', RustNumericType.u8),
+        new NumericField('transaction_id', BuiltInNumericType.u8),
+        new NumericField('protocol_id', BuiltInNumericType.be_u16),
+        new NumericField('length', BuiltInNumericType.be_u16),
+        new NumericField('unit_id', BuiltInNumericType.u8),
     ]
 
     const header = new Struct('MBAPHeader', fields)

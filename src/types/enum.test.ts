@@ -4,17 +4,17 @@ import { BytesReferenceField } from "../field/ref"
 import { CountVariable } from "../len"
 import { StructEnumParserGenerator } from "../parser/enum"
 import { StructEnumVariant, StructEnum } from "./enum"
-import { RustNumericType } from "./numeric"
+import { BuiltInNumericType } from "./numeric"
 
 
 export const SimpleReadRequestFields = [
-    new NumericField('start_address', RustNumericType.be_u16),
-    new NumericField('count', RustNumericType.be_u16),
+    new NumericField('start_address', BuiltInNumericType.be_u16),
+    new NumericField('count', BuiltInNumericType.be_u16),
 ]
 
 export function getRequestDataEnum() {
     const enumName = 'RequestData'
-    const functionCodeField = new NumericField('function_code', RustNumericType.u8)
+    const functionCodeField = new NumericField('function_code', BuiltInNumericType.u8)
     const variants: StructEnumVariant[] = [
         new StructEnumVariant(
             0x01,
@@ -43,8 +43,8 @@ export function getRequestDataEnum() {
             0x05,
             'WriteSingleCoil',
             [
-                new NumericField('output_address', RustNumericType.be_u16),
-                new NumericField('output_value', RustNumericType.be_u16),
+                new NumericField('output_address', BuiltInNumericType.be_u16),
+                new NumericField('output_value', BuiltInNumericType.be_u16),
             ],
         )
     ]
@@ -155,16 +155,16 @@ test('test enum definition without reference', () => {
 })
 
 export function getRequestDataWithRefEnum() {
-    const functionCodeField = new NumericField('function_code', RustNumericType.u8)
+    const functionCodeField = new NumericField('function_code', BuiltInNumericType.u8)
     const variants = [
         new StructEnumVariant(
             0x17,
             'WriteFileRecordSubRequest',
             [
-                new NumericField('ref_type', RustNumericType.u8),
-                new NumericField('file_number', RustNumericType.be_u16),
-                new NumericField('record_number', RustNumericType.be_u16),
-                new NumericField('record_len', RustNumericType.be_u16),
+                new NumericField('ref_type', BuiltInNumericType.u8),
+                new NumericField('file_number', BuiltInNumericType.be_u16),
+                new NumericField('record_number', BuiltInNumericType.be_u16),
+                new NumericField('record_len', BuiltInNumericType.be_u16),
                 new BytesReferenceField('record_data', new CountVariable('record_len')),
             ],
         ),
@@ -172,8 +172,8 @@ export function getRequestDataWithRefEnum() {
             0x06,
             'WriteSingleRegister',
             [
-                new NumericField('register_address', RustNumericType.be_u16),
-                new NumericField('register_value', RustNumericType.be_u16),
+                new NumericField('register_address', BuiltInNumericType.be_u16),
+                new NumericField('register_value', BuiltInNumericType.be_u16),
             ],
 
         )

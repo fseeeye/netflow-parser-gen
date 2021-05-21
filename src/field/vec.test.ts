@@ -1,6 +1,6 @@
 import endent from "endent"
 import { CountVariable } from "../len"
-import { RustNumericType } from "../types/numeric"
+import { BuiltInNumericType } from "../types/numeric"
 import { StructParserGenerator } from "../parser/struct"
 import { Struct } from "../types/struct"
 import { Field } from "./base"
@@ -9,10 +9,10 @@ import { VecField } from "./vec"
 
 test('test struct with vec of primitive field', () => {
     const fields: Field[] = [
-        new NumericField('start_address', RustNumericType.u8),
-        new NumericField('output_count', RustNumericType.be_u16),
-        new NumericField('byte_count', RustNumericType.u8),
-        new VecField('output_values', new CountVariable('output_count'), RustNumericType.be_u16),
+        new NumericField('start_address', BuiltInNumericType.u8),
+        new NumericField('output_count', BuiltInNumericType.be_u16),
+        new NumericField('byte_count', BuiltInNumericType.u8),
+        new VecField('output_values', new CountVariable('output_count'), BuiltInNumericType.be_u16),
     ]
     const writeMultipleRegister = new Struct('WriteMultipleRegisters', fields)
     // console.log(writeMultipleRegister.compileDefinition())
@@ -47,10 +47,10 @@ test('test struct with vec of primitive field', () => {
 
 test('test struct with vec field of user defined type', () => {
     const read_file_sub_req_fields: Field[] = [
-        new NumericField('ref_type', RustNumericType.u8),
-        new NumericField('file_number', RustNumericType.be_u16),
-        new NumericField('record_number', RustNumericType.be_u16),
-        new NumericField('record_len', RustNumericType.be_u16),
+        new NumericField('ref_type', BuiltInNumericType.u8),
+        new NumericField('file_number', BuiltInNumericType.be_u16),
+        new NumericField('record_number', BuiltInNumericType.be_u16),
+        new NumericField('record_len', BuiltInNumericType.be_u16),
     ]
     const readFileSubReq = new Struct('ReadFileSubRequest', read_file_sub_req_fields)
     // console.log(readFileSubReq.compileDefinition())
@@ -81,7 +81,7 @@ test('test struct with vec field of user defined type', () => {
         ))
     }`)
     const read_file_record_fields: Field[] = [
-        new NumericField('byte_count', RustNumericType.u8),
+        new NumericField('byte_count', BuiltInNumericType.u8),
         new VecField('sub_requests', new CountVariable('byte_count', 7, 'div'), readFileSubReq),
     ]
     const readFileRecord = new Struct('ReadFileRecord', read_file_record_fields)

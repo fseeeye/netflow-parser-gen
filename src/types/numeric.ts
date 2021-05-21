@@ -1,7 +1,7 @@
 import { FieldType } from "./base"
 import { NomNumberFunction } from "../nom"
 
-enum RustNumericTypeName {
+enum BuiltInNumericTypeName {
     u8 = 'u8',
     u16 = 'u16',
     u32 = 'u32',
@@ -11,7 +11,7 @@ enum RustNumericTypeName {
 
 export class NumericType implements FieldType {
     constructor(
-        private readonly _name: RustNumericTypeName,
+        private readonly _name: BuiltInNumericTypeName,
         private readonly _parserFunctionName: NomNumberFunction,
     ) { }
 
@@ -33,13 +33,13 @@ export class NumericType implements FieldType {
 
 }
 
-export const RustNumericType = {
-    u8: new NumericType(RustNumericTypeName.u8, NomNumberFunction.u8),
-    be_u16: new NumericType(RustNumericTypeName.u16, NomNumberFunction.be_u16),
-    be_u32: new NumericType(RustNumericTypeName.u32, NomNumberFunction.be_u32),
-    be_u64: new NumericType(RustNumericTypeName.u64, NomNumberFunction.be_u64),
-    le_u16: new NumericType(RustNumericTypeName.u16, NomNumberFunction.le_u16),
-    le_u32: new NumericType(RustNumericTypeName.u32, NomNumberFunction.le_u32),
-    le_u64: new NumericType(RustNumericTypeName.u64, NomNumberFunction.le_u64),
+export const BuiltInNumericType = {
+    u8: new NumericType(BuiltInNumericTypeName.u8, NomNumberFunction.u8),
+    be_u16: new NumericType(BuiltInNumericTypeName.u16, NomNumberFunction.be_u16),
+    be_u32: new NumericType(BuiltInNumericTypeName.u32, NomNumberFunction.be_u32),
+    be_u64: new NumericType(BuiltInNumericTypeName.u64, NomNumberFunction.be_u64),
+    le_u16: new NumericType(BuiltInNumericTypeName.u16, NomNumberFunction.le_u16),
+    le_u32: new NumericType(BuiltInNumericTypeName.u32, NomNumberFunction.le_u32),
+    le_u64: new NumericType(BuiltInNumericTypeName.u64, NomNumberFunction.le_u64),
 }
 
