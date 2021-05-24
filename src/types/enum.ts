@@ -40,7 +40,7 @@ export class EmptyVariant implements EnumVariant {
     }
 
     parserInvocation(): string {
-        return this.parserFunctionName()
+        return `${this.parserFunctionName()}(input)`
     }
 
     parserImplementation(enumName: string) {
@@ -77,8 +77,8 @@ export class AnonymousStructEnumVariant extends Struct implements EnumVariant {
         return `${this.name} ${this.generateFields()}`
     }
 
-    parserInvocation() {
-        return this.parserFunctionName()
+    parserInvocation(): string {
+        return `${this.parserFunctionName()}(input)`
     }
 
     parserImplementation(enumName: string) {
@@ -88,13 +88,14 @@ export class AnonymousStructEnumVariant extends Struct implements EnumVariant {
 
 }
 
-export class UserDefinedEnumVariant implements EnumVariant {
+export class NamedStructVariant implements EnumVariant {
     inlineParsable: boolean = true
 
     constructor(
+        readonly enumName: string,
         readonly choice: ChoiceType,
         readonly name: string,
-        readonly struct: Struct | StructEnum,
+        readonly struct: Struct,
     ) { }
 
     hasReference() {
@@ -109,24 +110,72 @@ export class UserDefinedEnumVariant implements EnumVariant {
     }
 
     parserInvocation() {
-        return this.struct.parserFunctionName()
+        const typeName = `${this.enumName}::${this.struct.name}`
+        const parsed = this.struct.snakeCaseName()
+        const parserBlock = endent`{
+            let (input, ${parsed}) = ${this.struct.parserFunctionName()}(input)?;
+            Ok((input, ${typeName}(${parsed})))
+        }`
+        return parserBlock
+    }
+}
+
+export class NamedEnumVariant implements EnumVariant {
+    inlineParsable: boolean = true
+
+    constructor(
+        readonly enumName: string,
+        readonly choice: ChoiceType,
+        readonly name: string,
+        readonly struct: StructEnum,
+    ) { }
+
+    hasReference() {
+        return this.struct.isRef()
     }
 
-    // parserImplementation(enumName: string) {
+    definition() {
+        if (this.hasReference()) {
+            return `${this.name}(${this.name}<'a>)`
+        }
+        return `${this.name}(${this.name})`
+    }
 
-    // } 
+    parserInvocation() {
+        const typeName = `${this.enumName}::${this.struct.name}`
+        const parsed = this.struct.snakeCaseName()
+        const parserBlock = endent`{
+            let (input, ${parsed}) = ${this.struct.parserFunctionName()}(input, ${this.struct.choiceField.name})?;
+            Ok((input, ${typeName}(${parsed})))
+        }`
+        return parserBlock
+    }
 
+    // parserFunctionSignature() {
+    //     const functionName = `parse_${snakeCase(this.enumName)}_${this.struct.snakeCaseName()}`
+    //     const choiceField = this.struct.choiceField
+    //     const parameterList = `input: &[u8], ${choiceField.name}: ${choiceField.field.typeName()}`
+    //     const returnType = `IResult<&[u8], ${this.enumName}>`
+    //     return `fn ${functionName}(${parameterList}) -> ${returnType}`
 }
 
 export class ChoiceField {
     constructor(
         readonly field: Field,
-        readonly consuming: boolean = true
+        readonly matchTargetGenerator?: (choiceFieldName: string) => string
     ) { }
 
     get name() {
         return this.field.name
     }
+
+    generateMatchTarget() {
+        if (this.matchTargetGenerator === undefined) {
+            return this.field.name
+        }
+        return this.matchTargetGenerator(this.field.name)
+    }
+
 }
 
 export class StructEnum implements FieldType {

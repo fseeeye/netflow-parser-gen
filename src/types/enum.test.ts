@@ -5,7 +5,7 @@ import { BytesReferenceField } from "../field/ref"
 import { CountVariableImpl } from "../len"
 import { StructEnumParserGenerator } from "../parser/enum"
 import { StructParserGenerator } from "../parser/struct"
-import { AnonymousStructEnumVariant, ChoiceField, EmptyVariant, EnumVariant, StructEnum, UserDefinedEnumVariant } from "./enum"
+import { AnonymousStructEnumVariant, ChoiceField, EnumVariant, StructEnum, NamedStructVariant, NamedEnumVariant, EmptyVariant } from "./enum"
 import { BuiltInNumericType } from "./numeric"
 import { Struct } from "./struct"
 
@@ -276,10 +276,10 @@ test('enum with user defined variants', () => {
     const payload = new StructEnum(
         'Payload',
         [
-            new UserDefinedEnumVariant(0x01, 'RequestData', request),
-            new UserDefinedEnumVariant(0x00, 'Exception', exception)
+            new NamedEnumVariant('Payload', 0x00, 'RequestData', request),
+            new NamedStructVariant('Payload', 0x01, 'Exception', exception)
         ],
-        new ChoiceField(createNumericField({ name: 'function_code', typeName: 'u8' }), false),
+        new ChoiceField(createNumericField({ name: 'function_code', typeName: 'u8' }), (name) => { return `${name} & 0b10000000` }),
     )
     console.log(payload.definition())
     const gen = new StructEnumParserGenerator(payload)

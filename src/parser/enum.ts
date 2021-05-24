@@ -71,7 +71,7 @@ export class StructEnumParserGenerator {
         const choiceLiteral = generateChoiceLiteral(variant.choice)
 
         return endent`
-        ${choiceLiteral} => ${variant.parserInvocation()}(input),
+        ${choiceLiteral} => ${variant.parserInvocation()},
         `
     }
 
@@ -89,7 +89,7 @@ export class StructEnumParserGenerator {
         const parsedEnumVariable = structEnum.snakeCaseName()
 
         return endent`
-        let (input, ${parsedEnumVariable}) = match ${structEnum.choiceField.name} {
+        let (input, ${parsedEnumVariable}) = match ${structEnum.choiceField.generateMatchTarget()} {
             ${choiceArms.join('\n')}
             ${this.generateErrorArm()}
         }?;
