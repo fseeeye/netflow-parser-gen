@@ -1,11 +1,11 @@
 import endent from "endent"
 import { createNumericField } from "../api/input"
-import { EnumField } from "../field/enum"
 import { NumericField } from "../field/numeric"
 import { BytesReferenceField } from "../field/ref"
 import { CountVariableImpl } from "../len"
 import { StructEnumParserGenerator } from "../parser/enum"
-import { AnonymousStructEnumVariant, EmptyVariant, EnumVariant, StructEnum, UserDefinedEnumVariant } from "./enum"
+import { StructParserGenerator } from "../parser/struct"
+import { AnonymousStructEnumVariant, ChoiceField, EmptyVariant, EnumVariant, StructEnum, UserDefinedEnumVariant } from "./enum"
 import { BuiltInNumericType } from "./numeric"
 import { Struct } from "./struct"
 
@@ -51,7 +51,7 @@ export function getRequestDataEnum() {
             ],
         )
     ]
-    const structEnum = new StructEnum(enumName, variants, functionCodeField)
+    const structEnum = new StructEnum(enumName, variants, new ChoiceField(functionCodeField))
     return structEnum
 }
 
@@ -181,7 +181,7 @@ export function getRequestDataWithRefEnum() {
 
         )
     ]
-    const structEnum = new StructEnum('RequestData', variants, functionCodeField)
+    const structEnum = new StructEnum('RequestData', variants, new ChoiceField(functionCodeField))
     return structEnum
 }
 
@@ -259,20 +259,29 @@ test('enum with user defined variants', () => {
             ]),
             new EmptyVariant(0x0b),
         ],
-        createNumericField({ name: 'function_code', typeName: 'u8' })
+        new ChoiceField(createNumericField({ name: 'function_code', typeName: 'u8' })),
     )
+    console.log(request.definition())
+    const reqGen = new StructEnumParserGenerator(request)
+    console.log(reqGen.generateParser())
     const exception = new Struct(
         'Exception',
         [
             createNumericField({ name: 'exception_code', typeName: 'u8' })
         ]
     )
+    console.log(exception.definition())
+    const exceptionGen = new StructParserGenerator(exception)
+    console.log(exceptionGen.generateParser())
     const payload = new StructEnum(
         'Payload',
         [
-            new UserDefinedEnumVariant(0x01, 'request', request),
-            new UserDefinedEnumVariant(0x00, 'exception', exception)
+            new UserDefinedEnumVariant(0x01, 'RequestData', request),
+            new UserDefinedEnumVariant(0x00, 'Exception', exception)
         ],
-        createNumericField({ name: 'function_code', typeName: 'u8' })
+        new ChoiceField(createNumericField({ name: 'function_code', typeName: 'u8' }), false),
     )
+    console.log(payload.definition())
+    const gen = new StructEnumParserGenerator(payload)
+    console.log(gen.generateParser())
 })

@@ -1,6 +1,6 @@
 import endent from "endent"
 import { StructParserGenerator } from "../parser/struct"
-import { EmptyVariant, StructEnum, AnonymousStructEnumVariant } from "../types/enum"
+import { EmptyVariant, StructEnum, AnonymousStructEnumVariant, ChoiceField } from "../types/enum"
 import { getRequestDataEnum, getRequestDataWithRefEnum, SimpleReadRequestFields } from "../types/enum.test"
 import { BuiltInNumericType } from "../types/numeric"
 import { Struct } from "../types/struct"
@@ -272,7 +272,7 @@ function getRequestDataEnumWithEmptyVariant() {
             0x0B
         )
     ]
-    const structEnum = new StructEnum(enumName, variants, functionCodeField)
+    const structEnum = new StructEnum(enumName, variants, new ChoiceField(functionCodeField))
     return structEnum
 }
 

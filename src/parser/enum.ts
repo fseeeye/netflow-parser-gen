@@ -1,5 +1,5 @@
 import endent from "endent"
-import { ChoiceType, StructEnum, AnonymousStructEnumVariant } from "../types/enum"
+import { ChoiceType, StructEnum, AnonymousStructEnumVariant, EnumVariant } from "../types/enum"
 import { removeDuplicateByKey } from "../utils"
 import { StructParserGenerator } from "./struct"
 
@@ -56,7 +56,8 @@ export class StructEnumParserGenerator {
 
     functionSignature() {
         const structEnum = this.structEnum
-        const choiceParameter = `${structEnum.choiceField.name}: ${structEnum.choiceField.typeName()}`
+        const choiceField = this.structEnum.choiceField.field
+        const choiceParameter = `${choiceField.name}: ${choiceField.typeName()}`
         return `pub fn parse_${structEnum.snakeCaseName()}(input: &[u8], ${choiceParameter}) -> IResult<&[u8], ${structEnum.name}>`
     }
 
@@ -66,15 +67,24 @@ export class StructEnumParserGenerator {
         `
     }
 
+    private generateMatchArm(variant: EnumVariant) {
+        const choiceLiteral = generateChoiceLiteral(variant.choice)
+
+        return endent`
+        ${choiceLiteral} => ${variant.parserInvocation()}(input),
+        `
+    }
+
     private generateMatchBlock() {
         const structEnum = this.structEnum
         // console.log(structEnum.variantMap)
         const choiceArms = structEnum.variants.map((variant) => {
-            const variantParserName = variant.parserInvocation()
-            const choiceLiteral = generateChoiceLiteral(variant.choice)
-            return endent`
-            ${choiceLiteral} => ${variantParserName}(input),
-            `
+            // const variantParserName = variant.parserInvocation()
+            // const choiceLiteral = generateChoiceLiteral(variant.choice)
+            // return endent`
+            // ${choiceLiteral} => ${variantParserName}(input),
+            // `
+            return this.generateMatchArm(variant)
         })
         const parsedEnumVariable = structEnum.snakeCaseName()
 

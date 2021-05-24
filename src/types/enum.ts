@@ -94,11 +94,11 @@ export class UserDefinedEnumVariant implements EnumVariant {
     constructor(
         readonly choice: ChoiceType,
         readonly name: string,
-        readonly struct: Struct,
+        readonly struct: Struct | StructEnum,
     ) { }
 
     hasReference() {
-        return this.struct.hasReference()
+        return this.struct.isRef()
     }
 
     definition() {
@@ -118,12 +118,23 @@ export class UserDefinedEnumVariant implements EnumVariant {
 
 }
 
+export class ChoiceField {
+    constructor(
+        readonly field: Field,
+        readonly consuming: boolean = true
+    ) { }
+
+    get name() {
+        return this.field.name
+    }
+}
+
 export class StructEnum implements FieldType {
 
     constructor(
         readonly name: string,
         readonly variants: EnumVariant[],
-        readonly choiceField: Field,
+        readonly choiceField: ChoiceField,
     ) { }
 
     typeName() {
