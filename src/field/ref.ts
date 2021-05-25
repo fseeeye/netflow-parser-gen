@@ -2,6 +2,8 @@ import { CountVariableImpl } from "../len"
 import { NomBytesFunction } from "../nom"
 import { BaseField } from "./base"
 
+export const BYTES_REF_TYPENAME = `&'a [u8]`
+
 export class BytesReferenceField extends BaseField {
     constructor(
         readonly name: string,
@@ -19,7 +21,7 @@ export class BytesReferenceField extends BaseField {
     }
 
     typeName() {
-        return `&'a [u8]`
+        return BYTES_REF_TYPENAME
     }
 
     parserInvocation() {
