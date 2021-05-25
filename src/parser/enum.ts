@@ -103,7 +103,7 @@ export class StructEnumParserGenerator {
         // const variantNamesWithOwnParsers = variantsWithOwnParsers.map(v => v.name)
         // const uniqueVariantNamesWithOwnParsers = variantsWithOwnParsers.filter(({ name }, index) => variantNamesWithOwnParsers.includes(name, index + 1) === false)
         const uniqueVariantNamesWithOwnParsers = removeDuplicateByKey(
-            this.structEnum.variants.filter(v => v.inlineParsable === false),
+            this.structEnum.variants.filter(v => v.hasParserImplementation === false),
             (v) => v.name
         )
         const parsers = uniqueVariantNamesWithOwnParsers.map((variant) => {

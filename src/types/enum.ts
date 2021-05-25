@@ -10,7 +10,7 @@ export type ChoiceType = string | number
 
 export interface EnumVariant {
     name: string
-    inlineParsable: boolean
+    hasParserImplementation: boolean
     choice: ChoiceType
     definition(): string
     hasReference(): boolean
@@ -19,7 +19,7 @@ export interface EnumVariant {
 }
 
 export class EmptyVariant implements EnumVariant {
-    inlineParsable: boolean = false
+    hasParserImplementation: boolean = false
     name: string = 'Eof'
 
     constructor(
@@ -59,7 +59,7 @@ export class EmptyVariant implements EnumVariant {
 }
 
 export class AnonymousStructVariant extends Struct implements EnumVariant {
-    inlineParsable: boolean = false
+    hasParserImplementation: boolean = false
 
     constructor(
         readonly choice: ChoiceType,
@@ -89,7 +89,7 @@ export class AnonymousStructVariant extends Struct implements EnumVariant {
 }
 
 export class NamedStructVariant implements EnumVariant {
-    inlineParsable: boolean = true
+    hasParserImplementation: boolean = true
 
     constructor(
         readonly enumName: string,
@@ -121,7 +121,7 @@ export class NamedStructVariant implements EnumVariant {
 }
 
 export class NamedEnumVariant implements EnumVariant {
-    inlineParsable: boolean = true
+    hasParserImplementation: boolean = true
 
     constructor(
         readonly enumName: string,
