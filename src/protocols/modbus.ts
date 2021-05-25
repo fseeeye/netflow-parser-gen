@@ -17,7 +17,7 @@ const MBAPHeader = new Struct(
         numeric('transaction_id', 'be_u16'),
         numeric('protocol_id', 'be_u16'),
         numeric('length', 'be_u16'),
-        numeric('unit_id', 'u8')
+        numeric('unit_id', 'u8'),
     ]
 )
 
@@ -38,7 +38,7 @@ const WriteFileRecordSubRequest = new Struct(
         numeric('file_number', 'be_u16'),
         numeric('record_number', 'be_u16'),
         numeric('record_length', 'be_u16'),
-        bytesRef('record_data', { name: 'record_length' })
+        bytesRef('record_data', { name: 'record_length' }),
     ]
 )
 

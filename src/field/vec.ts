@@ -14,6 +14,9 @@ export class VecField extends BaseField {
     }
 
     typeName() {
+        if (this.elementType.isRef()) {
+            return `Vec<${this.elementType.typeName()}<'a>>`
+        }
         return `Vec<${this.elementType.typeName()}>`
     }
 
