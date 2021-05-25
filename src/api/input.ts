@@ -50,7 +50,7 @@ export function createBytesReferenceField({ name, countVar }: BytesReferenceFiel
 //             const fieldsImpl = fields?.map((cfg) => {
 
 //             })
-//             return new AnonymousStructEnumVariant(choice, name, )
+//             return new AnonymousStructVariant(choice, name, )
 //         }
 //     })
 // }

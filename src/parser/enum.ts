@@ -1,11 +1,11 @@
 import endent from "endent"
-import { ChoiceType, StructEnum, AnonymousStructEnumVariant, EnumVariant } from "../types/enum"
+import { ChoiceType, StructEnum, AnonymousStructVariant, EnumVariant } from "../types/enum"
 import { removeDuplicateByKey } from "../utils"
 import { StructParserGenerator } from "./struct"
 
 export class StructEnumVariantParserGenerator extends StructParserGenerator {
     constructor(
-        readonly struct: AnonymousStructEnumVariant,
+        readonly struct: AnonymousStructVariant,
         readonly enumName: string,
     ) {
         super(struct)

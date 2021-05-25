@@ -1,11 +1,10 @@
 import endent from "endent"
-import { createNumericField } from "../api/input"
+import { createBytesReferenceField, createNumericField } from "../api/input"
 import { NumericField } from "../field/numeric"
 import { BytesReferenceField } from "../field/ref"
 import { CountVariableImpl } from "../len"
 import { StructEnumParserGenerator } from "../parser/enum"
-import { StructParserGenerator } from "../parser/struct"
-import { AnonymousStructEnumVariant, ChoiceField, EnumVariant, StructEnum, NamedStructVariant, NamedEnumVariant, EmptyVariant } from "./enum"
+import { AnonymousStructVariant, ChoiceField, EnumVariant, StructEnum, NamedStructVariant, NamedEnumVariant, EmptyVariant } from "./enum"
 import { BuiltInNumericType } from "./numeric"
 import { Struct } from "./struct"
 
@@ -19,30 +18,30 @@ export function getRequestDataEnum() {
     const enumName = 'RequestData'
     const functionCodeField = new NumericField('function_code', BuiltInNumericType.u8)
     const variants: EnumVariant[] = [
-        new AnonymousStructEnumVariant(
+        new AnonymousStructVariant(
             0x01,
             'ReadCoils',
             SimpleReadRequestFields.slice(),
         ),
-        new AnonymousStructEnumVariant(
+        new AnonymousStructVariant(
             0x02,
             'ReadDiscreteInputs',
             SimpleReadRequestFields.slice(),
 
         ),
-        new AnonymousStructEnumVariant(
+        new AnonymousStructVariant(
             0x03,
             'ReadHoldingRegisters',
             SimpleReadRequestFields.slice(),
 
         ),
-        new AnonymousStructEnumVariant(
+        new AnonymousStructVariant(
             0x04,
             'ReadInputRegisters',
             SimpleReadRequestFields.slice(),
 
         ),
-        new AnonymousStructEnumVariant(
+        new AnonymousStructVariant(
             0x05,
             'WriteSingleCoil',
             [
@@ -160,7 +159,7 @@ test('test enum definition without reference', () => {
 export function getRequestDataWithRefEnum() {
     const functionCodeField = new NumericField('function_code', BuiltInNumericType.u8)
     const variants = [
-        new AnonymousStructEnumVariant(
+        new AnonymousStructVariant(
             0x17,
             'WriteFileRecordSubRequest',
             [
@@ -171,7 +170,7 @@ export function getRequestDataWithRefEnum() {
                 new BytesReferenceField('record_data', new CountVariableImpl('record_len')),
             ],
         ),
-        new AnonymousStructEnumVariant(
+        new AnonymousStructVariant(
             0x06,
             'WriteSingleRegister',
             [
@@ -249,11 +248,11 @@ test('enum with user defined variants', () => {
     const request = new StructEnum(
         'RequestData',
         [
-            new AnonymousStructEnumVariant(0x01, 'ReadCoils', [
+            new AnonymousStructVariant(0x01, 'ReadCoils', [
                 createNumericField({ name: 'start_address', typeName: 'be_u16' }),
                 createNumericField({ name: 'count', typeName: 'be_u16' }),
             ]),
-            new AnonymousStructEnumVariant(0x04, 'WriteSingleCoil', [
+            new AnonymousStructVariant(0x04, 'WriteSingleCoil', [
                 createNumericField({ name: 'output_address', typeName: 'be_u16' }),
                 createNumericField({ name: 'output_value', typeName: 'be_u16' }),
             ]),
@@ -261,18 +260,18 @@ test('enum with user defined variants', () => {
         ],
         new ChoiceField(createNumericField({ name: 'function_code', typeName: 'u8' })),
     )
-    console.log(request.definition())
-    const reqGen = new StructEnumParserGenerator(request)
-    console.log(reqGen.generateParser())
+    // console.log(request.definition())
+    // const reqGen = new StructEnumParserGenerator(request)
+    // console.log(reqGen.generateParser())
     const exception = new Struct(
         'Exception',
         [
             createNumericField({ name: 'exception_code', typeName: 'u8' })
         ]
     )
-    console.log(exception.definition())
-    const exceptionGen = new StructParserGenerator(exception)
-    console.log(exceptionGen.generateParser())
+    // console.log(exception.definition())
+    // const exceptionGen = new StructParserGenerator(exception)
+    // console.log(exceptionGen.generateParser())
     const payload = new StructEnum(
         'Payload',
         [
@@ -281,7 +280,101 @@ test('enum with user defined variants', () => {
         ],
         new ChoiceField(createNumericField({ name: 'function_code', typeName: 'u8' }), (name) => { return `${name} & 0b10000000` }),
     )
-    console.log(payload.definition())
+    // console.log(payload.definition())
+    expect(payload.definition()).toEqual(endent`
+    #[derive(Debug, PartialEq)]
+    pub enum Payload {
+        RequestData(RequestData),
+        Exception(Exception)
+    }
+    `)
     const gen = new StructEnumParserGenerator(payload)
-    console.log(gen.generateParser())
+    expect(gen.generateEnumParser()).toEqual(endent`
+    pub fn parse_payload(input: &[u8], function_code: u8) -> IResult<&[u8], Payload> {
+        let (input, payload) = match function_code & 0b10000000 {
+            0x0 => {
+                let (input, request_data) = parse_request_data(input, function_code)?;
+                Ok((input, Payload::RequestData(request_data)))
+            },
+            0x01 => {
+                let (input, exception) = parse_exception(input)?;
+                Ok((input, Payload::Exception(exception)))
+            },
+            _ =>  Err(nom::Err::Error(nom::error::Error::new(input, nom::error::ErrorKind::Verify))),
+        }?;
+        Ok((input, payload))
+    }
+    `)
+})
+
+test('enum with user defined variants with reference', () => {
+    const request = new StructEnum(
+        'RequestData',
+        [
+            new AnonymousStructVariant(0x01, 'ReadCoils', [
+                createNumericField({ name: 'start_address', typeName: 'be_u16' }),
+                createNumericField({ name: 'count', typeName: 'be_u16' }),
+                createBytesReferenceField({ name: 'data', countVar: new CountVariableImpl('count') }),
+            ]),
+            new AnonymousStructVariant(0x04, 'WriteSingleCoil', [
+                createNumericField({ name: 'output_address', typeName: 'be_u16' }),
+                createNumericField({ name: 'output_value', typeName: 'be_u16' }),
+            ]),
+            new EmptyVariant(0x0b),
+        ],
+        new ChoiceField(createNumericField({ name: 'function_code', typeName: 'u8' })),
+    )
+    const payload = new StructEnum(
+        'Payload',
+        [
+            new NamedEnumVariant('Payload', 0x00, 'RequestData', request),
+            new AnonymousStructVariant(0x02, 'WriteMultipleRegisters', [
+                createNumericField({ name: 'write_start_address', typeName: 'be_u16' }),
+                createNumericField({ name: 'write_count', typeName: 'be_u16' }),
+                createBytesReferenceField({ name: 'write_register_values', countVar: new CountVariableImpl('write_count') }),
+            ])
+        ],
+        new ChoiceField(createNumericField({ name: 'function_code', typeName: 'u8' }), (name) => { return `${name} & 0b10000000` }),
+    )
+    // console.log(payload.definition())
+    expect(payload.definition()).toEqual(endent`
+    #[derive(Debug, PartialEq)]
+    pub enum Payload<'a> {
+        RequestData(RequestData<'a>),
+        WriteMultipleRegisters {
+             write_start_address: u16,
+             write_count: u16,
+             write_register_values: &'a [u8],
+        }
+    }
+    `)
+    const gen = new StructEnumParserGenerator(payload)
+    // console.log(gen.generateParser())
+    expect(gen.generateParser()).toEqual(endent`
+    fn parse_write_multiple_registers(input: &[u8]) -> IResult<&[u8], Payload> {
+        let (input, write_start_address) = be_u16(input)?;
+        let (input, write_count) = be_u16(input)?;
+        let (input, write_register_values) = take(write_count)(input)?;
+        Ok((
+            input,
+            Payload::WriteMultipleRegisters {
+                write_start_address,
+                write_count,
+                write_register_values
+            }
+        ))
+    }
+    
+    pub fn parse_payload(input: &[u8], function_code: u8) -> IResult<&[u8], Payload> {
+        let (input, payload) = match function_code & 0b10000000 {
+            0x0 => {
+                let (input, request_data) = parse_request_data(input, function_code)?;
+                Ok((input, Payload::RequestData(request_data)))
+            },
+            0x02 => parse_write_multiple_registers(input),
+            _ =>  Err(nom::Err::Error(nom::error::Error::new(input, nom::error::ErrorKind::Verify))),
+        }?;
+        Ok((input, payload))
+    }
+    `)
 })

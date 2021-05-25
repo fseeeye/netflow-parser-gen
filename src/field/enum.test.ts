@@ -1,6 +1,6 @@
 import endent from "endent"
 import { StructParserGenerator } from "../parser/struct"
-import { EmptyVariant, StructEnum, AnonymousStructEnumVariant, ChoiceField } from "../types/enum"
+import { EmptyVariant, StructEnum, AnonymousStructVariant, ChoiceField } from "../types/enum"
 import { getRequestDataEnum, getRequestDataWithRefEnum, SimpleReadRequestFields } from "../types/enum.test"
 import { BuiltInNumericType } from "../types/numeric"
 import { Struct } from "../types/struct"
@@ -234,30 +234,30 @@ function getRequestDataEnumWithEmptyVariant() {
     const enumName = 'RequestData'
     const functionCodeField = new NumericField('function_code', BuiltInNumericType.u8)
     const variants: EnumVariant[] = [
-        new AnonymousStructEnumVariant(
+        new AnonymousStructVariant(
             0x01,
             'ReadCoils',
             SimpleReadRequestFields.slice(),
         ),
-        new AnonymousStructEnumVariant(
+        new AnonymousStructVariant(
             0x02,
             'ReadDiscreteInputs',
             SimpleReadRequestFields.slice(),
 
         ),
-        new AnonymousStructEnumVariant(
+        new AnonymousStructVariant(
             0x03,
             'ReadHoldingRegisters',
             SimpleReadRequestFields.slice(),
 
         ),
-        new AnonymousStructEnumVariant(
+        new AnonymousStructVariant(
             0x04,
             'ReadInputRegisters',
             SimpleReadRequestFields.slice(),
 
         ),
-        new AnonymousStructEnumVariant(
+        new AnonymousStructVariant(
             0x05,
             'WriteSingleCoil',
             [

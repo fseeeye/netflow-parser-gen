@@ -58,7 +58,7 @@ export class EmptyVariant implements EnumVariant {
     }
 }
 
-export class AnonymousStructEnumVariant extends Struct implements EnumVariant {
+export class AnonymousStructVariant extends Struct implements EnumVariant {
     inlineParsable: boolean = false
 
     constructor(
