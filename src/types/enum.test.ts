@@ -1,8 +1,7 @@
 import endent from "endent"
-import { createBytesReferenceField, createNumericField } from "../api/input"
+import { createBytesReferenceField, createCountVar, createNumericField } from "../api/input"
 import { NumericField } from "../field/numeric"
 import { BytesReferenceField } from "../field/ref"
-import { CountVariable } from "../len"
 import { StructEnumParserGenerator } from "../parser/enum"
 import { AnonymousStructVariant, ChoiceField, EnumVariant, StructEnum, NamedStructVariant, NamedEnumVariant, EmptyVariant } from "./enum"
 import { BuiltInNumericType } from "./numeric"
@@ -167,7 +166,7 @@ export function getRequestDataWithRefEnum() {
                 new NumericField('file_number', BuiltInNumericType.be_u16),
                 new NumericField('record_number', BuiltInNumericType.be_u16),
                 new NumericField('record_len', BuiltInNumericType.be_u16),
-                new BytesReferenceField('record_data', new CountVariable('record_len')),
+                new BytesReferenceField('record_data', createCountVar('record_len')),
             ],
         ),
         new AnonymousStructVariant(
@@ -314,7 +313,7 @@ test('enum with user defined variants with reference', () => {
             new AnonymousStructVariant(0x01, 'ReadCoils', [
                 createNumericField({ name: 'start_address', typeName: 'be_u16' }),
                 createNumericField({ name: 'count', typeName: 'be_u16' }),
-                createBytesReferenceField({ name: 'data', countVar: new CountVariable('count') }),
+                createBytesReferenceField({ name: 'data', countVar: createCountVar('count') }),
             ]),
             new AnonymousStructVariant(0x04, 'WriteSingleCoil', [
                 createNumericField({ name: 'output_address', typeName: 'be_u16' }),
@@ -331,7 +330,7 @@ test('enum with user defined variants with reference', () => {
             new AnonymousStructVariant(0x02, 'WriteMultipleRegisters', [
                 createNumericField({ name: 'write_start_address', typeName: 'be_u16' }),
                 createNumericField({ name: 'write_count', typeName: 'be_u16' }),
-                createBytesReferenceField({ name: 'write_register_values', countVar: new CountVariable('write_count') }),
+                createBytesReferenceField({ name: 'write_register_values', countVar: createCountVar('write_count') }),
             ])
         ],
         new ChoiceField(createNumericField({ name: 'function_code', typeName: 'u8' }), (name) => { return `${name} & 0b10000000` }),

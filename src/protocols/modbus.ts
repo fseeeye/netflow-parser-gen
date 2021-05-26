@@ -2,6 +2,8 @@ import {
     createNumericFieldSimple as numeric,
     createBytesReferenceFieldSimple as bytesRef,
     createNumericVector as numVec,
+    createCountVar,
+    createCountVarWithUnitSize,
 } from "../api/input"
 import { EnumField } from "../field/enum"
 import { NumericField } from "../field/numeric"
@@ -81,7 +83,7 @@ const Request = new StructEnum(
                 numeric('start_address', 'be_u16'),
                 numeric('output_count', 'be_u16'),
                 numeric('byte_count', 'u8'),
-                numVec('output_values', new CountVariable('output_count'), 'u8')
+                numVec('output_values', createCountVar('output_count'), 'u8')
             ]
         ),
         new AnonymousStructVariant(
@@ -93,7 +95,7 @@ const Request = new StructEnum(
                 numeric('byte_count', 'u8'),
                 numVec('output_values',
                     //  { name: 'output_count', unitSize: 2 }, 
-                    new CountVariable('output_count', (name) => `${name} * 2`),
+                    createCountVarWithUnitSize('output_count', 2, 'mul'),
                     'be_u16')
             ]
         ),
@@ -104,10 +106,8 @@ const Request = new StructEnum(
             [
                 numeric('byte_count', 'u8'),
                 new VecField('sub_requests',
-                    new CountVariable(
-                        'byte_count',
-                        (name) => `(${name} / 7) as usize`,
-                    ), ReadFileRecordSubRequest),
+                    createCountVarWithUnitSize('byte_count', 7, 'div'),
+                    ReadFileRecordSubRequest),
             ]
         ),
         new AnonymousStructVariant(
@@ -116,10 +116,8 @@ const Request = new StructEnum(
             [
                 numeric('byte_count', 'u8'),
                 new VecField('sub_requests',
-                    new CountVariable(
-                        'byte_count',
-                        (name) => `(${name} / 7) as usize`,
-                    ), WriteFileRecordSubRequest),
+                    createCountVarWithUnitSize('byte_count', 7, 'div'),
+                    WriteFileRecordSubRequest),
             ]
         ),
         new AnonymousStructVariant(
@@ -140,7 +138,7 @@ const Request = new StructEnum(
                 numeric('write_start_address', 'be_u16'),
                 numeric('write_count', 'be_u16'),
                 numeric('write_byte_count', 'u8'),
-                bytesRef('write_register_values', new CountVariable('write_count', (name) => `${name} * 2`),),
+                bytesRef('write_register_values', createCountVarWithUnitSize('byte_count', 2, 'mul'),),
             ]
         ),
         new AnonymousStructVariant(

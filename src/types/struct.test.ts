@@ -4,8 +4,8 @@ import { Field } from "../field/base"
 import { NumericField } from "../field/numeric"
 import { BytesReferenceField } from "../field/ref"
 import { Struct } from "./struct"
-import { CountVariable } from "../len"
 import { StructParserGenerator } from "../parser/struct"
+import { createCountVar } from "../api/input"
 
 test('test struct with reference', () => {
     const fields: Field[] = [
@@ -13,7 +13,7 @@ test('test struct with reference', () => {
         new NumericField('file_number', BuiltInNumericType.be_u16),
         new NumericField('record_number', BuiltInNumericType.be_u16),
         new NumericField('record_len', BuiltInNumericType.be_u16),
-        new BytesReferenceField('record_data', new CountVariable('record_len')),
+        new BytesReferenceField('record_data', createCountVar('record_len')),
     ]
 
     const writeFileRecordSubRequest = new Struct('WriteFileRecordSubRequest', fields)

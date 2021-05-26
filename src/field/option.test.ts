@@ -1,13 +1,12 @@
 import endent from "endent"
-import { createBytesReferenceFieldSimple } from "../api/input"
-import { CountVariable } from "../len"
+import { createCountVar, createBytesReferenceFieldSimple as bytesRef } from "../api/input"
 import { getIpv4Header } from "../types/bit-struct.test"
 import { Struct } from "../types/struct"
 import { ConditionImpl, OptionField } from "./option"
 import { StructField } from "./struct"
 
 function getOptionalRefField() {
-    const field = createBytesReferenceFieldSimple('options', new CountVariable(
+    const field = bytesRef('options', createCountVar(
         'header.header_length',
         (name) => `${name} * 4 - 20`
     ))

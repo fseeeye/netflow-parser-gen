@@ -22,6 +22,25 @@ export function createNumericFieldSimple(name: string, typeName: BuiltinNumericT
     return createNumericField({ name, typeName })
 }
 
+export function createCountVar(name: string, expressionGenerator?: (name: string) => string) {
+    return new CountVariable(name, expressionGenerator)
+}
+
+export function createCountVarWithUnitSize(name: string, unitSize: number, mode: 'div' | 'mul') {
+    if (unitSize === 1) {
+        return createCountVar(name)
+    }
+    const expressionGenerator = (name: string) => {
+        if (mode === 'mul') {
+            return `${name} * ${unitSize}`
+        }
+        else {
+            return `(${name} as usize / ${unitSize} as usize)`
+        }
+    }
+    return createCountVar(name, expressionGenerator)
+}
+
 export interface BytesReferenceFieldConfig {
     name: string
     countVar: CountVariable

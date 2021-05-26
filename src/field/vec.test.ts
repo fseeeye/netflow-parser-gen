@@ -1,18 +1,18 @@
 import endent from "endent"
-import { CountVariable } from "../len"
 import { BuiltInNumericType } from "../types/numeric"
 import { StructParserGenerator } from "../parser/struct"
 import { Struct } from "../types/struct"
 import { Field } from "./base"
 import { NumericField } from "./numeric"
 import { VecField } from "./vec"
+import { createCountVar, createCountVarWithUnitSize } from "../api/input"
 
 test('test struct with vec of primitive field', () => {
     const fields: Field[] = [
         new NumericField('start_address', BuiltInNumericType.u8),
         new NumericField('output_count', BuiltInNumericType.be_u16),
         new NumericField('byte_count', BuiltInNumericType.u8),
-        new VecField('output_values', new CountVariable('output_count'), BuiltInNumericType.be_u16),
+        new VecField('output_values', createCountVar('output_count'), BuiltInNumericType.be_u16),
     ]
     const writeMultipleRegister = new Struct('WriteMultipleRegisters', fields)
     // console.log(writeMultipleRegister.compileDefinition())
@@ -82,7 +82,7 @@ test('test struct with vec field of user defined type', () => {
     }`)
     const read_file_record_fields: Field[] = [
         new NumericField('byte_count', BuiltInNumericType.u8),
-        new VecField('sub_requests', new CountVariable('byte_count', (name) => `(${name} as usize / 7 as usize)`), readFileSubReq),
+        new VecField('sub_requests', createCountVarWithUnitSize('byte_count', 7, 'div'), readFileSubReq),
     ]
     const readFileRecord = new Struct('ReadFileRecord', read_file_record_fields)
     // console.log(readFileRecord.compileDefinition())
