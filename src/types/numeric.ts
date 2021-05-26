@@ -13,6 +13,7 @@ export class NumericType implements FieldType {
     constructor(
         private readonly _name: BuiltInNumericTypeName,
         private readonly _parserFunctionName: NomNumberFunction,
+        readonly bitLength: number
     ) { }
 
     typeName() {
@@ -34,25 +35,25 @@ export class NumericType implements FieldType {
 }
 
 export const BuiltInNumericType = {
-    u8: new NumericType(BuiltInNumericTypeName.u8, NomNumberFunction.u8),
-    be_u16: new NumericType(BuiltInNumericTypeName.u16, NomNumberFunction.be_u16),
-    be_u32: new NumericType(BuiltInNumericTypeName.u32, NomNumberFunction.be_u32),
-    be_u64: new NumericType(BuiltInNumericTypeName.u64, NomNumberFunction.be_u64),
-    le_u16: new NumericType(BuiltInNumericTypeName.u16, NomNumberFunction.le_u16),
-    le_u32: new NumericType(BuiltInNumericTypeName.u32, NomNumberFunction.le_u32),
-    le_u64: new NumericType(BuiltInNumericTypeName.u64, NomNumberFunction.le_u64),
+    u8: new NumericType(BuiltInNumericTypeName.u8, NomNumberFunction.u8, 8),
+    be_u16: new NumericType(BuiltInNumericTypeName.u16, NomNumberFunction.be_u16, 16),
+    be_u32: new NumericType(BuiltInNumericTypeName.u32, NomNumberFunction.be_u32, 32),
+    be_u64: new NumericType(BuiltInNumericTypeName.u64, NomNumberFunction.be_u64, 64),
+    le_u16: new NumericType(BuiltInNumericTypeName.u16, NomNumberFunction.le_u16, 16),
+    le_u32: new NumericType(BuiltInNumericTypeName.u32, NomNumberFunction.le_u32, 32),
+    le_u64: new NumericType(BuiltInNumericTypeName.u64, NomNumberFunction.le_u64, 64),
 }
 
 export type BuiltinNumericTypeName = 'u8' | 'be_u16' | 'be_u32' | 'be_u64' | 'le_u16' | 'le_u32' | 'le_u64'
 
 const BuiltinNumericTypes: Map<BuiltinNumericTypeName, NumericType> = new Map([
-    ['u8', new NumericType(BuiltInNumericTypeName.u8, NomNumberFunction.u8)],
-    ['be_u16', new NumericType(BuiltInNumericTypeName.u16, NomNumberFunction.be_u16)],
-    ['be_u32', new NumericType(BuiltInNumericTypeName.u32, NomNumberFunction.be_u32),],
-    ['be_u64', new NumericType(BuiltInNumericTypeName.u64, NomNumberFunction.be_u64),],
-    ['le_u16', new NumericType(BuiltInNumericTypeName.u16, NomNumberFunction.le_u16),],
-    ['le_u32', new NumericType(BuiltInNumericTypeName.u32, NomNumberFunction.le_u32),],
-    ['le_u64', new NumericType(BuiltInNumericTypeName.u64, NomNumberFunction.le_u64),],
+    ['u8', new NumericType(BuiltInNumericTypeName.u8, NomNumberFunction.u8, 8)],
+    ['be_u16', new NumericType(BuiltInNumericTypeName.u16, NomNumberFunction.be_u16, 16)],
+    ['be_u32', new NumericType(BuiltInNumericTypeName.u32, NomNumberFunction.be_u32, 32),],
+    ['be_u64', new NumericType(BuiltInNumericTypeName.u64, NomNumberFunction.be_u64, 64),],
+    ['le_u16', new NumericType(BuiltInNumericTypeName.u16, NomNumberFunction.le_u16, 16),],
+    ['le_u32', new NumericType(BuiltInNumericTypeName.u32, NomNumberFunction.le_u32, 32),],
+    ['le_u64', new NumericType(BuiltInNumericTypeName.u64, NomNumberFunction.le_u64, 64),],
 ])
 
 export function getBuildinNumericTypeByTypeName(typeName: BuiltinNumericTypeName): NumericType | undefined {

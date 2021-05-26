@@ -9,6 +9,9 @@ export class BitsNumericField extends NumericField {
         readonly fieldType: NumericType,
     ) {
         super(name, fieldType)
+        if (length > fieldType.bitLength) {
+            throw Error(`${length} bits is longer than ${fieldType.typeName()}`)
+        }
     }
 
     parserInvocation() {
