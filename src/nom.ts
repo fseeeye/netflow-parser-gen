@@ -5,6 +5,11 @@ export enum NomBytesFunction {
     tag = 'tag',
 }
 
+export enum NomBitsFunction {
+    // warning: must use with `use nom::bits::complete::take as take_bits;`
+    take = 'take_bits'
+}
+
 export enum NomMultiFunction {
     count = 'count',
 }
@@ -25,13 +30,14 @@ export enum NomCombinatorFunction {
 
 export function generateNomImport() {
     const code = endent`
+    use nom::bits::bits;
+    use nom::bits::complete::take as take_bits;
     use nom::bytes::complete::{tag, take};
     use nom::multi::count;
     use nom::combinator::eof;
     use nom::number::complete::{be_u32, be_u16, u8};
-    use nom::sequence::tuple;
     use nom::IResult;
+
     `
     return code
 }
-

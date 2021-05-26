@@ -8,7 +8,8 @@ import { NumericField } from "../field/numeric"
 import { StructField } from "../field/struct"
 import { VecField } from "../field/vec"
 import { CountVariableImpl } from "../len"
-import { AnonymousStructVariant, ChoiceField, EmptyVariant, NamedStructVariant, StructEnum } from "../types/enum"
+import { generateNomImport } from "../nom"
+import { AnonymousStructVariant, ChoiceField, EmptyVariant, NamedEnumVariant, StructEnum } from "../types/enum"
 import { Struct } from "../types/struct"
 
 const MBAPHeader = new Struct(
@@ -47,8 +48,8 @@ const SimpleReadFields: NumericField[] = [
     numeric('count', 'be_u16'),
 ]
 
-const RequestData = new StructEnum(
-    'RequestData',
+const Request = new StructEnum(
+    'Request',
     [
         new AnonymousStructVariant(0x01, 'ReadCoils', SimpleReadFields),
         new AnonymousStructVariant(0x02, 'ReadDiscreInputs', SimpleReadFields),
@@ -142,27 +143,34 @@ const RequestData = new StructEnum(
     new ChoiceField(numeric('function_code', 'u8'))
 )
 
-const Request = new Struct(
-    'Request',
-    [
-        numeric('function_code', 'u8'),
-        new EnumField(RequestData),
-    ]
-)
+// const Request = new Struct(
+//     'Request',
+//     [
+//         numeric('function_code', 'u8'),
+//         new EnumField(RequestData),
+//     ]
+// )
 
-const ModbusException = new Struct(
-    'Exception',
-    [
-        numeric('error_code', 'u8'),
-        numeric('exception_code', 'u8'),
-    ]
-)
+// const ModbusException = new Struct(
+//     'Exception',
+//     [
+//         numeric('error_code', 'u8'),
+//         numeric('exception_code', 'u8'),
+//     ]
+// )
 
 const Payload = new StructEnum(
     'Payload',
     [
-        new NamedStructVariant('Payload', 0x00, 'Request', Request),
-        new NamedStructVariant('Payload', 0x01, 'Exception', ModbusException),
+        // new NamedStructVariant('Payload', 0x00, 'Request', Request),
+        new NamedEnumVariant('Payload', 0x00, Request.name, Request),
+        new AnonymousStructVariant(
+            0x01,
+            'Exception',
+            [
+                numeric('exception_code', 'u8'),
+            ]
+        )
     ],
     new ChoiceField(numeric('function_code', 'u8'), name => `${name} & 0b10000000`)
 )
@@ -171,6 +179,7 @@ const ModbusPacket = new Struct(
     'ModbusPacket',
     [
         new StructField(MBAPHeader, 'header'),
+        numeric('function_code', 'u8'),
         new EnumField(Payload),
     ]
 )
@@ -179,11 +188,21 @@ const structs = [
     MBAPHeader,
     ReadFileRecordSubRequest,
     WriteFileRecordSubRequest,
-    RequestData,
     Request,
-    ModbusException,
     Payload,
     ModbusPacket,
 ]
 
-console.log(structs.map(s => s.definition()).join(`\n\n`))
+// console.log(generateNomImport())
+const nomImports = generateNomImport()
+
+const structDefs = structs.map(s => s.definition()).join(`\n\n`)
+
+const parserDefs = structs.map(s => s.parserFunctionDefinition()).join(`\n\n`)
+
+console.log([
+    nomImports,
+    structDefs,
+    parserDefs,
+].join(`\n\n`)
+)

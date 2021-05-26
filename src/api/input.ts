@@ -1,3 +1,4 @@
+import { BitsNumericField } from "../field/bit-field"
 import { NumericField } from "../field/numeric"
 import { BytesReferenceField } from "../field/ref"
 import { VecField } from "../field/vec"
@@ -43,6 +44,14 @@ export function createNumericVector(name: string, countVar: CountVariable, eleme
         throw Error(`element type ${elementTypeName} is not a valid numeric type!`)
     }
     return new VecField(name, new CountVariableImpl(countVar.name, unitSize, mode), elementType)
+}
+
+export function createBitNumericField(name: string, length: number, typeName: BuiltinNumericTypeName) {
+    const numericType = getBuildinNumericTypeByTypeName(typeName)
+    if (numericType === undefined) {
+        throw Error(`bad typename for numeric field!`)
+    }
+    return new BitsNumericField(name, length, numericType)
 }
 
 // type BuiltinStructFieldConfig = BytesReferenceFieldConfig | NumericFieldConfig
