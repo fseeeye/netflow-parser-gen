@@ -4,7 +4,7 @@ import { generateAttributesCode, removeDuplicateByKey } from "../utils"
 import { Struct } from "./struct"
 import { Field } from "../field/base"
 import { FieldType } from "./base"
-import { StructEnumParserGenerator, StructEnumVariantParserGenerator } from "../parser/enum"
+import { StructEnumVariantParserGenerator } from "../parser/enum"
 
 export type ChoiceType = string | number
 
@@ -196,11 +196,6 @@ export class StructEnum implements FieldType {
 
     parserFunctionName() {
         return `parse_${this.snakeCaseName()}`
-    }
-
-    parserFunctionDefinition() {
-        const gen = new StructEnumParserGenerator(this)
-        return gen.generateParser()
     }
 
     isRef() {

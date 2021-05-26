@@ -18,7 +18,7 @@ export class CountVariableImpl implements CountVariable {
     }
 
     private multiply() {
-        return `${this.name} * ${this.unitSize}`
+        return `(${this.name} * ${this.unitSize})`
     }
 
     private divide() {
