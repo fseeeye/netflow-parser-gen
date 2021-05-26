@@ -3,7 +3,7 @@ import { createBitNumericField as bitNumeric } from "../api/input"
 
 test('test bit field struct', () => {
     const ipv4Header = new BitFieldStruct(
-        'IPv4Header',
+        'Ipv4Header',
         [
             bitNumeric('version', 4, 'u8'),
             bitNumeric('header_length', 4, 'u8'),
