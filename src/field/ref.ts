@@ -1,4 +1,4 @@
-import { CountVariableImpl } from "../len"
+import { CountVariable } from "../len"
 import { NomBytesFunction } from "../nom"
 import { BaseField } from "./base"
 
@@ -7,7 +7,7 @@ export const BYTES_REF_TYPENAME = `&'a [u8]`
 export class BytesReferenceField extends BaseField {
     constructor(
         readonly name: string,
-        readonly lengthVariable: CountVariableImpl
+        readonly lengthVariable: CountVariable
     ) {
         super(name)
     }

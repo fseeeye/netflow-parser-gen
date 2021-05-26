@@ -2,7 +2,7 @@ import { BitsNumericField } from "../field/bit-field"
 import { NumericField } from "../field/numeric"
 import { BytesReferenceField } from "../field/ref"
 import { VecField } from "../field/vec"
-import { CountVariable, CountVariableImpl } from "../len"
+import { CountVariable } from "../len"
 import { BuiltinNumericTypeName, getBuildinNumericTypeByTypeName } from "../types/numeric"
 
 export interface NumericFieldConfig {
@@ -28,9 +28,7 @@ export interface BytesReferenceFieldConfig {
 }
 
 export function createBytesReferenceField({ name, countVar }: BytesReferenceFieldConfig): BytesReferenceField {
-    const { unitSize, mode } = countVar
-    const count = new CountVariableImpl(countVar.name, unitSize, mode)
-    return new BytesReferenceField(name, count)
+    return new BytesReferenceField(name, countVar)
 }
 
 export function createBytesReferenceFieldSimple(name: string, countVar: CountVariable) {
@@ -38,12 +36,11 @@ export function createBytesReferenceFieldSimple(name: string, countVar: CountVar
 }
 
 export function createNumericVector(name: string, countVar: CountVariable, elementTypeName: BuiltinNumericTypeName) {
-    const { unitSize, mode } = countVar
     const elementType = getBuildinNumericTypeByTypeName(elementTypeName)
     if (elementType === undefined) {
         throw Error(`element type ${elementTypeName} is not a valid numeric type!`)
     }
-    return new VecField(name, new CountVariableImpl(countVar.name, unitSize, mode), elementType)
+    return new VecField(name, countVar, elementType)
 }
 
 export function createBitNumericField(name: string, length: number, typeName: BuiltinNumericTypeName) {

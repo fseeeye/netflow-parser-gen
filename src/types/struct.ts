@@ -4,20 +4,20 @@ import { Field } from "../field/base"
 import { FieldType } from "./base"
 import { StructParserGenerator } from "../parser/struct"
 import { generateAttributesCode } from "../utils"
-import { BytesReferenceField, BYTES_REF_TYPENAME } from "../field/ref"
+// import { BytesReferenceField, BYTES_REF_TYPENAME } from "../field/ref"
 
-function validateReferenceDependency(fields: Field[]) {
-    fields.forEach((field, index) => {
-        if (field.typeName() !== BYTES_REF_TYPENAME) {
-            return
-        }
-        const depdendencyName = (field as BytesReferenceField).lengthVariable.name
-        const prevFieldNames = fields.slice(0, index).map(field => field.name)
-        if (prevFieldNames.includes(depdendencyName) === false) {
-            throw Error(`bytes reference dependency check failed: length variable for ${field.name} : ${depdendencyName} not found!`)
-        }
-    })
-}
+// function validateReferenceDependency(fields: Field[]) {
+//     fields.forEach((field, index) => {
+//         if (field.typeName() !== BYTES_REF_TYPENAME) {
+//             return
+//         }
+//         const depdendencyName = (field as BytesReferenceField).lengthVariable.name
+//         const prevFieldNames = fields.slice(0, index).map(field => field.name)
+//         if (prevFieldNames.includes(depdendencyName) === false) {
+//             throw Error(`bytes reference dependency check failed: length variable for ${field.name} : ${depdendencyName} not found!`)
+//         }
+//     })
+// }
 
 export class Struct implements FieldType {
 
@@ -25,7 +25,7 @@ export class Struct implements FieldType {
         readonly name: string,
         readonly fields: Field[],
     ) {
-        validateReferenceDependency(fields)
+        // validateReferenceDependency(fields)
     }
 
     typeName() {

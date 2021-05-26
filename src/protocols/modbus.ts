@@ -7,7 +7,7 @@ import { EnumField } from "../field/enum"
 import { NumericField } from "../field/numeric"
 import { StructField } from "../field/struct"
 import { VecField } from "../field/vec"
-import { CountVariableImpl } from "../len"
+import { CountVariable } from "../len"
 import { generateNomImport } from "../nom"
 import { AnonymousStructVariant, ChoiceField, EmptyVariant, NamedEnumVariant, StructEnum } from "../types/enum"
 import { Struct } from "../types/struct"
@@ -81,7 +81,7 @@ const Request = new StructEnum(
                 numeric('start_address', 'be_u16'),
                 numeric('output_count', 'be_u16'),
                 numeric('byte_count', 'u8'),
-                numVec('output_values', { name: 'output_count' }, 'u8')
+                numVec('output_values', new CountVariable('output_count'), 'u8')
             ]
         ),
         new AnonymousStructVariant(
@@ -91,7 +91,10 @@ const Request = new StructEnum(
                 numeric('start_address', 'be_u16'),
                 numeric('output_count', 'be_u16'),
                 numeric('byte_count', 'u8'),
-                numVec('output_values', { name: 'output_count', unitSize: 2 }, 'be_u16')
+                numVec('output_values',
+                    //  { name: 'output_count', unitSize: 2 }, 
+                    new CountVariable('output_count', (name) => `${name} * 2`),
+                    'be_u16')
             ]
         ),
         new EmptyVariant(0x11),
@@ -100,7 +103,11 @@ const Request = new StructEnum(
             'ReadFileRecord',
             [
                 numeric('byte_count', 'u8'),
-                new VecField('sub_requests', new CountVariableImpl('byte_count', 7, 'div'), ReadFileRecordSubRequest),
+                new VecField('sub_requests',
+                    new CountVariable(
+                        'byte_count',
+                        (name) => `(${name} / 7) as usize`,
+                    ), ReadFileRecordSubRequest),
             ]
         ),
         new AnonymousStructVariant(
@@ -108,7 +115,11 @@ const Request = new StructEnum(
             'WriteFileRecord',
             [
                 numeric('byte_count', 'u8'),
-                new VecField('sub_requests', new CountVariableImpl('byte_count', 7, 'div'), WriteFileRecordSubRequest),
+                new VecField('sub_requests',
+                    new CountVariable(
+                        'byte_count',
+                        (name) => `(${name} / 7) as usize`,
+                    ), WriteFileRecordSubRequest),
             ]
         ),
         new AnonymousStructVariant(
@@ -129,7 +140,7 @@ const Request = new StructEnum(
                 numeric('write_start_address', 'be_u16'),
                 numeric('write_count', 'be_u16'),
                 numeric('write_byte_count', 'u8'),
-                bytesRef('write_register_values', { name: 'write_count', unitSize: 2 }),
+                bytesRef('write_register_values', new CountVariable('write_count', (name) => `${name} * 2`),),
             ]
         ),
         new AnonymousStructVariant(
