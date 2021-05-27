@@ -199,7 +199,7 @@ const structs = [
 // ].join(`\n\n`)
 // )
 
-export const ModbusDefinition = new Protocol({
+export const Modbus = new Protocol({
     name: 'Mobdus',
     structs
 })

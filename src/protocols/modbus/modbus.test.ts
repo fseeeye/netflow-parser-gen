@@ -1,4 +1,4 @@
-import { ModbusDefinition } from "./index"
+import { Modbus } from "./index"
 
 const answer = `
 use nom::bits::bits;
@@ -406,7 +406,7 @@ pub fn parse_modbus_packet(input: &[u8]) -> IResult<&[u8], ModbusPacket> {
 
 test('test modbus', () => {
     expect(
-        `\n` + ModbusDefinition.generateParser()
+        `\n` + Modbus.generateParser()
     ).toEqual(answer)
     // console.log(ModbusDefinition.generateParser())
 })
