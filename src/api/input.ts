@@ -32,7 +32,7 @@ export function createCountVarWithUnitSize(name: string, unitSize: number, mode:
     }
     const expressionGenerator = (name: string) => {
         if (mode === 'mul') {
-            return `${name} * ${unitSize}`
+            return `(${name} * ${unitSize})`
         }
         else {
             return `(${name} as usize / ${unitSize} as usize)`
