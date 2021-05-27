@@ -200,6 +200,6 @@ const structs = [
 // )
 
 export const Modbus = new Protocol({
-    name: 'Mobdus',
+    name: 'Modbus',
     structs
 })
