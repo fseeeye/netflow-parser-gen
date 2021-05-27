@@ -30,6 +30,6 @@ export class Protocol {
         const code = this.generateParser()
         const file = path.join(directory, this.generateFilename())
         fs.writeFileSync(file, code)
-        console.log(`code generated to ${directory}.`)
+        console.log(`code generated to ${file}.`)
     }
 }
