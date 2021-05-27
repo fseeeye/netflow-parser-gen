@@ -4,15 +4,14 @@ import {
     createNumericVector as numVec,
     createCountVar,
     createCountVarWithUnitSize,
-} from "../api/input"
-import { EnumField } from "../field/enum"
-import { NumericField } from "../field/numeric"
-import { StructField } from "../field/struct"
-import { VecField } from "../field/vec"
-import { CountVariable } from "../len"
-import { generateNomImport } from "../nom"
-import { AnonymousStructVariant, ChoiceField, EmptyVariant, NamedEnumVariant, StructEnum } from "../types/enum"
-import { Struct } from "../types/struct"
+} from "../../api/input"
+import { EnumField } from "../../field/enum"
+import { NumericField } from "../../field/numeric"
+import { StructField } from "../../field/struct"
+import { VecField } from "../../field/vec"
+import { AnonymousStructVariant, ChoiceField, EmptyVariant, NamedEnumVariant, StructEnum } from "../../types/enum"
+import { Struct } from "../../types/struct"
+import { Protocol } from "../generator"
 
 const MBAPHeader = new Struct(
     'MBAPHeader',
@@ -41,7 +40,7 @@ const WriteFileRecordSubRequest = new Struct(
         numeric('file_number', 'be_u16'),
         numeric('record_number', 'be_u16'),
         numeric('record_length', 'be_u16'),
-        bytesRef('record_data', { name: 'record_length' }),
+        bytesRef('record_data', createCountVar('record_length')),
     ]
 )
 
@@ -152,22 +151,6 @@ const Request = new StructEnum(
     new ChoiceField(numeric('function_code', 'u8'))
 )
 
-// const Request = new Struct(
-//     'Request',
-//     [
-//         numeric('function_code', 'u8'),
-//         new EnumField(RequestData),
-//     ]
-// )
-
-// const ModbusException = new Struct(
-//     'Exception',
-//     [
-//         numeric('error_code', 'u8'),
-//         numeric('exception_code', 'u8'),
-//     ]
-// )
-
 const Payload = new StructEnum(
     'Payload',
     [
@@ -202,16 +185,21 @@ const structs = [
     ModbusPacket,
 ]
 
-// console.log(generateNomImport())
-const nomImports = generateNomImport()
+// // console.log(generateNomImport())
+// const nomImports = generateNomImport()
 
-const structDefs = structs.map(s => s.definition()).join(`\n\n`)
+// const structDefs = structs.map(s => s.definition()).join(`\n\n`)
 
-const parserDefs = structs.map(s => s.parserFunctionDefinition()).join(`\n\n`)
+// const parserDefs = structs.map(s => s.parserFunctionDefinition()).join(`\n\n`)
 
-console.log([
-    nomImports,
-    structDefs,
-    parserDefs,
-].join(`\n\n`)
-)
+// console.log([
+//     nomImports,
+//     structDefs,
+//     parserDefs,
+// ].join(`\n\n`)
+// )
+
+export const ModbusDefinition = new Protocol({
+    name: 'Mobdus',
+    structs
+})
