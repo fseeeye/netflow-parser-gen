@@ -1,9 +1,8 @@
-import { writeFileSync } from "node:fs"
 import { generateNomImport } from "../nom"
 import { StructEnum } from "../types/enum"
 import { Struct } from "../types/struct"
-
-
+import * as path from "path"
+import * as fs from "fs"
 
 export interface ProtocolDefinition {
     name: string,
@@ -23,9 +22,14 @@ export class Protocol {
         return [nomImports, structDefs, parserFunctions].join(`\n\n`)
     }
 
-    generateCode(path: string) {
+    private generateFilename() {
+        return `${this.definition.name.toLowerCase()}.rs`
+    }
+
+    generateCode(directory: string) {
         const code = this.generateParser()
-        writeFileSync(path, code)
-        console.log(`code generated to ${path}.`)
+        const file = path.join(directory, this.generateFilename())
+        fs.writeFileSync(file, code)
+        console.log(`code generated to ${directory}.`)
     }
 }
