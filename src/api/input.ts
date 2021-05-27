@@ -1,4 +1,5 @@
 import { BitsNumericField } from "../field/bit-field"
+import { FixSizedBytes } from "../field/fix-sized-bytes"
 import { NumericField } from "../field/numeric"
 import { BytesReferenceField } from "../field/ref"
 import { VecField } from "../field/vec"
@@ -68,6 +69,10 @@ export function createBitNumericField(name: string, length: number, typeName: Bu
         throw Error(`bad typename for numeric field!`)
     }
     return new BitsNumericField(name, length, numericType)
+}
+
+export function createFixSizedBytesField(name: string, length: number) {
+    return new FixSizedBytes(name, length)
 }
 
 // type BuiltinStructFieldConfig = BytesReferenceFieldConfig | NumericFieldConfig
