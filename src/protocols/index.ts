@@ -6,9 +6,11 @@ import * as fs from "fs"
 import * as path from "path"
 import { Ethernet } from "./ethernet"
 import { Udp } from "./udp"
+import { Ipv6 } from "./ipv6"
 
 export const BuiltinProtocols = [
     Ipv4,
+    Ipv6,
     Tcp,
     Modbus,
     Ethernet,
