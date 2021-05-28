@@ -1,7 +1,7 @@
 import * as path from "path"
 import * as fs from "fs"
 import * as yargs from "yargs"
-import { BuiltinProtocols } from "../protocols"
+import { BuiltinProtocols, ProtocolParserGenerator } from "../protocols"
 interface Args {
     output: string
 }
@@ -12,13 +12,15 @@ function validatePath(value: string) {
 }
 
 function generateParser(outputDir: string) {
-    BuiltinProtocols.forEach(p => {
-        p.generateCode(outputDir)
-    })
+    // BuiltinProtocols.forEach(p => {
+    //     p.generateCode(outputDir)
+    // })
+    const gen = new ProtocolParserGenerator(BuiltinProtocols)
+    gen.generate(outputDir)
 }
 
 function main() {
-    const argv = yargs
+    yargs
         .command('generate', 'generate parser', (yargs) => {
             return yargs.option('output', {
                 alias: 'o',
@@ -31,7 +33,7 @@ function main() {
                 generateParser(argv.output)
             })
         .help()
-        .check((argv: any) => {
+        .check((argv: Args) => {
             if (validatePath(argv.output) === false) {
                 return false
             }
