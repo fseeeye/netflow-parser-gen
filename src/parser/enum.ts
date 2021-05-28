@@ -75,7 +75,7 @@ export class StructEnumParserGenerator {
         `
     }
 
-    private generateMatchBlock() {
+    protected generateMatchBlock() {
         const structEnum = this.structEnum
         // console.log(structEnum.variantMap)
         const choiceArms = structEnum.variants.map((variant) => {
@@ -134,4 +134,27 @@ export class StructEnumParserGenerator {
         return [variantParsers, enumParser].join(`\n\n`)
     }
 
+}
+
+export class StructEnumWithInlineChoiceParserGenerator extends StructEnumParserGenerator {
+    functionSignature() {
+        const structEnum = this.structEnum
+        return `pub fn parse_${structEnum.snakeCaseName()}(input: &[u8]) -> IResult<&[u8], ${structEnum.name}>`
+    }
+
+    private generatePeekChoice() {
+        const choicField = this.structEnum.choiceField
+        return `let (input, ${choicField.name}) = peek(${choicField.field.parserInvocation()})(input)?;`
+    }
+
+    generateEnumParser() {
+        const signature = this.functionSignature()
+        const parserBlock = endent`{
+            ${this.generatePeekChoice()}
+            ${this.generateMatchBlock()}
+        }`
+        return endent`
+        ${signature} ${parserBlock}
+        `
+    }
 }
