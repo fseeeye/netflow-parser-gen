@@ -19,7 +19,7 @@ export interface EnumVariant {
 }
 
 export class EmptyVariant implements EnumVariant {
-    hasParserImplementation: boolean = false
+    hasParserImplementation: boolean = true
     name: string = 'Eof'
 
     constructor(
@@ -59,7 +59,7 @@ export class EmptyVariant implements EnumVariant {
 }
 
 export class AnonymousStructVariant extends Struct implements EnumVariant {
-    hasParserImplementation: boolean = false
+    hasParserImplementation: boolean = true
 
     constructor(
         readonly choice: ChoiceType,
@@ -89,7 +89,7 @@ export class AnonymousStructVariant extends Struct implements EnumVariant {
 }
 
 export class NamedStructVariant implements EnumVariant {
-    hasParserImplementation: boolean = true
+    hasParserImplementation: boolean = false
 
     constructor(
         readonly enumName: string,
@@ -121,7 +121,7 @@ export class NamedStructVariant implements EnumVariant {
 }
 
 export class NamedEnumVariant implements EnumVariant {
-    hasParserImplementation: boolean = true
+    hasParserImplementation: boolean = false
 
     constructor(
         readonly enumName: string,
