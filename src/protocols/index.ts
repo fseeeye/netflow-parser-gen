@@ -4,11 +4,15 @@ import { Modbus } from "./modbus"
 import { Tcp } from "./tcp"
 import * as fs from "fs"
 import * as path from "path"
+import { Ethernet } from "./ethernet"
+import { Udp } from "./udp"
 
 export const BuiltinProtocols = [
     Ipv4,
     Tcp,
     Modbus,
+    Ethernet,
+    Udp,
 ]
 
 interface ProtocolParser {
@@ -24,7 +28,7 @@ export class ProtocolParserGenerator {
     private generateModIndexContent() {
         const code = this.protocols.map(p => p.generateModName())
             .sort()
-            .map(m => `mod ${m};`)
+            .map(m => `pub mod ${m};`)
             .join(`\n`)
         return code
     }
