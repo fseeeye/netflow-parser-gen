@@ -78,20 +78,20 @@ export class Struct implements FieldType {
         return [attributes, def].join(`\n`)
     }
 
-    userDefinedFieldDefinitions() {
-        const userDefinedFields = this.fields.filter((field) => field.isUserDefined()).map((field) => {
-            if (field.definition === undefined) {
-                const fieldSignature = '`' + `${field.name}:${field.typeName()}` + '`'
-                throw Error(`user defined field ${fieldSignature} has no definition!`)
-            }
-            return field.definition()
-        })
-        return userDefinedFields.join(`\n\n`)
-    }
+    // userDefinedFieldDefinitions() {
+    //     const userDefinedFields = this.fields.filter((field) => field.isUserDefined()).map((field) => {
+    //         if (field.definition === undefined) {
+    //             const fieldSignature = '`' + `${field.name}:${field.typeName()}` + '`'
+    //             throw Error(`user defined field ${fieldSignature} has no definition!`)
+    //         }
+    //         return field.definition()
+    //     })
+    //     return userDefinedFields.join(`\n\n`)
+    // }
 
-    definitionWithFields() {
-        return [this.userDefinedFieldDefinitions(), this.definition()].join(`\n\n`)
-    }
+    // definitionWithFields() {
+    //     return [this.userDefinedFieldDefinitions(), this.definition()].join(`\n\n`)
+    // }
 
     snakeCaseName() {
         return snakeCase(this.name)
