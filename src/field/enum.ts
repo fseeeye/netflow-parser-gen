@@ -29,9 +29,9 @@ export class EnumField extends BaseField {
         return this.structEnum.parserFunctionName()
     }
 
-    definition() {
-        return this.structEnum.definition()
-    }
+    // definition() {
+    //     return this.structEnum.definition()
+    // }
 
     parserImplementation() {
         const gen = new StructEnumParserGenerator(this.structEnum)

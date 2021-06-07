@@ -20,9 +20,9 @@ export class StructField extends BaseField {
         return true
     }
 
-    definition() {
-        return this.struct.definition()
-    }
+    // definition() {
+    //     return this.struct.definition()
+    // }
 
     typeName() {
         if (this.isRef()) {
