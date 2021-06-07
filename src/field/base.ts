@@ -1,9 +1,10 @@
 
+export type VisibilityType = `pub` | ``
 export interface Field {
     name: string
     isRef(): boolean
     isUserDefined(): boolean
-    definition: (visibility: string) => string
+    definition: (visibility: VisibilityType) => string
     typeName(): string
     parserInvocation: () => string
     parserImplementation?: () => string
@@ -22,7 +23,7 @@ export abstract class BaseField implements Field {
     abstract parserInvocation(): string
     // abstract definition?(): string
 
-    definition(visibility: string) {
+    definition(visibility: VisibilityType) {
         return `${visibility} ${this.name}: ${this.typeName()},`
     }
 
