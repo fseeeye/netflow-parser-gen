@@ -9,3 +9,4 @@
 - ~~可选的各层协议抽象（`Option<L2>, Option<L3>, Option<L4>, Option<App>`）~~
 - ~~解析到不支持的协议时能够保存已经解析完的内容而不是直接抛出错误~~
 - 自定义的 fmt？
+- BitField 重构
