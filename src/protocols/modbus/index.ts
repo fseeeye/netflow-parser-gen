@@ -149,7 +149,8 @@ const Request = new StructEnum(
             ]
         ),
     ],
-    new ChoiceField(new StructField(ModbusHeader, 'header'), undefined, field => `${field.name}.function_code`)
+    // new ChoiceField(new StructField(ModbusHeader, 'header'), undefined, field => `${field.name}.function_code`)
+    new ChoiceField(numeric('function_code', 'u8'))
 )
 
 const Payload = new StructEnum(

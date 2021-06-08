@@ -163,13 +163,9 @@ export class ChoiceField {
     constructor(
         readonly field: Field,
         readonly matchTargetGenerator?: (choiceFieldName: string) => string,
-        readonly fieldNameGenerator?: (field: Field) => string
     ) { }
 
     get name() {
-        if (this.fieldNameGenerator !== undefined) {
-            return this.fieldNameGenerator(this.field)
-        }
         return this.field.name
     }
 
