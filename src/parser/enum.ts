@@ -56,10 +56,15 @@ export class StructEnumParserGenerator {
 
     functionSignature() {
         const structEnum = this.structEnum
-        const choiceField = this.structEnum.choiceField.field
-        const choiceParameter = `${choiceField.name}: ${choiceField.typeName()}`
-        return `pub fn parse_${structEnum.snakeCaseName()}(input: &[u8], ${choiceParameter}) -> IResult<&[u8], ${structEnum.name}>`
+        const choiceField = structEnum.choiceField.field
+        // 如果 choice 是用户自定义类型，就接受引用作为参数
+        const choiceParameterType = choiceField.isUserDefined() ? `&${choiceField.typeName()}` : choiceField.typeName()
+        const choiceParameter = `${choiceField.name}: ${choiceParameterType}`
+        // 如果 Enum 类型带有生命周期标记，在返回值中需要标记
+        const returnType = structEnum.isRef() ? `${structEnum.name}<'a>` : structEnum.name
+        return `pub fn parse_${structEnum.snakeCaseName()}<'a>(input: &'a [u8], ${choiceParameter}) -> IResult<&'a [u8], ${returnType}>`
     }
+
 
     protected generateErrorArm(errorKind: string = 'Verify') {
         return endent`

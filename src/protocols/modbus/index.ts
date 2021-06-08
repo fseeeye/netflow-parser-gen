@@ -13,13 +13,14 @@ import { AnonymousStructVariant, ChoiceField, EmptyVariant, NamedEnumVariant, St
 import { Struct } from "../../types/struct"
 import { Protocol } from "../generator"
 
-const MBAPHeader = new Struct(
-    'MBAPHeader',
+const ModbusHeader = new Struct(
+    'Header',
     [
         numeric('transaction_id', 'be_u16'),
         numeric('protocol_id', 'be_u16'),
         numeric('length', 'be_u16'),
         numeric('unit_id', 'u8'),
+        numeric('function_code', 'u8'),
     ]
 )
 
@@ -148,7 +149,7 @@ const Request = new StructEnum(
             ]
         ),
     ],
-    new ChoiceField(numeric('function_code', 'u8'))
+    new ChoiceField(new StructField(ModbusHeader, 'header'), undefined, field => `${field.name}.function_code`)
 )
 
 const Payload = new StructEnum(
@@ -164,20 +165,22 @@ const Payload = new StructEnum(
             ]
         )
     ],
-    new ChoiceField(numeric('function_code', 'u8'), name => `${name} & 0b1000_0000`)
+    new ChoiceField(new StructField(ModbusHeader, 'header'),
+        name => `${name}.function_code & 0b1000_0000`,
+    )
 )
 
 const ModbusPacket = new Struct(
     'ModbusPacket',
     [
-        new StructField(MBAPHeader, 'header'),
-        numeric('function_code', 'u8'),
+        new StructField(ModbusHeader, 'header'),
+        // numeric('function_code', 'u8'),
         new EnumField(Payload),
     ]
 )
 
 const structs = [
-    MBAPHeader,
+    ModbusHeader,
     ReadFileRecordSubRequest,
     WriteFileRecordSubRequest,
     Request,
