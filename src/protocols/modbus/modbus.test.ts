@@ -379,7 +379,7 @@ fn parse_exception(input: &[u8]) -> IResult<&[u8], Payload> {
 }
 
 pub fn parse_payload(input: &[u8], function_code: u8) -> IResult<&[u8], Payload> {
-    let (input, payload) = match function_code & 0b10000000 {
+    let (input, payload) = match function_code & 0b1000_0000 {
         0x0 => {
             let (input, request) = parse_request(input, function_code)?;
             Ok((input, Payload::Request(request)))

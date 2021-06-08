@@ -164,7 +164,7 @@ const Payload = new StructEnum(
             ]
         )
     ],
-    new ChoiceField(numeric('function_code', 'u8'), name => `${name} & 0b10000000`)
+    new ChoiceField(numeric('function_code', 'u8'), name => `${name} & 0b1000_0000`)
 )
 
 const ModbusPacket = new Struct(
