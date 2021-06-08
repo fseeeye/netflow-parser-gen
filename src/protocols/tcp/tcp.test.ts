@@ -10,7 +10,7 @@ use nom::number::complete::{be_u32, be_u16, u8};
 use nom::IResult;
 
 #[derive(Debug, PartialEq)]
-pub struct TcpHeader {
+pub struct Tcp<'a> {
     pub src_port: u16,
     pub dst_port: u16,
     pub seq: u32,
@@ -21,50 +21,22 @@ pub struct TcpHeader {
     pub window_size: u16,
     pub checksum: u16,
     pub urgent_pointer: u16,
-}
-
-#[derive(Debug, PartialEq)]
-pub struct Tcp<'a> {
-    pub header: TcpHeader,
     pub options: Option<&'a [u8]>,
 }
 
-fn parse_bits_tcp_header(input: (&[u8], usize)) -> IResult<(&[u8], usize),  TcpHeader> {
-    let (input, src_port) = take_bits(16usize)(input)?;
-    let (input, dst_port) = take_bits(16usize)(input)?;
-    let (input, seq) = take_bits(32usize)(input)?;
-    let (input, ack) = take_bits(32usize)(input)?;
-    let (input, header_length) = take_bits(4usize)(input)?;
-    let (input, reserved) = take_bits(3usize)(input)?;
-    let (input, flags) = take_bits(9usize)(input)?;
-    let (input, window_size) = take_bits(16usize)(input)?;
-    let (input, checksum) = take_bits(16usize)(input)?;
-    let (input, urgent_pointer) = take_bits(16usize)(input)?;
-    Ok((
-        input,
-        TcpHeader {
-            src_port,
-            dst_port,
-            seq,
-            ack,
-            header_length,
-            reserved,
-            flags,
-            window_size,
-            checksum,
-            urgent_pointer
-        }
-    ))
-}
-
-fn parse_tcp_header(input: &[u8]) -> IResult<&[u8], TcpHeader> {
-    bits(parse_bits_tcp_header)(input)
-}
-
 pub fn parse_tcp(input: &[u8]) -> IResult<&[u8], Tcp> {
-    let (input, header) = parse_tcp_header(input)?;
-    let (input, options) = if (header.header_length * 4) > 20 {
-        let (input, options) = take(header.header_length * 4 - 20)(input)?;
+    let (input, src_port) = be_u16(input)?;
+    let (input, dst_port) = be_u16(input)?;
+    let (input, seq) = be_u32(input)?;
+    let (input, ack) = be_u32(input)?;
+    let (input, (header_length, reserved, flags)) = bits::<_, _, nom::error::Error<(&[u8], usize)>, _, _>(
+        tuple((take_bits(4usize), take_bits(3usize), take_bits(9usize)))
+    )(input)?;
+    let (input, window_size) = be_u16(input)?;
+    let (input, checksum) = be_u16(input)?;
+    let (input, urgent_pointer) = be_u16(input)?;
+    let (input, options) = if (header_length * 4) > 20 {
+        let (input, options) = take(header_length * 4 - 20)(input)?;
         Ok((input, Some(options)))
     } else {
         Ok((input, None))
@@ -72,13 +44,21 @@ pub fn parse_tcp(input: &[u8]) -> IResult<&[u8], Tcp> {
     Ok((
         input,
         Tcp {
-            header,
+            src_port,
+            dst_port,
+            seq,
+            ack,
+            header_length, reserved, flags,
+            window_size,
+            checksum,
+            urgent_pointer,
             options
         }
     ))
 }`
 
 test('test tcp', () => {
+    // console.log(Tcp.generateParser())
     expect(
         `\n` + Tcp.generateParser()
     ).toEqual(answer)
