@@ -6,6 +6,7 @@ use nom::bits::complete::take as take_bits;
 use nom::bytes::complete::{tag, take};
 use nom::multi::count;
 use nom::combinator::eof;
+use nom::sequence::tuple;
 use nom::number::complete::{be_u32, be_u16, u8};
 use nom::IResult;
 
