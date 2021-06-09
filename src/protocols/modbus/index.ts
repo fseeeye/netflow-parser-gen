@@ -5,11 +5,12 @@ import {
     createCountVar,
     createCountVarWithUnitSize,
 } from "../../api/input"
+import { ChoiceField } from "../../field/choice"
 import { EnumField } from "../../field/enum"
 import { NumericField } from "../../field/numeric"
 import { StructField } from "../../field/struct"
 import { VecField } from "../../field/vec"
-import { AnonymousStructVariant, ChoiceField, EmptyVariant, NamedEnumVariant, StructEnum } from "../../types/enum"
+import { AnonymousStructVariant, EmptyVariant, NamedEnumVariant, StructEnum } from "../../types/enum"
 import { Struct } from "../../types/struct"
 import { Protocol } from "../generator"
 

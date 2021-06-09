@@ -5,6 +5,7 @@ import { Struct } from "./struct"
 import { Field } from "../field/base"
 import { FieldType } from "./base"
 import { StructEnumParserGenerator, StructEnumVariantParserGenerator } from "../parser/enum"
+import { ChoiceField } from "../field/choice"
 
 export type ChoiceType = string | number
 
@@ -159,24 +160,6 @@ export class NamedEnumVariant implements EnumVariant {
     //     return `fn ${functionName}(${parameterList}) -> ${returnType}`
 }
 
-export class ChoiceField {
-    constructor(
-        readonly field: Field,
-        readonly matchTargetGenerator?: (choiceFieldName: string) => string,
-    ) { }
-
-    get name() {
-        return this.field.name
-    }
-
-    generateMatchTarget() {
-        if (this.matchTargetGenerator === undefined) {
-            return this.name
-        }
-        return this.matchTargetGenerator(this.name)
-    }
-
-}
 
 export class StructEnum implements FieldType {
 

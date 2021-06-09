@@ -1,9 +1,10 @@
 import endent from "endent"
 import { createBytesReferenceField, createCountVar, createNumericField } from "../api/input"
+import { ChoiceField } from "../field/choice"
 import { NumericField } from "../field/numeric"
 import { BytesReferenceField } from "../field/ref"
 import { StructEnumParserGenerator } from "../parser/enum"
-import { AnonymousStructVariant, ChoiceField, EnumVariant, StructEnum, NamedStructVariant, NamedEnumVariant, EmptyVariant } from "./enum"
+import { AnonymousStructVariant, EnumVariant, StructEnum, NamedStructVariant, NamedEnumVariant, EmptyVariant } from "./enum"
 import { BuiltInNumericType } from "./numeric"
 import { Struct } from "./struct"
 
@@ -142,7 +143,7 @@ test('test enum definition without reference', () => {
         ))
     }
     
-    pub fn parse_request_data(input: &[u8], function_code: u8) -> IResult<&[u8], RequestData> {
+    pub fn parse_request_data<'a>(input: &'a [u8], function_code: u8) -> IResult<&'a [u8], RequestData> {
         let (input, request_data) = match function_code {
             0x01 => parse_read_coils(input),
             0x02 => parse_read_discrete_inputs(input),
@@ -233,7 +234,7 @@ test('enum definition with reference', () => {
         ))
     }
     
-    pub fn parse_request_data(input: &[u8], function_code: u8) -> IResult<&[u8], RequestData> {
+    pub fn parse_request_data<'a>(input: &'a [u8], function_code: u8) -> IResult<&'a [u8], RequestData<'a>> {
         let (input, request_data) = match function_code {
             0x17 => parse_write_file_record_sub_request(input),
             0x06 => parse_write_single_register(input),
@@ -289,7 +290,7 @@ test('enum with user defined variants', () => {
     `)
     const gen = new StructEnumParserGenerator(payload)
     expect(gen.generateEnumParser()).toEqual(endent`
-    pub fn parse_payload(input: &[u8], function_code: u8) -> IResult<&[u8], Payload> {
+    pub fn parse_payload<'a>(input: &'a [u8], function_code: u8) -> IResult<&'a [u8], Payload> {
         let (input, payload) = match function_code & 0b10000000 {
             0x0 => {
                 let (input, request_data) = parse_request_data(input, function_code)?;
@@ -364,7 +365,7 @@ test('enum with user defined variants with reference', () => {
         ))
     }
     
-    pub fn parse_payload(input: &[u8], function_code: u8) -> IResult<&[u8], Payload> {
+    pub fn parse_payload<'a>(input: &'a [u8], function_code: u8) -> IResult<&'a [u8], Payload<'a>> {
         let (input, payload) = match function_code & 0b10000000 {
             0x0 => {
                 let (input, request_data) = parse_request_data(input, function_code)?;

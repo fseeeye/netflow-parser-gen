@@ -1,9 +1,10 @@
-import { ChoiceField, NamedStructVariant, StructEnum } from "../types/enum"
+import { NamedStructVariant, StructEnum } from "../types/enum"
 import { numeric } from "../api"
 import { Ipv4 } from "../protocols/ipv4"
 import { Ipv6 } from "../protocols/ipv6"
 import { Struct } from "../types/struct"
 import { StructEnumWithInlineChoiceParserGenerator } from "./enum"
+import { ChoiceField } from "../field/choice"
 
 test('test struct enum with inline choice', () => {
     const ip = new StructEnum(

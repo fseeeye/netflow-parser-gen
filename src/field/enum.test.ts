@@ -1,6 +1,6 @@
 import endent from "endent"
 import { StructParserGenerator } from "../parser/struct"
-import { EmptyVariant, StructEnum, AnonymousStructVariant, ChoiceField } from "../types/enum"
+import { EmptyVariant, StructEnum, AnonymousStructVariant } from "../types/enum"
 import { getRequestDataEnum, getRequestDataWithRefEnum, SimpleReadRequestFields } from "../types/enum.test"
 import { BuiltInNumericType } from "../types/numeric"
 import { Struct } from "../types/struct"
@@ -8,6 +8,7 @@ import { EnumField } from "./enum"
 import { NumericField } from "./numeric"
 import { EnumVariant } from "../types/enum"
 import { createNumericField } from "../api/input"
+import { ChoiceField } from "./choice"
 
 test('test struct with enum field', () => {
     const requestDataEnum = getRequestDataEnum()
@@ -114,7 +115,7 @@ test('test struct with enum field', () => {
         ))
     }
     
-    pub fn parse_request_data(input: &[u8], function_code: u8) -> IResult<&[u8], RequestData> {
+    pub fn parse_request_data<'a>(input: &'a [u8], function_code: u8) -> IResult<&'a [u8], RequestData> {
         let (input, request_data) = match function_code {
             0x01 => parse_read_coils(input),
             0x02 => parse_read_discrete_inputs(input),
@@ -206,7 +207,7 @@ test('test struct with enum field with lifetime', () => {
         ))
     }
     
-    pub fn parse_request_data(input: &[u8], function_code: u8) -> IResult<&[u8], RequestData> {
+    pub fn parse_request_data<'a>(input: &'a [u8], function_code: u8) -> IResult<&'a [u8], RequestData<'a>> {
         let (input, request_data) = match function_code {
             0x17 => parse_write_file_record_sub_request(input),
             0x06 => parse_write_single_register(input),
@@ -389,7 +390,7 @@ test('test struct with empty variant', () => {
          ))
     }
     
-    pub fn parse_request_data(input: &[u8], function_code: u8) -> IResult<&[u8], RequestData> {
+    pub fn parse_request_data<'a>(input: &'a [u8], function_code: u8) -> IResult<&'a [u8], RequestData> {
         let (input, request_data) = match function_code {
             0x01 => parse_read_coils(input),
             0x02 => parse_read_discrete_inputs(input),
