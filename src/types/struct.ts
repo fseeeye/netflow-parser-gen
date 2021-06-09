@@ -1,6 +1,6 @@
 import endent from "endent"
 import { snakeCase } from "snake-case"
-import { Field } from "../field/base"
+import { Field, VisibilityType } from "../field/base"
 import { FieldType } from "./base"
 import { StructParserGenerator } from "../parser/struct"
 import { generateAttributesCode } from "../utils"
@@ -49,7 +49,7 @@ export class Struct implements FieldType {
         return gen.generateParser()
     }
 
-    protected visibilitySpecifier(): string {
+    protected visibilitySpecifier(): VisibilityType {
         return `pub`
     }
 

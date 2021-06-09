@@ -2,7 +2,7 @@ import endent from "endent"
 import { snakeCase } from "snake-case"
 import { generateAttributesCode, removeDuplicateByKey } from "../utils"
 import { Struct } from "./struct"
-import { Field } from "../field/base"
+import { Field, VisibilityType } from "../field/base"
 import { FieldType } from "./base"
 import { StructEnumParserGenerator, StructEnumVariantParserGenerator } from "../parser/enum"
 import { ChoiceField } from "../field/choice"
@@ -70,7 +70,7 @@ export class AnonymousStructVariant extends Struct implements EnumVariant {
         super(name, fields)
     }
 
-    protected visibilitySpecifier() {
+    protected visibilitySpecifier(): VisibilityType {
         return ``
     }
 
