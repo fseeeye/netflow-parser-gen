@@ -11,11 +11,12 @@ use nom::number::complete::{be_u32, be_u16, u8};
 use nom::IResult;
 
 #[derive(Debug, PartialEq)]
-pub struct MBAPHeader {
+pub struct Header {
     pub transaction_id: u16,
     pub protocol_id: u16,
     pub length: u16,
     pub unit_id: u8,
+    pub function_code: u8,
 }
 
 #[derive(Debug, PartialEq)]
@@ -110,23 +111,24 @@ pub enum Payload<'a> {
 
 #[derive(Debug, PartialEq)]
 pub struct ModbusPacket<'a> {
-    pub header: MBAPHeader,
-    pub function_code: u8,
+    pub header: Header,
     pub payload: Payload<'a>,
 }
 
-pub fn parse_mbap_header(input: &[u8]) -> IResult<&[u8], MBAPHeader> {
+pub fn parse_header(input: &[u8]) -> IResult<&[u8], Header> {
     let (input, transaction_id) = be_u16(input)?;
     let (input, protocol_id) = be_u16(input)?;
     let (input, length) = be_u16(input)?;
     let (input, unit_id) = u8(input)?;
+    let (input, function_code) = u8(input)?;
     Ok((
         input,
-        MBAPHeader {
+        Header {
             transaction_id,
             protocol_id,
             length,
-            unit_id
+            unit_id,
+            function_code
         }
     ))
 }
@@ -345,8 +347,8 @@ fn parse_read_fifo_queue(input: &[u8]) -> IResult<&[u8], Request> {
     ))
 }
 
-pub fn parse_request(input: &[u8], function_code: u8) -> IResult<&[u8], Request> {
-    let (input, request) = match function_code {
+pub fn parse_request<'a>(input: &'a [u8], header: &Header) -> IResult<&'a [u8], Request<'a>> {
+    let (input, request) = match header.function_code {
         0x01 => parse_read_coils(input),
         0x02 => parse_read_discre_inputs(input),
         0x03 => parse_read_holding_registers(input),
@@ -379,10 +381,10 @@ fn parse_exception(input: &[u8]) -> IResult<&[u8], Payload> {
     ))
 }
 
-pub fn parse_payload(input: &[u8], function_code: u8) -> IResult<&[u8], Payload> {
-    let (input, payload) = match function_code & 0b1000_0000 {
+pub fn parse_payload<'a>(input: &'a [u8], header: &Header) -> IResult<&'a [u8], Payload<'a>> {
+    let (input, payload) = match header.function_code & 0b1000_0000 {
         0x0 => {
-            let (input, request) = parse_request(input, function_code)?;
+            let (input, request) = parse_request(input, &header)?;
             Ok((input, Payload::Request(request)))
         },
         0x01 => parse_exception(input),
@@ -392,22 +394,20 @@ pub fn parse_payload(input: &[u8], function_code: u8) -> IResult<&[u8], Payload>
 }
 
 pub fn parse_modbus_packet(input: &[u8]) -> IResult<&[u8], ModbusPacket> {
-    let (input, header) = parse_mbap_header(input)?;
-    let (input, function_code) = u8(input)?;
-    let (input, payload) = parse_payload(input, function_code)?;
+    let (input, header) = parse_header(input)?;
+    let (input, payload) = parse_payload(input, &header)?;
     Ok((
         input,
         ModbusPacket {
             header,
-            function_code,
             payload
         }
     ))
 }`
 
 test('test modbus', () => {
-    // expect(
-    //     `\n` + Modbus.generateParser()
-    // ).toEqual(answer)
-    console.log(Modbus.generateParser())
+    expect(
+        `\n` + Modbus.generateParser()
+    ).toEqual(answer)
+    // console.log(Modbus.generateParser())
 })

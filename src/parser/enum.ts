@@ -121,10 +121,18 @@ export class StructEnumParserGenerator {
         return parsers.join(`\n\n`)
     }
 
+    private functionBody() {
+        const choice = this.structEnum.choiceField
+        const parseAheadStatement = (choice.isInline() && choice.generateParseAheadStatement !== undefined) ? choice.generateParseAheadStatement() : ``
+        const matchBlock = this.generateMatchBlock()
+        const statements = parseAheadStatement !== `` ? [parseAheadStatement, matchBlock] : [matchBlock]
+        return statements.join(`\n`)
+    }
+
     generateEnumParser() {
         const signature = this.functionSignature()
         const parserBlock = endent`{
-            ${this.generateMatchBlock()}
+            ${this.functionBody()}
         }`
         return endent`
         ${signature} ${parserBlock}

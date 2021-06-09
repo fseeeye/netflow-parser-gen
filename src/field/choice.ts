@@ -1,8 +1,9 @@
-import { string } from "yargs"
 import { Field } from "./base"
 import { StructField } from "./struct"
 
 export interface EnumChoice {
+    isInline(): boolean
+    generateParseAheadStatement?: () => string
     matchTargetExprGenerator?: (matchField: string) => string,
     asMatchTarget(): string
     asEnumParserFunctionParameterSignature(): string
@@ -14,6 +15,10 @@ export class BasicEnumChoice implements EnumChoice {
         readonly field: Field,
         readonly matchTargetExprGenerator?: (matchField: string) => string,
     ) { }
+
+    isInline() {
+        return false
+    }
 
     protected matchFieldExpr() {
         return this.field.name
@@ -66,7 +71,17 @@ export class StructEnumChoice extends BasicEnumChoice {
     asEnumParserInvocationArgument(): string {
         return `&${this.struct.name}`
     }
+}
 
+export class InlineChoice extends BasicEnumChoice {
+
+    isInline() {
+        return true
+    }
+
+    generateParseAheadStatement(): string {
+        return `let (input, ${this.matchFieldExpr()}) = peek(${this.field.parserInvocation()})(input)?;`
+    }
 }
 
 // export class ChoiceField {
