@@ -141,25 +141,25 @@ export class StructEnumParserGenerator {
 
 }
 
-export class StructEnumWithInlineChoiceParserGenerator extends StructEnumParserGenerator {
-    functionSignature() {
-        const structEnum = this.structEnum
-        return `pub fn parse_${structEnum.snakeCaseName()}(input: &[u8]) -> IResult<&[u8], ${structEnum.name}>`
-    }
+// export class StructEnumWithInlineChoiceParserGenerator extends StructEnumParserGenerator {
+//     functionSignature() {
+//         const structEnum = this.structEnum
+//         return `pub fn parse_${structEnum.snakeCaseName()}(input: &[u8]) -> IResult<&[u8], ${structEnum.name}>`
+//     }
 
-    private generatePeekChoice() {
-        const choicField = this.structEnum.choiceField
-        return `let (input, ${choicField.asMatchTarget()}) = peek(${choicField.field.parserInvocation()})(input)?;`
-    }
+//     private generatePeekChoice() {
+//         const choicField = this.structEnum.choiceField
+//         return `let (input, ${choicField.asMatchTarget()}) = peek(${choicField.field.parserInvocation()})(input)?;`
+//     }
 
-    generateEnumParser() {
-        const signature = this.functionSignature()
-        const parserBlock = endent`{
-            ${this.generatePeekChoice()}
-            ${this.generateMatchBlock()}
-        }`
-        return endent`
-        ${signature} ${parserBlock}
-        `
-    }
-}
+//     generateEnumParser() {
+//         const signature = this.functionSignature()
+//         const parserBlock = endent`{
+//             ${this.generatePeekChoice()}
+//             ${this.generateMatchBlock()}
+//         }`
+//         return endent`
+//         ${signature} ${parserBlock}
+//         `
+//     }
+// }
