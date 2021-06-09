@@ -4,7 +4,7 @@ import { Ipv4 } from "../protocols/ipv4"
 import { Ipv6 } from "../protocols/ipv6"
 import { Struct } from "../types/struct"
 import { StructEnumWithInlineChoiceParserGenerator } from "./enum"
-import { ChoiceField } from "../field/choice"
+import { BasicEnumChoice } from "../field/choice"
 
 test('test struct enum with inline choice', () => {
     const ip = new StructEnum(
@@ -13,7 +13,7 @@ test('test struct enum with inline choice', () => {
             new NamedStructVariant('L3', 0x04, 'Ipv4', Ipv4.definition.structs[0] as Struct),
             new NamedStructVariant('L3', 0x06, 'Ipv6', Ipv6.definition.structs[0] as Struct),
         ],
-        new ChoiceField(
+        new BasicEnumChoice(
             numeric('version', 'u8'),
             (version) => `${version} >> 4`,
         ),

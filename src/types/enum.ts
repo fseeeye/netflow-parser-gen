@@ -5,7 +5,7 @@ import { Struct } from "./struct"
 import { Field, VisibilityType } from "../field/base"
 import { FieldType } from "./base"
 import { StructEnumParserGenerator, StructEnumVariantParserGenerator } from "../parser/enum"
-import { ChoiceField } from "../field/choice"
+import { EnumChoice } from "../field/choice"
 
 export type ChoiceType = string | number
 
@@ -146,7 +146,7 @@ export class NamedEnumVariant implements EnumVariant {
         const typeName = `${this.enumName}::${this.struct.name}`
         const parsed = this.struct.snakeCaseName()
         const parserBlock = endent`{
-            let (input, ${parsed}) = ${this.struct.parserFunctionName()}(input, ${this.struct.choiceField.name})?;
+            let (input, ${parsed}) = ${this.struct.parserFunctionName()}(input, ${this.struct.choiceField.asEnumParserInvocationArgument()})?;
             Ok((input, ${typeName}(${parsed})))
         }`
         return parserBlock
@@ -166,7 +166,7 @@ export class StructEnum implements FieldType {
     constructor(
         readonly name: string,
         readonly variants: EnumVariant[],
-        readonly choiceField: ChoiceField,
+        readonly choiceField: EnumChoice,
     ) { }
 
     typeName() {

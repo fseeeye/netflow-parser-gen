@@ -1,6 +1,6 @@
 import endent from "endent"
 import { createBytesReferenceField, createCountVar, createNumericField } from "../api/input"
-import { ChoiceField } from "../field/choice"
+import { BasicEnumChoice } from "../field/choice"
 import { NumericField } from "../field/numeric"
 import { BytesReferenceField } from "../field/ref"
 import { StructEnumParserGenerator } from "../parser/enum"
@@ -50,7 +50,7 @@ export function getRequestDataEnum() {
             ],
         )
     ]
-    const structEnum = new StructEnum(enumName, variants, new ChoiceField(functionCodeField))
+    const structEnum = new StructEnum(enumName, variants, new BasicEnumChoice(functionCodeField))
     return structEnum
 }
 
@@ -180,7 +180,7 @@ export function getRequestDataWithRefEnum() {
 
         )
     ]
-    const structEnum = new StructEnum('RequestData', variants, new ChoiceField(functionCodeField))
+    const structEnum = new StructEnum('RequestData', variants, new BasicEnumChoice(functionCodeField))
     return structEnum
 }
 
@@ -258,7 +258,7 @@ test('enum with user defined variants', () => {
             ]),
             new EmptyVariant(0x0b),
         ],
-        new ChoiceField(createNumericField({ name: 'function_code', typeName: 'u8' })),
+        new BasicEnumChoice(createNumericField({ name: 'function_code', typeName: 'u8' })),
     )
     // console.log(request.definition())
     // const reqGen = new StructEnumParserGenerator(request)
@@ -278,7 +278,7 @@ test('enum with user defined variants', () => {
             new NamedEnumVariant('Payload', 0x00, 'RequestData', request),
             new NamedStructVariant('Payload', 0x01, 'Exception', exception)
         ],
-        new ChoiceField(createNumericField({ name: 'function_code', typeName: 'u8' }), (name) => { return `${name} & 0b10000000` }),
+        new BasicEnumChoice(createNumericField({ name: 'function_code', typeName: 'u8' }), (field) => { return `${field} & 0b10000000` }),
     )
     // console.log(payload.definition())
     expect(payload.definition()).toEqual(endent`
@@ -322,7 +322,7 @@ test('enum with user defined variants with reference', () => {
             ]),
             new EmptyVariant(0x0b),
         ],
-        new ChoiceField(createNumericField({ name: 'function_code', typeName: 'u8' })),
+        new BasicEnumChoice(createNumericField({ name: 'function_code', typeName: 'u8' })),
     )
     const payload = new StructEnum(
         'Payload',
@@ -334,7 +334,7 @@ test('enum with user defined variants with reference', () => {
                 createBytesReferenceField({ name: 'write_register_values', countVar: createCountVar('write_count') }),
             ])
         ],
-        new ChoiceField(createNumericField({ name: 'function_code', typeName: 'u8' }), (name) => { return `${name} & 0b10000000` }),
+        new BasicEnumChoice(createNumericField({ name: 'function_code', typeName: 'u8' }), (field) => { return `${field} & 0b10000000` }),
     )
     // console.log(payload.definition())
     expect(payload.definition()).toEqual(endent`

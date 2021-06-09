@@ -56,10 +56,10 @@ export class StructEnumParserGenerator {
 
     functionSignature() {
         const structEnum = this.structEnum
-        const choiceField = structEnum.choiceField.field
         // 如果 choice 是用户自定义类型，就接受引用作为参数
-        const choiceParameterType = choiceField.isUserDefined() ? `&${choiceField.typeName()}` : choiceField.typeName()
-        const choiceParameter = `${choiceField.name}: ${choiceParameterType}`
+        // const choiceParameterType = choiceField.isUserDefined() ? `&${choiceField.typeName()}` : choiceField.typeName()
+        // const choiceParameter = `${choiceField.name}: ${choiceParameterType}`
+        const choiceParameter = structEnum.choiceField.asEnumParserFunctionParameterSignature()
         // 如果 Enum 类型带有生命周期标记，在返回值中需要标记
         const returnType = structEnum.isRef() ? `${structEnum.name}<'a>` : structEnum.name
         return `pub fn parse_${structEnum.snakeCaseName()}<'a>(input: &'a [u8], ${choiceParameter}) -> IResult<&'a [u8], ${returnType}>`
@@ -94,7 +94,7 @@ export class StructEnumParserGenerator {
         const parsedEnumVariable = structEnum.snakeCaseName()
 
         return endent`
-        let (input, ${parsedEnumVariable}) = match ${structEnum.choiceField.generateMatchTarget()} {
+        let (input, ${parsedEnumVariable}) = match ${structEnum.choiceField.asMatchTarget()} {
             ${choiceArms.join('\n')}
             ${this.generateErrorArm()}
         }?;
@@ -149,7 +149,7 @@ export class StructEnumWithInlineChoiceParserGenerator extends StructEnumParserG
 
     private generatePeekChoice() {
         const choicField = this.structEnum.choiceField
-        return `let (input, ${choicField.name}) = peek(${choicField.field.parserInvocation()})(input)?;`
+        return `let (input, ${choicField.asMatchTarget()}) = peek(${choicField.field.parserInvocation()})(input)?;`
     }
 
     generateEnumParser() {

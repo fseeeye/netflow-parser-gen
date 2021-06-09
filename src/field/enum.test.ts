@@ -8,7 +8,7 @@ import { EnumField } from "./enum"
 import { NumericField } from "./numeric"
 import { EnumVariant } from "../types/enum"
 import { createNumericField } from "../api/input"
-import { ChoiceField } from "./choice"
+import { BasicEnumChoice } from "./choice"
 
 test('test struct with enum field', () => {
     const requestDataEnum = getRequestDataEnum()
@@ -273,7 +273,7 @@ function getRequestDataEnumWithEmptyVariant() {
             0x0B
         )
     ]
-    const structEnum = new StructEnum(enumName, variants, new ChoiceField(functionCodeField))
+    const structEnum = new StructEnum(enumName, variants, new BasicEnumChoice(functionCodeField))
     return structEnum
 }
 

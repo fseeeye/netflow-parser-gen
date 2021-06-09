@@ -5,7 +5,7 @@ import {
     createCountVar,
     createCountVarWithUnitSize,
 } from "../../api/input"
-import { ChoiceField } from "../../field/choice"
+import { StructEnumChoice } from "../../field/choice"
 import { EnumField } from "../../field/enum"
 import { NumericField } from "../../field/numeric"
 import { StructField } from "../../field/struct"
@@ -150,9 +150,12 @@ const Request = new StructEnum(
             ]
         ),
     ],
-    // new ChoiceField(new StructField(ModbusHeader, 'header'), undefined, field => `${field.name}.function_code`)
-    new ChoiceField(numeric('function_code', 'u8'))
+    new StructEnumChoice(
+        new StructField(ModbusHeader, 'header'),
+        'function_code',
+    )
 )
+
 
 const Payload = new StructEnum(
     'Payload',
@@ -167,8 +170,10 @@ const Payload = new StructEnum(
             ]
         )
     ],
-    new ChoiceField(new StructField(ModbusHeader, 'header'),
-        name => `${name}.function_code & 0b1000_0000`,
+    new StructEnumChoice(
+        new StructField(ModbusHeader, 'header'),
+        'function_code',
+        field => `${field} & 0b1000_0000`,
     )
 )
 
@@ -176,7 +181,6 @@ const ModbusPacket = new Struct(
     'ModbusPacket',
     [
         new StructField(ModbusHeader, 'header'),
-        // numeric('function_code', 'u8'),
         new EnumField(Payload),
     ]
 )
@@ -189,20 +193,6 @@ const structs = [
     Payload,
     ModbusPacket,
 ]
-
-// // console.log(generateNomImport())
-// const nomImports = generateNomImport()
-
-// const structDefs = structs.map(s => s.definition()).join(`\n\n`)
-
-// const parserDefs = structs.map(s => s.parserFunctionDefinition()).join(`\n\n`)
-
-// console.log([
-//     nomImports,
-//     structDefs,
-//     parserDefs,
-// ].join(`\n\n`)
-// )
 
 export const Modbus = new Protocol({
     name: 'Modbus',
