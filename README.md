@@ -11,7 +11,8 @@
 - 自定义的 fmt？
 - ~~BitField 重构~~
 - 逐个尝试多个 parser
-- ~~Choice 重新设计~~(实现了 BasicEnumChoice 和 StructEnumChoice)
+- Choice 重新设计
+    - 已实现 BasicEnumChoice 和 StructEnumChoice，处理情况 1
 
 ## Enum Parser 的设计
 
