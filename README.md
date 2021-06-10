@@ -13,6 +13,7 @@
 - 逐个尝试多个 parser
 - Choice 重新设计
     - 已实现 BasicEnumChoice 和 StructEnumChoice，处理情况 1
+    - 已实现 InlineChoice，处理情况 2
 
 ## Enum Parser 的设计
 
