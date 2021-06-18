@@ -1,5 +1,4 @@
 import endent from "endent"
-import { BitFieldStruct } from "../types/bit-struct"
 import { Struct } from "../types/struct"
 
 export class StructParserGenerator {
@@ -75,74 +74,74 @@ export class StructParserGenerator {
     }
 }
 
-export class BitFieldStructParserGenerator {
-    constructor(
-        readonly struct: BitFieldStruct,
-    ) {
-    }
+// export class BitFieldStructParserGenerator {
+//     constructor(
+//         readonly struct: BitFieldStruct,
+//     ) {
+//     }
 
-    protected generateResultSection() {
-        const struct = this.struct
-        const code = endent`
-        Ok((
-            input,
-            ${struct.name} {
-                ${struct.fields.map((field) => field.name).join(',\n')}
-            }
-        ))
-        `
-        return code
-    }
+//     protected generateResultSection() {
+//         const struct = this.struct
+//         const code = endent`
+//         Ok((
+//             input,
+//             ${struct.name} {
+//                 ${struct.fields.map((field) => field.name).join(',\n')}
+//             }
+//         ))
+//         `
+//         return code
+//     }
 
-    protected generateParserBlock() {
-        const fieldParsers = this.struct.fields.map((field) => {
-            return field.generateParseStatement()
-        })
+//     protected generateParserBlock() {
+//         const fieldParsers = this.struct.fields.map((field) => {
+//             return field.generateParseStatement()
+//         })
 
-        const resultSection = this.generateResultSection()
+//         const resultSection = this.generateResultSection()
 
-        return endent`{
-            ${fieldParsers.join('\n')}
-            ${resultSection}
-        }`
-    }
+//         return endent`{
+//             ${fieldParsers.join('\n')}
+//             ${resultSection}
+//         }`
+//     }
 
-    private bitsFunctionName() {
-        return `parse_bits_${this.struct.snakeCaseName()}`
-    }
+//     private bitsFunctionName() {
+//         return `parse_bits_${this.struct.snakeCaseName()}`
+//     }
 
-    private generateBitsFunctionSignature() {
-        const name = this.bitsFunctionName()
-        return `fn ${name}(input: (&[u8], usize)) -> IResult<(&[u8], usize),  ${this.struct.name}>`
-    }
+//     private generateBitsFunctionSignature() {
+//         const name = this.bitsFunctionName()
+//         return `fn ${name}(input: (&[u8], usize)) -> IResult<(&[u8], usize),  ${this.struct.name}>`
+//     }
 
-    private generateBitsFunction() {
-        const functionSignature = this.generateBitsFunctionSignature()
-        const parserBlock = this.generateParserBlock()
+//     private generateBitsFunction() {
+//         const functionSignature = this.generateBitsFunctionSignature()
+//         const parserBlock = this.generateParserBlock()
 
-        return endent`
-        ${functionSignature} ${parserBlock}
-        `
-    }
+//         return endent`
+//         ${functionSignature} ${parserBlock}
+//         `
+//     }
 
-    protected generateFunctionSignature() {
-        const name = this.struct.parserFunctionName()
-        return `fn ${name}(input: &[u8]) -> IResult<&[u8], ${this.struct.name}>`
-    }
+//     protected generateFunctionSignature() {
+//         const name = this.struct.parserFunctionName()
+//         return `fn ${name}(input: &[u8]) -> IResult<&[u8], ${this.struct.name}>`
+//     }
 
-    private generateWrapperFunction() {
-        const signature = this.generateFunctionSignature()
-        const body = endent`{
-            bits(${this.bitsFunctionName()})(input)
-        }
-        `
-        return `${signature} ${body}`
-    }
+//     private generateWrapperFunction() {
+//         const signature = this.generateFunctionSignature()
+//         const body = endent`{
+//             bits(${this.bitsFunctionName()})(input)
+//         }
+//         `
+//         return `${signature} ${body}`
+//     }
 
-    generateParser() {
-        const bitsFunction = this.generateBitsFunction()
-        const wrapperFunction = this.generateWrapperFunction()
-        return [bitsFunction, wrapperFunction].join(`\n\n`)
-    }
+//     generateParser() {
+//         const bitsFunction = this.generateBitsFunction()
+//         const wrapperFunction = this.generateWrapperFunction()
+//         return [bitsFunction, wrapperFunction].join(`\n\n`)
+//     }
 
-}
+// }
