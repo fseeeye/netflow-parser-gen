@@ -94,6 +94,8 @@ export interface Field {
 常见的 field 有以下几种类型：
 
 - 纯数字（`u8, u16, u32` 之类）
+- 字节不对齐的纯数字（例如 Ipv4 的 version 只有 4 个 bit）
+    - 目前的处理方式是把多个字节不对齐的字段打包成字节对齐的 `BitNumericFieldGroup`
 - 字节流（`&[u8]`)
     - 定长，例如以太网 MAC 地址固定 6 字节
     - 不定长，例如各类协议的 payload，payload 长度实际上依赖于 header 中的某一个表示长度字段（Ip 与 Tcp 都是这样）
