@@ -1,13 +1,17 @@
+import endent from "endent"
+import { PayloadEnum } from "../types/enum"
 import { Field } from "./base"
 import { StructField } from "./struct"
 
 export interface EnumChoice {
     isInline(): boolean
     generateParseAheadStatement?: () => string
+    generateParseAheadStatementWithPayloadErrorHandle?: (payload_enum:PayloadEnum) => string,
     matchTargetExprGenerator?: (matchField: string) => string,
     asMatchTarget(): string
     asEnumParserFunctionParameterSignature(): string
     asEnumParserInvocationArgument(): string
+    isFieldRef(): boolean
 }
 
 export class BasicEnumChoice implements EnumChoice {
@@ -16,11 +20,15 @@ export class BasicEnumChoice implements EnumChoice {
         readonly matchTargetExprGenerator?: (matchField: string) => string,
     ) { }
 
-    isInline() {
+    isInline(): boolean {
         return false
     }
 
-    protected matchFieldExpr() {
+    isFieldRef(): boolean {
+        return this.field.isRef()
+    }
+
+    protected matchFieldExpr(): string {
         return this.field.name
     }
 
@@ -43,14 +51,46 @@ export class BasicEnumChoice implements EnumChoice {
 
 export class StructEnumChoice extends BasicEnumChoice {
     constructor(
+        readonly structField: StructField,
+        readonly matchFieldName: string,
+        readonly matchTargetExprGenerator?: (matchField: string) => string,
+    ) {
+        super(structField, matchTargetExprGenerator)
+        if (this.validateMatchField() === false) {
+            throw Error(`'${matchFieldName}' is not a field of struct ${structField.name}!`)
+        }
+    }
+
+    private validateMatchField() {
+        const fieldNames = this.structField.struct.fields.map(f => f.name)
+        return fieldNames.includes(this.matchFieldName)
+    }
+
+    protected matchFieldExpr(): string {
+        return `${this.structField.name}.${this.matchFieldName}`
+    }
+
+    // 定义 enum parser 的参数类型签名与调用 enum parser 时提供的参数形式一一对应。
+
+    asEnumParserFunctionParameterSignature(): string {
+        return `${this.structField.name}: &${this.structField.typeName()}`
+    }
+
+    asEnumParserInvocationArgument(): string {
+        return `&${this.structField.name}`
+    }
+}
+
+export class PayloadEnumChoice extends BasicEnumChoice {
+    constructor(
         readonly struct: StructField,
         readonly matchFieldName: string,
         readonly matchTargetExprGenerator?: (matchField: string) => string,
     ) {
         super(struct, matchTargetExprGenerator)
-        if (this.validateMatchField() === false) {
-            throw Error(`'${matchFieldName}' is not a field of struct ${struct.name}!`)
-        }
+        // if (this.validateMatchField() === false) {
+        //     throw Error(`'${matchFieldName}' is not a field of struct ${struct.name}!`)
+        // }
     }
 
     private validateMatchField() {
@@ -58,7 +98,7 @@ export class StructEnumChoice extends BasicEnumChoice {
         return fieldNames.includes(this.matchFieldName)
     }
 
-    protected matchFieldExpr() {
+    protected matchFieldExpr(): string {
         return `${this.struct.name}.${this.matchFieldName}`
     }
 
@@ -75,12 +115,22 @@ export class StructEnumChoice extends BasicEnumChoice {
 
 export class InlineChoice extends BasicEnumChoice {
 
-    isInline() {
+    isInline(): boolean {
         return true
     }
 
     generateParseAheadStatement(): string {
         return `let (input, ${this.matchFieldExpr()}) = peek(${this.field.parserInvocation()})(input)?;`
+    }
+
+    generateParseAheadStatementWithPayloadErrorHandle(payload_enum: PayloadEnum): string {
+        return endent`let (input, ${this.field.name}) = match peek(${this.field.parserInvocation()})(input) {
+            Ok((input, ${this.field.name})) => (input, ${this.field.name}),
+            Err(nom::Err::Error((input, _))) => {
+                return Ok((input, ${payload_enum.name}::Error(${payload_enum.name}Error::NomPeek(input))))
+            }
+            _ => return Ok((input, ${payload_enum.name}::Error(${payload_enum.name}Error::NomPeek(input)))),
+        };`
     }
 }
 

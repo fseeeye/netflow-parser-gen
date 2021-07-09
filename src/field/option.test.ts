@@ -1,8 +1,6 @@
 import endent from "endent"
 import { createCountVar, createBytesReferenceFieldSimple as bytesRef } from "../api/input"
-import { Struct } from "../types/struct"
 import { ConditionImpl, OptionField } from "./option"
-import { StructField } from "./struct"
 
 function getOptionalRefField() {
     const field = bytesRef('options', createCountVar(

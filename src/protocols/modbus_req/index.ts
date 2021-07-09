@@ -5,25 +5,33 @@ import {
     createCountVar,
     createCountVarWithUnitSize,
 } from "../../api/input"
-import { StructEnumChoice } from "../../field/choice"
+import { BasicEnumChoice } from "../../field/choice"
 import { EnumField } from "../../field/enum"
 import { NumericField } from "../../field/numeric"
+import { PayloadField } from "../../field/payload"
 import { StructField } from "../../field/struct"
 import { VecField } from "../../field/vec"
-import { AnonymousStructVariant, EmptyVariant, NamedEnumVariant, StructEnum } from "../../types/enum"
+import { AnonymousStructVariant, EmptyVariant, StructEnum, EmptyPayloadEnum } from "../../types/enum"
 import { Struct } from "../../types/struct"
 import { Protocol } from "../generator"
 
-const ModbusHeader = new Struct(
-    'Header',
+const protocolName = 'ModbusReq'
+const packetName = `${protocolName}Packet`
+const headerName = `${protocolName}Header`
+const payloadName = `${protocolName}Payload`
+
+const structs: (Struct|StructEnum)[] = []
+
+const MbapHeader = new Struct(
+    'MbapHeader',
     [
         numeric('transaction_id', 'be_u16'),
         numeric('protocol_id', 'be_u16'),
         numeric('length', 'be_u16'),
         numeric('unit_id', 'u8'),
-        numeric('function_code', 'u8'),
     ]
 )
+structs.push(MbapHeader)
 
 const ReadFileRecordSubRequest = new Struct(
     'ReadFileRecordSubRequest',
@@ -34,6 +42,7 @@ const ReadFileRecordSubRequest = new Struct(
         numeric('record_length', 'be_u16'),
     ]
 )
+structs.push(ReadFileRecordSubRequest)
 
 const WriteFileRecordSubRequest = new Struct(
     'WriteFileRecordSubRequest',
@@ -42,17 +51,18 @@ const WriteFileRecordSubRequest = new Struct(
         numeric('file_number', 'be_u16'),
         numeric('record_number', 'be_u16'),
         numeric('record_length', 'be_u16'),
-        bytesRef('record_data', createCountVar('record_length')),
+        bytesRef('record_data', createCountVarWithUnitSize('record_length', 2, "mul")), // Modified: Record data len = record_length * 2
     ]
 )
+structs.push(WriteFileRecordSubRequest)
 
 const SimpleReadFields: NumericField[] = [
     numeric('start_address', 'be_u16'),
     numeric('count', 'be_u16'),
 ]
 
-const Request = new StructEnum(
-    'Request',
+const Data = new StructEnum(
+    'Data',
     [
         new AnonymousStructVariant(0x01, 'ReadCoils', SimpleReadFields),
         new AnonymousStructVariant(0x02, 'ReadDiscreInputs', SimpleReadFields),
@@ -117,7 +127,7 @@ const Request = new StructEnum(
             [
                 numeric('byte_count', 'u8'),
                 new VecField('sub_requests',
-                    createCountVarWithUnitSize('byte_count', 7, 'div'),
+                    createCountVarWithUnitSize('byte_count', 7, 'div'), // Q: 7? can't count before parse sub-req
                     WriteFileRecordSubRequest),
             ]
         ),
@@ -139,7 +149,7 @@ const Request = new StructEnum(
                 numeric('write_start_address', 'be_u16'),
                 numeric('write_count', 'be_u16'),
                 numeric('write_byte_count', 'u8'),
-                bytesRef('write_register_values', createCountVarWithUnitSize('write_count', 2, 'mul'),),
+                bytesRef('write_register_values', createCountVarWithUnitSize('write_count', 2, 'mul')), 
             ]
         ),
         new AnonymousStructVariant(
@@ -150,51 +160,47 @@ const Request = new StructEnum(
             ]
         ),
     ],
-    new StructEnumChoice(
-        new StructField(ModbusHeader, 'header'),
-        'function_code',
+    new BasicEnumChoice( 
+        // new StructField(PDU, 'pdu'),
+        // 'function_code',
+        numeric('function_code', 'u8'),
     )
 )
+structs.push(Data)
 
-
-const Payload = new StructEnum(
-    'Payload',
+const PDU = new Struct(
+    `PDU`,
     [
-        // new NamedStructVariant('Payload', 0x00, 'Request', Request),
-        new NamedEnumVariant('Payload', 0x00, Request.name, Request),
-        new AnonymousStructVariant(
-            0x01,
-            'Exception',
-            [
-                numeric('exception_code', 'u8'),
-            ]
-        )
+        numeric('function_code', 'u8'),
+        new EnumField(Data)
     ],
-    new StructEnumChoice(
-        new StructField(ModbusHeader, 'header'),
-        'function_code',
-        field => `${field} & 0b1000_0000`,
-    )
 )
+structs.push(PDU)
 
-const ModbusPacket = new Struct(
-    'ModbusPacket',
+const header = new Struct(
+    `${headerName}`,
     [
-        new StructField(ModbusHeader, 'header'),
-        new EnumField(Payload),
+        new StructField(MbapHeader),
+        new StructField(PDU),
     ]
 )
 
-const structs = [
-    ModbusHeader,
-    ReadFileRecordSubRequest,
-    WriteFileRecordSubRequest,
-    Request,
-    Payload,
-    ModbusPacket,
-]
+const payload = new EmptyPayloadEnum(
+    `${payloadName}`,
+)
 
-export const Modbus = new Protocol({
-    name: 'Modbus',
+export const ModbusReqPacket = new Struct(
+    `${packetName}`,
+    [
+        new StructField(header),
+        new PayloadField(payload),
+    ]
+)
+
+export const ModbusReq = new Protocol({
+    name: `${protocolName}`,
+    packet: ModbusReqPacket,
+    header,
+    payload,
     structs
 })

@@ -10,19 +10,19 @@ export class FixSizedBytes extends BaseField {
         super(name)
     }
 
-    isRef() {
+    isRef(): boolean {
         return true
     }
 
-    isUserDefined() {
+    isUserDefined(): boolean {
         return false
     }
 
-    typeName() {
+    typeName(): string {
         return BYTES_REF_TYPENAME
     }
 
-    parserInvocation() {
+    parserInvocation(): string {
         return `${NomBytesFunction.take}(${this.length}usize)`
     }
 }

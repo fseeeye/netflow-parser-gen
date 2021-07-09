@@ -2,8 +2,19 @@ import { bitNumeric, bytesRef, numeric, sizedBytes } from "../../api"
 import { createCountVar } from "../../api/input"
 import { BitNumericFieldGroup } from "../../field/bit-field"
 import { ConditionImpl, OptionField } from "../../field/option"
+import { PayloadField } from "../../field/payload"
+import { PayloadEnumChoice } from "../../field/choice"
+import { PayloadEnum, PayloadEnumVariant } from "../../types/enum"
 import { Struct } from "../../types/struct"
 import { Protocol } from "../generator"
+import { StructField } from "../../field/struct"
+import { TcpPacket } from "../tcp"
+import { UdpPacket } from "../udp"
+
+const protocolName = 'Ipv6'
+const packetName = `${protocolName}Packet`
+const headerName = `${protocolName}Header`
+const payloadName = `${protocolName}Payload`
 
 const group = new BitNumericFieldGroup(
     [
@@ -27,8 +38,8 @@ const extensionHeader = new OptionField(
     )
 )
 
-const ipv6 = new Struct(
-    'Ipv6',
+const header = new Struct(
+    `${headerName}`,
     [
         group,
         numeric('payload_length', 'be_u16'),
@@ -40,11 +51,33 @@ const ipv6 = new Struct(
     ]
 )
 
-const structs = [
-    ipv6,
-]
+// !Unimplement
+const payload = new PayloadEnum(
+    `${payloadName}`,
+    [
+        new PayloadEnumVariant(`${payloadName}`, 0x06, TcpPacket),
+        new PayloadEnumVariant(`${payloadName}`, 0x11, UdpPacket), 
+    ],
+    new PayloadEnumChoice(
+        new StructField(header, '_header'),
+        'next_header',
+    )
+)
+
+const packet = new Struct (
+    `${packetName}`,
+    [
+        new StructField(header),
+        new PayloadField(payload),
+    ]
+)
+
+const structs: Struct[] = []
 
 export const Ipv6 = new Protocol({
-    name: 'Ipv6',
+    name: protocolName,
+    packet,
+    header,
+    payload,
     structs
 })

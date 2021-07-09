@@ -46,7 +46,7 @@ export class StructParserGenerator {
         return `fn ${name}(input: &[u8]) -> IResult<&[u8], ${this.struct.name}>`
     }
 
-    generateParser(pub: boolean = true) {
+    generateParser(pub = true): string {
         const visibilitySpecifier = pub ? `pub ` : ``
         const functionSignature = `${visibilitySpecifier}${this.generateFunctionSignature()}`
         const parserBlock = this.generateParserBlock()
@@ -54,6 +54,12 @@ export class StructParserGenerator {
         return endent`
         ${functionSignature} ${parserBlock}
         `
+    }
+
+    // 输出Header在Packet Trait中的代码内容(不包含函数签名)
+    // 即`protected generateParserBlock()`的public方法
+    generateHeaderParserContent(): string {
+        return this.generateParserBlock()
     }
 
     private generateUserDefinedFieldParsers() {

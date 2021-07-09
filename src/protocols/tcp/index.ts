@@ -4,10 +4,23 @@ import {
     createBytesReferenceFieldSimple as bytesRef,
     createCountVar
 } from "../../api/input"
-import { BitNumericFieldGroup } from "../../field/bit-field"
-import { ConditionImpl, OptionField } from "../../field/option"
 import { Struct } from "../../types/struct"
+import { StructEnum, PayloadEnum, PayloadEnumVariant } from "../../types/enum"
+import { ConditionImpl, OptionField } from "../../field/option"
+import { BitNumericFieldGroup } from "../../field/bit-field"
+import { PayloadEnumChoice } from "../../field/choice"
+import { StructField } from "../../field/struct"
+import { PayloadField } from "../../field/payload"
 import { Protocol } from ".././generator"
+import { ModbusReqPacket } from "../modbus_req"
+import { ModbusRspPacket } from "../modbus_rsp"
+
+const protocolName = 'Tcp'
+const packetName = `${protocolName}Packet`
+const headerName = `${protocolName}Header`
+const payloadName = `${protocolName}Payload`
+
+const structs: (Struct|StructEnum)[] = []
 
 const tcpOptions = new OptionField(
     'options',
@@ -27,8 +40,8 @@ const group = new BitNumericFieldGroup([
     bitNumeric('flags', 9, 'be_u16'),
 ])
 
-const tcp = new Struct(
-    'Tcp',
+const header = new Struct(
+    `${headerName}`,
     [
         numeric('src_port', 'be_u16'),
         numeric('dst_port', 'be_u16'),
@@ -42,12 +55,39 @@ const tcp = new Struct(
     ]
 )
 
-const structs = [
-    // tcpHeader,
-    tcp
-]
+const payload = new PayloadEnum(
+    `${payloadName}`,
+    [
+        new PayloadEnumVariant(`${payloadName}`, 502, ModbusRspPacket), 
+    ],
+    new PayloadEnumChoice(
+        new StructField(header, '_header'),
+        'src_port',
+    ),
+    new PayloadEnum(
+        `${payloadName}`,
+        [
+            new PayloadEnumVariant(`${payloadName}`, 502, ModbusReqPacket), 
+        ],
+        new PayloadEnumChoice(
+            new StructField(header, '_header'),
+            'dst_port',
+        )
+    )
+)
+
+export const TcpPacket = new Struct (
+    `${packetName}`,
+    [
+        new StructField(header),
+        new PayloadField(payload),
+    ]
+)
 
 export const Tcp = new Protocol({
-    name: 'Tcp',
+    name: protocolName,
+    packet: TcpPacket,
+    header,
+    payload,
     structs
 })

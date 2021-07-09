@@ -12,7 +12,7 @@ export class ConditionImpl implements Condition {
         readonly expressionGenerator: (name: string) => string
     ) { }
 
-    generateExpression() {
+    generateExpression(): string {
         return this.expressionGenerator(this.variable)
     }
 }
@@ -26,23 +26,23 @@ export class OptionField extends BaseField {
         super(name)
     }
 
-    typeName() {
+    typeName(): string {
         return `Option<${this.field.typeName()}>`
     }
 
-    isRef() {
+    isRef(): boolean {
         return this.field.isRef()
     }
 
-    isUserDefined() {
+    isUserDefined(): boolean {
         return false
     }
 
-    parserInvocation() {
+    parserInvocation(): string {
         return ``
     }
 
-    generateIfExpression() {
+    generateIfExpression(): string {
         const condition = this.condition.generateExpression()
         return endent`if ${condition} {
             ${this.field.generateParseStatement()}
@@ -52,7 +52,7 @@ export class OptionField extends BaseField {
         }`
     }
 
-    generateParseStatement() {
+    generateParseStatement(): string {
         return endent`let (input, ${this.name}) = ${this.generateIfExpression()}?;`
     }
 

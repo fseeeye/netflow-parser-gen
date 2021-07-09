@@ -1,20 +1,22 @@
 import { Protocol } from "./generator"
 import { Ipv4 } from "./ipv4"
-import { Modbus } from "./modbus"
+import { ModbusReq } from "./modbus_req"
 import { Tcp } from "./tcp"
 import * as fs from "fs"
 import * as path from "path"
 import { Ethernet } from "./ethernet"
 import { Udp } from "./udp"
 import { Ipv6 } from "./ipv6"
+import { ModbusRsp } from "./modbus_rsp"
 
 export const BuiltinProtocols = [
+    Ethernet,
     Ipv4,
     Ipv6,
     Tcp,
-    Modbus,
-    Ethernet,
     Udp,
+    ModbusReq,
+    ModbusRsp,
 ]
 
 interface ProtocolParser {
@@ -32,7 +34,7 @@ export class ProtocolParserGenerator {
             .sort()
             .map(m => `pub mod ${m};`)
             .join(`\n`)
-        return code
+        return code.concat(`\npub mod eof;\n`)
     }
 
     private writeFile(path: string, content: string) {
@@ -46,13 +48,13 @@ export class ProtocolParserGenerator {
         return { filename, content }
     }
 
-    generate(directory: string) {
+    generate(directory: string): void {
         this.protocols.forEach(p => {
-            const { filename, content } = this.generateProtocolParser(directory, p)
+            const { filename, content } = this.generateProtocolParser(directory.concat(`/parsers_ts`), p)
             this.writeFile(filename, content)
         })
         const modIndex = this.generateModIndexContent()
-        this.writeFile(path.join(directory, `mod.rs`), modIndex)
+        this.writeFile(path.join(directory, `parsers_ts.rs`), modIndex)
     }
 
 }

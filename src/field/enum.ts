@@ -10,22 +10,22 @@ export class EnumField extends BaseField {
         super(fieldName || structEnum.snakeCaseName())
     }
 
-    isRef() {
+    isRef(): boolean {
         return this.structEnum.isRef()
     }
 
-    isUserDefined() {
+    isUserDefined(): boolean {
         return true
     }
 
-    typeName() {
+    typeName(): string {
         if (this.isRef()) {
             return `${this.structEnum.name}<'a>`
         }
         return this.structEnum.name
     }
 
-    parserInvocation() {
+    parserInvocation(): string {
         return this.structEnum.parserFunctionName()
     }
 
@@ -33,12 +33,12 @@ export class EnumField extends BaseField {
     //     return this.structEnum.definition()
     // }
 
-    parserImplementation() {
+    parserImplementation(): string {
         const gen = new StructEnumParserGenerator(this.structEnum)
         return gen.generateParser()
     }
 
-    generateParseStatement() {
+    generateParseStatement(): string {
         // const choiceFieldName = this.structEnum.choiceField.name
         // const passByRef = this.structEnum.choiceField.field.isUserDefined()
         // const choiceParameter = passByRef ? `&${choiceFieldName}` : choiceFieldName

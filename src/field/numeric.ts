@@ -9,11 +9,11 @@ export class NumericField extends BaseField {
         super(name)
     }
 
-    isRef() {
+    isRef(): boolean {
         return false
     }
 
-    isUserDefined() {
+    isUserDefined(): boolean {
         return false
     }
 
@@ -21,7 +21,7 @@ export class NumericField extends BaseField {
         return this.fieldType.typeName()
     }
 
-    parserInvocation() {
+    parserInvocation(): string {
         return this.fieldType.parserFunctionName()
     }
 }

@@ -5,10 +5,10 @@ export interface Field {
     isRef(): boolean
     isUserDefined(): boolean
     definition: (visibility: VisibilityType) => string
-    typeName(): string
-    parserInvocation: () => string
+    typeName(): string // <u8, u16, ...>
+    parserInvocation: () => string // <u8, be_u16, ...>
     parserImplementation?: () => string
-    generateParseStatement: () => string
+    generateParseStatement: () => string // 生成parser中对该field的解析语句
     // validateDependency?: (prevFields: FieldRe[]) => boolean
 }
 
@@ -23,11 +23,11 @@ export abstract class BaseField implements Field {
     abstract parserInvocation(): string
     // abstract definition?(): string
 
-    definition(visibility: VisibilityType) {
+    definition(visibility: VisibilityType): string {
         return `${visibility} ${this.name}: ${this.typeName()},`
     }
 
-    generateParseStatement() {
+    generateParseStatement(): string {
         return `let (input, ${this.name}) = ${this.parserInvocation()}(input)?;`
     }
 }

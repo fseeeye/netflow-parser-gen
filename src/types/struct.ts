@@ -32,28 +32,34 @@ export class Struct implements FieldType {
         return this.name
     }
 
-    isRef() {
+    isRef(): boolean {
         return this.hasReference()
     }
 
-    isUserDefined() {
+    isUserDefined(): boolean {
         return true
     }
 
-    parserFunctionName() {
+    parserFunctionName(): string {
         return `parse_${snakeCase(this.name)}`
     }
 
-    parserFunctionDefinition() {
+    parserFunctionDefinition(): string {
         const gen = new StructParserGenerator(this)
         return gen.generateParser()
+    }
+
+    // 输出Header在Packet Trait中的代码内容(不包含函数签名)
+    parserHeaderFunctionBody(): string {
+        const gen = new StructParserGenerator(this)
+        return gen.generateHeaderParserContent()
     }
 
     protected visibilitySpecifier(): VisibilityType {
         return `pub`
     }
 
-    protected generateFields() {
+    protected generateFields(): string {
         const fieldLines = this.fields.map((field) => {
             // return `${this.visibilitySpecifier()} ${field.name}: ${field.typeName()},`
             const fieldDef = field.definition(this.visibilitySpecifier())
@@ -64,7 +70,7 @@ export class Struct implements FieldType {
         }`
     }
 
-    public hasReference() {
+    public hasReference(): boolean {
         // 如果 field 带引用，则 struct 需要声明 lifetime
         return this.fields.filter((field) => field.isRef()).length !== 0
     }
@@ -73,7 +79,7 @@ export class Struct implements FieldType {
         return this.hasReference() ? `<'a>` : ''
     }
 
-    definition() {
+    definition(): string {
         const attributes = generateAttributesCode()
         const lifetimeSpecifier = this.lifetimeSpecifier()
         const def = `pub struct ${this.name}${lifetimeSpecifier} ${this.generateFields()}`
@@ -95,7 +101,7 @@ export class Struct implements FieldType {
     //     return [this.userDefinedFieldDefinitions(), this.definition()].join(`\n\n`)
     // }
 
-    snakeCaseName() {
+    snakeCaseName(): string {
         return snakeCase(this.name)
     }
 }

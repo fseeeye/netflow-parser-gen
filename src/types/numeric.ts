@@ -16,6 +16,7 @@ export class NumericType implements FieldType {
         readonly bitLength: number
     ) { }
 
+    // 对应在`BuiltInNumericTypeName`中定义的rust类型名，如u8/u16/u32/u64
     typeName() {
         return this._name
     }
@@ -23,7 +24,8 @@ export class NumericType implements FieldType {
     isUserDefined() {
         return false
     }
-
+    
+    // 对应nom的函数名，如be_u16
     parserFunctionName(): string {
         return this._parserFunctionName
     }
