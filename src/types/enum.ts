@@ -50,11 +50,10 @@ class BasicEnumVariant{
 // 用法：用于表示enum空值或者占位
 export class EmptyVariant extends BasicEnumVariant implements EnumVariant {
     hasParserImplementation = true
-    name = 'Empty'
 
     constructor(
-        // readonly name: string,
         readonly choice: ChoiceType,
+        readonly name: string
     ) { super(choice) }
 
     definition(): string {

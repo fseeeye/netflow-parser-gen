@@ -11,7 +11,7 @@ import { NumericField } from "../../field/numeric"
 import { PayloadField } from "../../field/payload"
 import { StructField } from "../../field/struct"
 import { VecField } from "../../field/vec"
-import { AnonymousStructVariant, EmptyVariant, StructEnum, EmptyPayloadEnum } from "../../types/enum"
+import { AnonymousStructVariant, StructEnum, EmptyPayloadEnum } from "../../types/enum"
 import { Struct } from "../../types/struct"
 import { Protocol } from "../generator"
 
@@ -65,7 +65,7 @@ const Data = new StructEnum(
     [
         new AnonymousStructVariant(
             0x01, 
-            'ReadCoils', // Warning: maybe indiscernible between Req and Rsp, such `0x0103[0-F][0-F]001[1-8]`
+            'ReadCoils',
             [
                 numeric('byte_count', 'u8'),
                 numVec('coil_status', createCountVar('byte_count'), 'u8')
@@ -74,7 +74,7 @@ const Data = new StructEnum(
         new AnonymousStructVariant(0x81, 'ReadCoilsExc', ExceptionFields),
         new AnonymousStructVariant(
             0x02, 
-            'ReadDiscreInputs', // Warning: maybe indiscernible between Req and Rsp, such `0x0203[0-F][0-F]001[1-8]`
+            'ReadDiscreInputs', // Error: value of `coil_status` is a bit count.
             [
                 numeric('byte_count', 'u8'),
                 numVec('coil_status', createCountVar('byte_count'), 'u8')
@@ -117,9 +117,32 @@ const Data = new StructEnum(
             ]
         ),
         new AnonymousStructVariant(0x86, 'WriteSingleRegisterExc', ExceptionFields),
-        new EmptyVariant(0x07),
-        new EmptyVariant(0x0B),
-        new EmptyVariant(0x0C),
+        new AnonymousStructVariant(
+            0x07, 
+            'ReadExceptionStatus',
+            [
+                numeric('output_data', 'u8'),
+            ]
+        ),
+        new AnonymousStructVariant(
+            0x0B, 
+            'GetCommEventCounter',
+            [
+                numeric('status', 'be_u16'),
+                numeric('event_count', 'be_u16'),
+            ]
+        ),
+        new AnonymousStructVariant(
+            0x0C, 
+            'GetCommEventLog',
+            [
+                numeric('byte_count', 'u8'),
+                numeric('status', 'be_u16'),
+                numeric('event_count', 'be_u16'),
+                numeric('message_count', 'be_u16'),
+                numVec('events', createCountVarWithUnitSize('byte_count', 6, 'sub'), 'u8'),
+            ]
+        ),
         new AnonymousStructVariant(
             0x0F,
             'WriteMultipleCoils',
@@ -138,7 +161,14 @@ const Data = new StructEnum(
             ]
         ),
         new AnonymousStructVariant(0x90, 'WriteMultipleRegistersExc', ExceptionFields),
-        new EmptyVariant(0x11),
+        new AnonymousStructVariant(
+            0x11, 
+            'ReportServerID',
+            [
+                numeric('byte_count', 'u8'),
+                bytesRef('record_data', createCountVar('byte_count')),
+            ]
+        ),
         new AnonymousStructVariant(
             0x14,
             'ReadFileRecord',

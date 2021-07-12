@@ -84,9 +84,9 @@ const Data = new StructEnum(
                 numeric('register_value', 'be_u16'),
             ]
         ),
-        new EmptyVariant(0x07),
-        new EmptyVariant(0x0B),
-        new EmptyVariant(0x0C),
+        new EmptyVariant(0x07, 'ReadExceptionStatus'),
+        new EmptyVariant(0x0B, 'GetCommEventCounter'),
+        new EmptyVariant(0x0C, 'GetCommEventLog'),
         new AnonymousStructVariant(
             0x0F,
             'WriteMultipleCoils',
@@ -94,7 +94,7 @@ const Data = new StructEnum(
                 numeric('start_address', 'be_u16'),
                 numeric('output_count', 'be_u16'),
                 numeric('byte_count', 'u8'),
-                numVec('output_values', createCountVar('output_count'), 'u8')
+                numVec('output_values', createCountVar('byte_count'), 'u8'),
             ]
         ),
         new AnonymousStructVariant(
@@ -106,11 +106,11 @@ const Data = new StructEnum(
                 numeric('byte_count', 'u8'),
                 numVec('output_values',
                     //  { name: 'output_count', unitSize: 2 }, 
-                    createCountVarWithUnitSize('output_count', 2, 'mul'),
+                    createCountVar('byte_count'),
                     'be_u16')
             ]
         ),
-        new EmptyVariant(0x11),
+        new EmptyVariant(0x0C, 'ReportServerID'),
         new AnonymousStructVariant(
             0x14,
             'ReadFileRecord',

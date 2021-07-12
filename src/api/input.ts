@@ -23,11 +23,11 @@ export function createNumericFieldSimple(name: string, typeName: BuiltinNumericT
     return createNumericField({ name, typeName })
 }
 
-export function createCountVar(name: string, expressionGenerator?: (name: string) => string) {
+export function createCountVar(name: string, expressionGenerator?: (name: string) => string): CountVariable {
     return new CountVariable(name, expressionGenerator)
 }
 
-export function createCountVarWithUnitSize(name: string, unitSize: number, mode: 'div' | 'mul') {
+export function createCountVarWithUnitSize(name: string, unitSize: number, mode: 'div' | 'mul' | 'sub' | 'add'): CountVariable {
     if (unitSize === 1) {
         return createCountVar(name)
     }
@@ -35,8 +35,14 @@ export function createCountVarWithUnitSize(name: string, unitSize: number, mode:
         if (mode === 'mul') {
             return `(${name} * ${unitSize})`
         }
-        else {
+        else if (mode == 'div') {
             return `(${name} as usize / ${unitSize} as usize)`
+        }
+        else if (mode == 'sub') {
+            return `(${name} as usize - ${unitSize} as usize)`
+        }
+        else {
+            return `(${name} as usize + ${unitSize} as usize)`
         }
     }
     return createCountVar(name, expressionGenerator)

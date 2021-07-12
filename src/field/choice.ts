@@ -6,7 +6,7 @@ import { StructField } from "./struct"
 export interface EnumChoice {
     isInline(): boolean
     generateParseAheadStatement?: () => string
-    generateParseAheadStatementWithPayloadErrorHandle?: (payload_enum:PayloadEnum) => string,
+    generateParseAheadStatementWithPayloadErrorHandle?: (payloadEnum:PayloadEnum) => string,
     matchTargetExprGenerator?: (matchField: string) => string,
     asMatchTarget(): string
     asEnumParserFunctionParameterSignature(): string
@@ -123,13 +123,13 @@ export class InlineChoice extends BasicEnumChoice {
         return `let (input, ${this.matchFieldExpr()}) = peek(${this.field.parserInvocation()})(input)?;`
     }
 
-    generateParseAheadStatementWithPayloadErrorHandle(payload_enum: PayloadEnum): string {
+    generateParseAheadStatementWithPayloadErrorHandle(payloadEnum: PayloadEnum): string {
         return endent`let (input, ${this.field.name}) = match peek(${this.field.parserInvocation()})(input) {
             Ok((input, ${this.field.name})) => (input, ${this.field.name}),
             Err(nom::Err::Error((input, _))) => {
-                return Ok((input, ${payload_enum.name}::Error(${payload_enum.name}Error::NomPeek(input))))
+                return Ok((input, ${payloadEnum.name}::Error(${payloadEnum.name}Error::NomPeek(input))))
             }
-            _ => return Ok((input, ${payload_enum.name}::Error(${payload_enum.name}Error::NomPeek(input)))),
+            _ => return Ok((input, ${payloadEnum.name}::Error(${payloadEnum.name}Error::NomPeek(input)))),
         };`
     }
 }

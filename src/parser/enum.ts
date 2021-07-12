@@ -208,8 +208,7 @@ export class PayloadEnumParserGenerator {
     }
 
     // 生成PayloadEnum parser函数体
-    // 即`private functionBody()`的public方法
-    // Tips: 修改了`parseAheadStatement`表达式所在语句
+    // 即该类中`private functionBody()`方法的public形式
     generateParserBody(): string {
         return endent`{
             ${this.functionBody()}
