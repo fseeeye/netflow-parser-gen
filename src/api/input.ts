@@ -3,7 +3,6 @@ import { FixSizedBytes } from "../field/fix-sized-bytes"
 import { NumericField } from "../field/numeric"
 import { BytesReferenceField } from "../field/ref"
 import { VecField } from "../field/vec"
-import { ConstrainField } from "../field/constrain"
 import { CountVariable } from "../len"
 import { BuiltinNumericTypeName, getBuildinNumericTypeByTypeName } from "../types/numeric"
 
@@ -41,10 +40,6 @@ export function createCountVarWithUnitSize(name: string, unitSize: number, mode:
         }
     }
     return createCountVar(name, expressionGenerator)
-}
-
-export function createConstrainField(constrainedName: string, constrainName: string, times: number) {
-    return new ConstrainField(constrainedName, constrainName, times)
 }
 
 export interface BytesReferenceFieldConfig {

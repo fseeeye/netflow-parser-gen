@@ -13,7 +13,7 @@ import { VecField } from "../../field/vec"
 import { VecVarField } from "../../field/vecVari"
 import { AnonymousStructVariant, EmptyVariant, NamedEnumVariant, StructEnum } from "../../types/enum"
 import { Struct } from "../../types/struct"
-import { StructVec } from "../../types/structVec"
+import { StructWithLength } from "../../types/structWithLength"
 import { Protocol } from "../generator"
 
 const ModbusHeader = new Struct(
@@ -37,7 +37,7 @@ const ReadFileRecordSubRequest = new Struct(
     ]
 )
 
-const WriteFileRecordSubRequest = new StructVec(
+const WriteFileRecordSubRequest = new StructWithLength(
     'WriteFileRecordSubRequest',
     [
         numeric('ref_type', 'u8'),
@@ -120,6 +120,7 @@ const Request = new StructEnum(
                 numeric('byte_count', 'u8'),
                 new VecVarField('sub_requests',
                     createCountVarWithUnitSize('byte_count', 1, 'div'),
+                    'u8',
                     WriteFileRecordSubRequest),
             ]
         ),
