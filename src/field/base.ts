@@ -9,6 +9,7 @@ export interface Field {
     parserInvocation: () => string
     parserImplementation?: () => string
     generateParseStatement: () => string
+    //
     // validateDependency?: (prevFields: FieldRe[]) => boolean
 }
 
@@ -26,6 +27,7 @@ export abstract class BaseField implements Field {
     definition(visibility: VisibilityType) {
         return `${visibility} ${this.name}: ${this.typeName()},`
     }
+
 
     generateParseStatement() {
         return `let (input, ${this.name}) = ${this.parserInvocation()}(input)?;`

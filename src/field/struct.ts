@@ -1,6 +1,6 @@
 import { StructParserGenerator } from "../parser/struct"
 import { Struct } from "../types/struct"
-import { BaseField } from "./base"
+import { BaseField, Field } from "./base"
 
 
 export class StructField extends BaseField {
@@ -23,7 +23,6 @@ export class StructField extends BaseField {
     // definition() {
     //     return this.struct.definition()
     // }
-
     typeName() {
         if (this.isRef()) {
             return `${this.struct.name}<'a>`
@@ -43,4 +42,6 @@ export class StructField extends BaseField {
     generateParseStatement() {
         return `let (input, ${this.name}) = ${this.parserInvocation()}(input)?;`
     }
+
+   
 }

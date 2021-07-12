@@ -1,6 +1,5 @@
 import endent from "endent"
 import { Struct } from "../types/struct"
-
 export class StructParserGenerator {
 
     constructor(
@@ -32,6 +31,7 @@ export class StructParserGenerator {
             ${resultSection}
         }`
     }
+
 
     static generateParserName(struct: Struct) {
         return struct.parserFunctionName()

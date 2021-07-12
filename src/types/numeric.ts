@@ -24,6 +24,11 @@ export class NumericType implements FieldType {
         return false
     }
 
+    hasConstrain() {
+        return false
+    }
+
+    getName() { return this._name }
     parserFunctionName(): string {
         return this._parserFunctionName
     }

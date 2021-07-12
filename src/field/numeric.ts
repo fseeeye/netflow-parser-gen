@@ -1,5 +1,5 @@
 import { NumericType } from "../types/numeric"
-import { BaseField } from "./base"
+import { BaseField, Field } from "./base"
 
 export class NumericField extends BaseField {
     constructor(

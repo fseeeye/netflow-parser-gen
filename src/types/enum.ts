@@ -190,6 +190,12 @@ export class StructEnum implements FieldType {
         return this.hasReference()
     }
 
+    hasConstrain() {
+        return false
+    }
+
+    setConstrain(){}
+
     private generateVariants() {
         const uniqueVariants = removeDuplicateByKey(
             this.variants,

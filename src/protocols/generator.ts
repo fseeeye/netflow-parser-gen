@@ -1,12 +1,13 @@
 import { generateNomImport } from "../nom"
 import { StructEnum } from "../types/enum"
 import { Struct } from "../types/struct"
+import { StructVec } from "../types/structVec"
 import * as path from "path"
 import * as fs from "fs"
 
 export interface ProtocolDefinition {
     name: string,
-    structs: (Struct | StructEnum)[],
+    structs: (Struct | StructEnum | StructVec)[],
 }
 
 export class Protocol {

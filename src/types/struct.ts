@@ -19,6 +19,7 @@ import { generateAttributesCode } from "../utils"
 //     })
 // }
 
+
 export class Struct implements FieldType {
 
     constructor(
@@ -63,7 +64,7 @@ export class Struct implements FieldType {
             ${fieldLines.join('\n')}
         }`
     }
-
+ 
     public hasReference() {
         // 如果 field 带引用，则 struct 需要声明 lifetime
         return this.fields.filter((field) => field.isRef()).length !== 0
