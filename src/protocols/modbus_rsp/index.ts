@@ -1,3 +1,4 @@
+import { bitNumVec } from "../../api"
 import {
     createNumericFieldSimple as numeric,
     createBytesReferenceFieldSimple as bytesRef,
@@ -68,7 +69,7 @@ const Data = new StructEnum(
             'ReadCoils',
             [
                 numeric('byte_count', 'u8'),
-                numVec('coil_status', createCountVar('byte_count'), 'u8')
+                numVec('coil_status', createCountVar('byte_count'), 'u8'),
             ]
         ),
         new AnonymousStructVariant(0x81, 'ReadCoilsExc', ExceptionFields),
@@ -77,7 +78,7 @@ const Data = new StructEnum(
             'ReadDiscreInputs', // Error: value of `coil_status` is a bit count.
             [
                 numeric('byte_count', 'u8'),
-                numVec('coil_status', createCountVar('byte_count'), 'u8')
+                bitNumVec('coil_status', createCountVarWithUnitSize('byte_count', 8, "mul"), 'u8'),
             ]
         ),
         new AnonymousStructVariant(0x82, 'ReadDiscreInputsExc', ExceptionFields),
@@ -86,7 +87,7 @@ const Data = new StructEnum(
             'ReadHoldingRegisters', 
             [
                 numeric('byte_count', 'u8'),
-                numVec('coil_status', createCountVarWithUnitSize('byte_count', 2, "div"), 'be_u16') 
+                numVec('coil_status', createCountVarWithUnitSize('byte_count', 2, "div"), 'be_u16'),
             ]
         ),
         new AnonymousStructVariant(0x83, 'ReadHoldingRegistersExc', ExceptionFields),
@@ -95,7 +96,7 @@ const Data = new StructEnum(
             'ReadInputRegisters', 
             [
                 numeric('byte_count', 'u8'),
-                numVec('coil_status', createCountVarWithUnitSize('byte_count', 2, "div"), 'be_u16')
+                numVec('coil_status', createCountVarWithUnitSize('byte_count', 2, "div"), 'be_u16'),
             ]
         ),
         new AnonymousStructVariant(0x84, 'ReadInputRegistersExc', ExceptionFields),

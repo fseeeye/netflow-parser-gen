@@ -4,4 +4,5 @@ export {
     createBitNumericField as bitNumeric,
     createFixSizedBytesField as sizedBytes,
     createNumericVector as numVec,
+    createBitNumericVector as bitNumVec,
 } from "./input"

@@ -39,7 +39,7 @@ export class CountVariable {
         if (this.expressionGenerator !== undefined) {
             return this.expressionGenerator(this.name)
         }
-        return this.name
+        return `${this.name} as usize`
     }
 
 

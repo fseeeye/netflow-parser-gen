@@ -110,7 +110,7 @@ const Data = new StructEnum(
                     'be_u16')
             ]
         ),
-        new EmptyVariant(0x0C, 'ReportServerID'),
+        new EmptyVariant(0x11, 'ReportServerID'),
         new AnonymousStructVariant(
             0x14,
             'ReadFileRecord',

@@ -2,7 +2,7 @@ import { BitsNumericField } from "../field/bit-field"
 import { FixSizedBytes } from "../field/fix-sized-bytes"
 import { NumericField } from "../field/numeric"
 import { BytesReferenceField } from "../field/ref"
-import { VecField } from "../field/vec"
+import { BitVecField, VecField } from "../field/vec"
 import { CountVariable } from "../len"
 import { BuiltinNumericTypeName, getBuildinNumericTypeByTypeName } from "../types/numeric"
 
@@ -28,21 +28,21 @@ export function createCountVar(name: string, expressionGenerator?: (name: string
 }
 
 export function createCountVarWithUnitSize(name: string, unitSize: number, mode: 'div' | 'mul' | 'sub' | 'add'): CountVariable {
-    if (unitSize === 1) {
+    if (unitSize === 1 && (mode == 'div' || mode == 'mul')) {
         return createCountVar(name)
     }
     const expressionGenerator = (name: string) => {
         if (mode === 'mul') {
-            return `(${name} * ${unitSize})`
+            return `${name} as usize * ${unitSize} as usize`
         }
         else if (mode == 'div') {
-            return `(${name} as usize / ${unitSize} as usize)`
+            return `${name} as usize / ${unitSize} as usize`
         }
         else if (mode == 'sub') {
-            return `(${name} as usize - ${unitSize} as usize)`
+            return `${name} as usize - ${unitSize} as usize`
         }
         else {
-            return `(${name} as usize + ${unitSize} as usize)`
+            return `${name} as usize + ${unitSize} as usize`
         }
     }
     return createCountVar(name, expressionGenerator)
@@ -57,11 +57,11 @@ export function createBytesReferenceField({ name, countVar }: BytesReferenceFiel
     return new BytesReferenceField(name, countVar)
 }
 
-export function createBytesReferenceFieldSimple(name: string, countVar: CountVariable) {
+export function createBytesReferenceFieldSimple(name: string, countVar: CountVariable): BytesReferenceField {
     return createBytesReferenceField({ name, countVar })
 }
 
-export function createNumericVector(name: string, countVar: CountVariable, elementTypeName: BuiltinNumericTypeName) {
+export function createNumericVector(name: string, countVar: CountVariable, elementTypeName: BuiltinNumericTypeName): VecField {
     const elementType = getBuildinNumericTypeByTypeName(elementTypeName)
     if (elementType === undefined) {
         throw Error(`element type ${elementTypeName} is not a valid numeric type!`)
@@ -69,7 +69,16 @@ export function createNumericVector(name: string, countVar: CountVariable, eleme
     return new VecField(name, countVar, elementType)
 }
 
-export function createBitNumericField(name: string, length: number, typeName: BuiltinNumericTypeName) {
+export function createBitNumericVector(name: string, countVar: CountVariable, elementTypeName: BuiltinNumericTypeName): BitVecField {
+    const elementType = getBuildinNumericTypeByTypeName(elementTypeName)
+    if (elementType === undefined) {
+        throw Error(`element type ${elementTypeName} is not a valid numeric type!`)
+    }
+    return new BitVecField(name, countVar, elementType)
+}
+
+
+export function createBitNumericField(name: string, length: number, typeName: BuiltinNumericTypeName): BitsNumericField {
     const numericType = getBuildinNumericTypeByTypeName(typeName)
     if (numericType === undefined) {
         throw Error(`bad typename for numeric field!`)
@@ -77,7 +86,7 @@ export function createBitNumericField(name: string, length: number, typeName: Bu
     return new BitsNumericField(name, length, numericType)
 }
 
-export function createFixSizedBytesField(name: string, length: number) {
+export function createFixSizedBytesField(name: string, length: number): FixSizedBytes {
     return new FixSizedBytes(name, length)
 }
 
