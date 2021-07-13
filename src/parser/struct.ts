@@ -1,4 +1,5 @@
 import endent from "endent"
+import { copyFileSync } from "node:fs"
 import { Struct } from "../types/struct"
 export class StructParserGenerator {
 
@@ -51,8 +52,11 @@ export class StructParserGenerator {
         const functionSignature = `${visibilitySpecifier}${this.generateFunctionSignature()}`
         const parserBlock = this.generateParserBlock()
 
+        const fieldFuction = this.struct.fields.filter((field) => field.hasFunction()).map((field) => field.generateFunction())
         return endent`
         ${functionSignature} ${parserBlock}
+
+        ${fieldFuction.join("\n")}
         `
     }
 

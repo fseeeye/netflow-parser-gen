@@ -73,6 +73,17 @@ test('test struct with vec', () => {
     expect(gen.generateParser()).toEqual(endent`
     pub fn parse_write_file_record(input: &[u8]) -> IResult<&[u8], WriteFileRecord> {
         let (input, byte_count) = u8(input)?;
+        let (input, sub_requests) = get_sub_requests(byte_count, input)?;
+        Ok((
+            input,
+            WriteFileRecord {
+                byte_count,
+                sub_requests
+            }
+        ))
+    }
+
+    fn get_sub_requests(byte_count: u8, input: &[u8]) -> IResult<&[u8], Vec<WriteFileRecordSubRequest>> {
         let mut sub_requests = Vec::new();
         let mut input_tmp = input;
         let mut byte_count_ = byte_count;
@@ -83,14 +94,10 @@ test('test struct with vec', () => {
             sub_requests.push(sub_requests_);
             input_tmp = input;
         }
-        let input = input_tmp;
         Ok((
-            input,
-            WriteFileRecord {
-                byte_count,
-                sub_requests
-            }
+            input_tmp,
+            sub_requests
         ))
-    }    
-    `)
-})
+    }  
+        `)
+    })

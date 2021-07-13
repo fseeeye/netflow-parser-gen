@@ -68,4 +68,6 @@ export class BitNumericFieldGroup implements Field {
 
     isRef() { return false }
     isUserDefined() { return false }
+    hasFunction() { return false }
+    generateFunction() { return `` }
 }
