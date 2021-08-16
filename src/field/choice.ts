@@ -93,17 +93,16 @@ export class PayloadEnumChoice extends BasicEnumChoice {
         // }
     }
 
-    private validateMatchField() {
-        const fieldNames = this.struct.struct.fields.map(f => f.name)
-        return fieldNames.includes(this.matchFieldName)
-    }
+    // private validateMatchField() {
+    //     const fieldNames = this.struct.struct.fields.map(f => f.name)
+    //     return fieldNames.includes(this.matchFieldName)
+    // }
 
     protected matchFieldExpr(): string {
         return `${this.struct.name}.${this.matchFieldName}`
     }
 
-    // 定义 enum parser 的参数类型签名与调用 enum parser 时提供的参数形式一一对应。
-
+    // 定义enum parser的参数类型签名 与 调用enum parser时提供的参数形式一一对应。
     asEnumParserFunctionParameterSignature(): string {
         return `${this.struct.name}: &${this.struct.typeName()}`
     }

@@ -1,6 +1,6 @@
-export const DEFAULT_ATTRIBUTES = [`Debug`, `PartialEq`]
+export const DEFAULT_ATTRIBUTES = [`Debug`, `PartialEq`, `Eq`, `Clone`]
 
-export function generateAttributesCode(attributes: string[] = DEFAULT_ATTRIBUTES) {
+export function generateAttributesCode(attributes: string[] = DEFAULT_ATTRIBUTES): string {
     return `#[derive(${attributes.join(', ')})]`
 }
 

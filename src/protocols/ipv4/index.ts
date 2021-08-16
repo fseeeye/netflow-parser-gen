@@ -5,15 +5,14 @@ import { StructEnum, PayloadEnumVariant, PayloadEnum } from "../../types/enum"
 import { ConditionImpl, OptionField } from "../../field/option"
 import { BitNumericFieldGroup } from "../../field/bit-field"
 import { StructField } from "../../field/struct"
-// import { EnumField } from "../../field/enum"
-import { Protocol } from "../generator"
-import { TcpPacket } from "../tcp"
-import { UdpPacket } from "../udp"
+import { Protocol, ProtocolInfo } from "../generator"
+import { Tcp } from "../tcp"
+import { Udp } from "../udp"
 import { PayloadEnumChoice } from "../../field/choice"
-import { PayloadField } from "../../field/payload"
+import { Ipv4Address } from "../../field/address"
+// import { PayloadField } from "../../field/payload"
 
 const protocolName = 'Ipv4'
-const packetName = `${protocolName}Packet`
 const headerName = `${protocolName}Header`
 const payloadName = `${protocolName}Payload`
 
@@ -53,38 +52,31 @@ const header = new Struct(
         numeric('ttl', 'u8'),
         numeric('protocol', 'u8'),
         numeric('checksum', 'be_u16'),
-        numeric('src_ip', 'be_u32'),
-        numeric('dst_ip', 'be_u32'),
+        new Ipv4Address('src_ip'),
+        new Ipv4Address('dst_ip'),
         ipv4Options,
     ]
 )
 
+const info = new ProtocolInfo(protocolName, 'L3', header)
+
 const payload = new PayloadEnum(
     `${payloadName}`,
+    info,
     [
-        new PayloadEnumVariant(`${payloadName}`, 0x06, TcpPacket),
-        new PayloadEnumVariant(`${payloadName}`, 0x11, UdpPacket), 
+        new PayloadEnumVariant(0x06, Tcp),
+        new PayloadEnumVariant(0x11, Udp), 
     ],
     new PayloadEnumChoice(
-        new StructField(header, '_header'),
+        new StructField(header),
         'protocol',
     )
-)
-
-const packet = new Struct (
-    `${packetName}`,
-    [
-        new StructField(header),
-        new PayloadField(payload),
-    ]
 )
 
 const structs: (Struct|StructEnum)[] = []
 
 export const Ipv4 = new Protocol({
-    name: protocolName,
-    packet: packet,
-    header: header,
+    info,
     payload: payload,
     structs
 })

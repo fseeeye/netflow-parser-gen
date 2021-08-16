@@ -1,14 +1,18 @@
 import { Struct } from "../../types/struct"
 import { numeric } from "../../api/index"
-import { Protocol } from "../generator"
-import { PayloadField } from "../../field/payload"
+import { Protocol, ProtocolInfo } from "../generator"
+// import { PayloadField } from "../../field/payload"
 import { PayloadEnumChoice } from "../../field/choice"
 import { StructEnum, PayloadEnum, PayloadEnumVariant } from "../../types/enum"
-import { ModbusReqPacket } from "../modbus_req"
+import { ModbusReq } from "../modbus_req"
 import { StructField } from "../../field/struct"
 
-const UdpHeader = new Struct(
-    'UdpHeader',
+const protocolName = 'Udp'
+const headerName = `${protocolName}Header`
+const payloadName = `${protocolName}Payload`
+
+const header = new Struct(
+    headerName,
     [
         numeric('src_port', 'be_u16'),
         numeric('dst_port', 'be_u16'),
@@ -17,31 +21,24 @@ const UdpHeader = new Struct(
     ]
 )
 
+const info = new ProtocolInfo(protocolName, 'L4', header)
+
 const UdpPayload = new PayloadEnum(
-    'UdpPayload',
+    payloadName,
+    info,
     [
-        new PayloadEnumVariant('UdpPayload', 502, ModbusReqPacket), 
+        new PayloadEnumVariant(502, ModbusReq), 
     ],
     new PayloadEnumChoice(
-        new StructField(UdpHeader, '_header'),
+        new StructField(header),
         'src_port',
     )
-)
-
-export const UdpPacket = new Struct (
-    'UdpPacket',
-    [
-        new StructField(UdpHeader),
-        new PayloadField(UdpPayload),
-    ]
 )
 
 const structs: (Struct|StructEnum)[] = []
 
 export const Udp = new Protocol({
-    name: 'Udp',
-    packet: UdpPacket,
-    header: UdpHeader,
+    info,
     payload: UdpPayload,
     structs
 })

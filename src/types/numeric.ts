@@ -17,11 +17,11 @@ export class NumericType implements FieldType {
     ) { }
 
     // 对应在`BuiltInNumericTypeName`中定义的rust类型名，如u8/u16/u32/u64
-    typeName() {
+    typeName(): BuiltInNumericTypeName {
         return this._name
     }
 
-    isUserDefined() {
+    isUserDefined(): boolean {
         return false
     }
     
@@ -30,7 +30,7 @@ export class NumericType implements FieldType {
         return this._parserFunctionName
     }
 
-    isRef() {
+    isRef(): boolean {
         return false
     }
 

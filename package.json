@@ -47,7 +47,7 @@
     "typescript": "^4.2.3"
   },
   "dependencies": {
-    "endent": "^2.0.1",
+    "endent": "^2.1.0",
     "snake-case": "^3.0.4",
     "yargs": "^17.0.1"
   }

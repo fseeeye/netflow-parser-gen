@@ -4,8 +4,9 @@ import { generateAttributesCode, removeDuplicateByKey } from "../utils"
 import { Struct } from "./struct"
 import { Field, VisibilityType } from "../field/base"
 import { FieldType } from "./base"
-import { StructEnumParserGenerator, StructEnumVariantParserGenerator, PayloadEnumParserGenerator } from "../parser/enum"
+import { PayloadEnumParserGenerator, StructEnumParserGenerator, StructEnumVariantParserGenerator } from "../parser/enum"
 import { EnumChoice } from "../field/choice"
+import { Protocol, ProtocolInfo } from "../protocols/generator"
 
 export type ChoiceType = string | number
 
@@ -77,13 +78,12 @@ export class EmptyVariant extends BasicEnumVariant implements EnumVariant {
         const functionSignature = endent`fn ${this.parserFunctionName()}(input: &[u8]) -> IResult<&[u8], ${enumName}>`
         // 调用nom::combinator::eof
         const parserBlock = endent`{
-             let (input, _) = eof(input)?;
-             Ok((
-                 input,
-                 ${typeName} {}
-             ))
-        }
-        `
+            let (input, _) = eof(input)?;
+            Ok((
+                input,
+                ${typeName} {}
+            ))
+        }`
         return `${functionSignature} ${parserBlock}`
     }
 }
@@ -213,36 +213,25 @@ export class PayloadEnumVariant extends BasicEnumVariant implements EnumVariant 
     hasParserImplementation = false
 
     constructor(
-        readonly enumName: string,
         readonly choice: ChoiceType,
-        readonly struct: (Struct | StructEnum)
+        readonly payloadProtocol: Protocol,
     ) { super(choice) }
 
-    readonly name = this.struct.name.replace(/Packet/, "")
+    readonly name = ``
     
     // 用于lifetime判断
     hasReference(): boolean {
-        return this.struct.isRef()
+        return this.payloadProtocol.isRef()
     }
 
     // 获取Variant在生成Rust enum类型时的内容
     definition(): string {
-        if (this.hasReference()) {
-            return `${this.name}(${this.struct.name}<'a>)`
-        }
-        return `${this.name}(${this.struct.name})`
+        throw Error(`PayloadEnumVariant dont impl definition()`)
     }
 
-    // 获取Variant在生成match arm时的内容
+    // 返回Variant在生成match arm时调用的上层parser函数名，如`parse_ipv4_layer`
     parserInvocation(): string {
-        const typeName = `${this.enumName}::${this.struct.name}`
-        const parsed = this.struct.snakeCaseName()
-        const parserBlock = endent`{
-            let (input, ${parsed}) = ${this.struct.parserFunctionName()}(input, &header)?;
-            Ok((input, ${typeName}(${parsed})))
-        }`
-
-        return parserBlock
+        return `parse_${snakeCase(this.payloadProtocol.getName())}_layer`
     }
 }
 
@@ -250,6 +239,7 @@ export class PayloadEnum implements FieldType {
 
     constructor(
         readonly name: string,
+        readonly info: ProtocolInfo,
         readonly variants: PayloadEnumVariant[],
         readonly choiceField: EnumChoice,
         readonly extraPayloadEnum?: PayloadEnum,
@@ -267,30 +257,22 @@ export class PayloadEnum implements FieldType {
         return true
     }
 
-    // 输出结构体定义
+    // 输出结构体定义(PayloadEnum仅含use)
     definition(): string {
-        // `use super::xxx::XxxPacket`
+        // `use super::{parse_xxx_layer, parse_lx_eof_layer}`
         const imports = this.generateImports()
-        // `#[derive(Debug, PartialEq)]`
-        const attributes = generateAttributesCode()
-        // 定义enum XxxPayload
-        const payloadDefinition = `pub enum ${this.name}${this.lifetimeSpecifier()} ${this.generateVariants()}\n`
-        // 定义enum XxxPayloadError
-        const payloadErrorDefinition = `pub enum ${this.name}Error<'a> ${this.generateErrorVariants()}`
-        return [imports, attributes, payloadDefinition, attributes, payloadErrorDefinition].join(`\n`)
+        return imports
     }
 
     // 输出payload parser函数名
     parserFunctionName(): string {
-        return `parse_payload` // 根据parsing-rs项目中的Packet Trait定义，payload的parser统一命名为`parse_payload`
+        throw Error(`PayloadEnum does not have parser function name.`)
     }
 
     // !unnecessary
     // 输出payload parser的函数签名与函数体
     parserFunctionDefinition(): string {
-        // const gen = new PayloadEnumParserGenerator(this)
-        // return gen.generateParser()
-        return `!unimpl`
+        throw Error(`PayloadEnum does not have parser function def.`)
     }
 
     // 输出payload parser的函数体
@@ -313,42 +295,11 @@ export class PayloadEnum implements FieldType {
         return vars
     }
 
-    // 输出enum Payload{}中各variant的定义(根据variant.definition())
-    private generateVariants(): string {
-        const vars = this.getAllVariants()
-        const uniqueVariants = removeDuplicateByKey(
-            vars,
-            (v) => v.name
-        ).map(v => v.definition().concat(',\n'))
-        return endent`{
-            ${uniqueVariants.join('')}Eof(EofPacket<'a>),
-            Unknown(&'a [u8]),
-            Error(${this.name}Error<'a>),
-        }`
-    }
-
-    // 输出enum Payload{}中各variant的定义(根据variant.definition())
-    private generateErrorVariants(): string {
-        const vars = this.getAllVariants()
-        const uniqueVariantsName = removeDuplicateByKey(
-            vars,
-            (v) => v.name
-        ).map(v => v.name.concat("(&'a [u8]),\n"))
-        return endent`{
-            ${uniqueVariantsName.join('')}Eof(&'a [u8]),
-            NomPeek(&'a [u8]),
-        }`
-    }
-
-    // 在需要时，输出生命周期标识符`<'a>`
-    private lifetimeSpecifier(): string {
-        return this.isRef() ? `<'a>` : ''
-    }
-
-    // 根据variants.name 输出 导入上层协议的Packet Struct的代码，形如: `use super::upper_Protocol::UpperProtocolPacket`
+    // 根据variants.name 输出 use上层协议parser的代码，形如: `use super::{parse_ipv4_layer, parse_l2_eof_layer}`
     private generateImports(): string {
         const vars = this.getAllVariants()
-        return vars.map(v => `use super::${snakeCase(v.name)}::${v.name}Packet;`).join(`\n`).concat(`\nuse super::eof::EofPacket;\n`)
+        const importParsers = vars.map(v => `${v.parserInvocation()}, `).join(``).concat(this.info.getLevelEofInvocation())
+        return `use super::{${importParsers}};`
     }
 
     snakeCaseName(): string {
@@ -362,6 +313,7 @@ export class EmptyPayloadEnum implements FieldType {
     
     constructor(
         readonly name: string,
+        readonly info: ProtocolInfo,
         // readonly variants: PayloadEnumVariant[],
         // readonly choiceField: EnumChoice,
     ) { }
@@ -378,30 +330,22 @@ export class EmptyPayloadEnum implements FieldType {
         return true
     }
 
-    // 输出结构体定义
+    // 输出结构体定义(EmptyPayloadEnum仅含use)
     definition(): string {
-        // `use super::xxx::XxxPacket`
+        // `use super::parse_lx_eof_layer`
         const imports = this.generateImports()
-        // `#[derive(Debug, PartialEq)]`
-        const attributes = generateAttributesCode()
-        // 定义enum XxxPayload
-        const payloadDefinition = `pub enum ${this.name}${this.lifetimeSpecifier()} ${this.generateVariants()}\n`
-        // 定义enum XxxPayloadError
-        const payloadErrorDefinition = `pub enum ${this.name}Error<'a> ${this.generateErrorVariants()}`
-        return [imports, attributes, payloadDefinition, attributes, payloadErrorDefinition].join(`\n`)
+        return imports
     }
 
     // 输出payload parser函数名
     parserFunctionName(): string {
-        return `parse_payload` // 根据parsing-rs项目中的Packet Trait定义，payload的parser统一命名为`parse_payload`
+        throw Error(`EmptyPayloadEnum does not have parser function name.`)
     }
 
     // !unnecessary
     // 输出payload parser的函数签名与函数体
     parserFunctionDefinition(): string {
-        // const gen = new PayloadEnumParserGenerator(this)
-        // return gen.generateParser()
-        return `!unimpl`
+        throw Error(`EmptyPayloadEnum does not have parser function def.`)
     }
 
     // 输出payload parser的函数体
@@ -415,23 +359,6 @@ export class EmptyPayloadEnum implements FieldType {
         return true
     }
 
-    // 输出enum Payload{}中各variant的定义(根据variant.definition())
-    private generateVariants(): string {
-        return endent`{
-            Eof(EofPacket<'a>),
-            Unknown(&'a [u8]),
-            Error(${this.name}Error<'a>),
-        }`
-    }
-
-    // 输出enum Payload{}中各variant的定义(根据variant.definition())
-    private generateErrorVariants(): string {
-        return endent`{
-            Eof(&'a [u8]),
-            NomPeek(&'a [u8]),
-        }`
-    }
-
     // 在需要时，输出生命周期标识符`<'a>`
     private lifetimeSpecifier(): string {
         return this.isRef() ? `<'a>` : ''
@@ -439,7 +366,7 @@ export class EmptyPayloadEnum implements FieldType {
 
     // 根据variants.name 输出 导入上层协议的Packet Struct的代码，形如: `use super::upper_Protocol::UpperProtocolPacket`
     private generateImports(): string {
-        return `use super::eof::EofPacket;`
+        return `use super::${this.info.getLevelEofInvocation()};`
     }
 
     snakeCaseName(): string {
@@ -448,7 +375,7 @@ export class EmptyPayloadEnum implements FieldType {
 }
 
 export function isEmptyPayloadEnum(arg: PayloadEnum | EmptyPayloadEnum): arg is EmptyPayloadEnum {
-    return arg.type() == 'EmptyPayloadEnum'
+    return arg.type() === 'EmptyPayloadEnum'
 }
 
 export class StructEnum implements FieldType {

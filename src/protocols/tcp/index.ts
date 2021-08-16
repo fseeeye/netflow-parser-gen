@@ -10,13 +10,12 @@ import { ConditionImpl, OptionField } from "../../field/option"
 import { BitNumericFieldGroup } from "../../field/bit-field"
 import { PayloadEnumChoice } from "../../field/choice"
 import { StructField } from "../../field/struct"
-import { PayloadField } from "../../field/payload"
-import { Protocol } from ".././generator"
-import { ModbusReqPacket } from "../modbus_req"
-import { ModbusRspPacket } from "../modbus_rsp"
+// import { PayloadField } from "../../field/payload"
+import { Protocol, ProtocolInfo } from ".././generator"
+import { ModbusReq } from "../modbus_req"
+import { ModbusRsp } from "../modbus_rsp"
 
 const protocolName = 'Tcp'
-const packetName = `${protocolName}Packet`
 const headerName = `${protocolName}Header`
 const payloadName = `${protocolName}Payload`
 
@@ -55,39 +54,33 @@ const header = new Struct(
     ]
 )
 
+const info = new ProtocolInfo(protocolName, 'L4', header)
+
 const payload = new PayloadEnum(
     `${payloadName}`,
+    info,
     [
-        new PayloadEnumVariant(`${payloadName}`, 502, ModbusRspPacket), 
+        new PayloadEnumVariant(502, ModbusRsp), 
     ],
     new PayloadEnumChoice(
-        new StructField(header, '_header'),
+        new StructField(header),
         'src_port',
     ),
     new PayloadEnum(
         `${payloadName}`,
+        info,
         [
-            new PayloadEnumVariant(`${payloadName}`, 502, ModbusReqPacket), 
+            new PayloadEnumVariant(502, ModbusReq), 
         ],
         new PayloadEnumChoice(
-            new StructField(header, '_header'),
+            new StructField(header),
             'dst_port',
         )
     )
 )
 
-export const TcpPacket = new Struct (
-    `${packetName}`,
-    [
-        new StructField(header),
-        new PayloadField(payload),
-    ]
-)
-
 export const Tcp = new Protocol({
-    name: protocolName,
-    packet: TcpPacket,
-    header,
+    info,
     payload,
     structs
 })

@@ -8,6 +8,7 @@ import { Ethernet } from "./ethernet"
 import { Udp } from "./udp"
 import { Ipv6 } from "./ipv6"
 import { ModbusRsp } from "./modbus_rsp"
+import endent from "endent"
 
 export const BuiltinProtocols = [
     Ethernet,
@@ -29,19 +30,96 @@ export class ProtocolParserGenerator {
         readonly protocols: Protocol[]
     ) { }
 
+    // 生成parsers.rs文件内容，包含对各parsers模块的引入
     private generateModIndexContent() {
-        const code = this.protocols.map(p => p.generateModName())
+        let code = this.protocols.map(p => p.generateModName())
             .sort()
-            .map(m => `pub mod ${m};`)
-            .join(`\n`)
-        return code.concat(`\npub mod eof;\n`)
+            .map(m => `mod ${m};`)
+            .join('\n')
+        code = code.concat('\nmod eof;\n\n')
+
+        code = code.concat(this.protocols.map(p => p.generateModName())
+            .sort()
+            .map(m => `pub use ${m}::*;`)
+            .join(`\n`))
+        // code = code.concat(`\npub(crate) use eof::*;\n`)
+        code = code.concat('\npub(crate) use eof::*;\n')
+        return code
+    }
+
+    // 生成layer_type.rs文件内容，包含对LayerType enum的定义
+    private generateLayerTypeContent() {
+        const layersName = this.protocols.map(p => p.getName())
+            .concat('Eof')
+            .sort()
+            .concat('Error(ParseError)')
+            .map(name => `${name},`)
+            .join('\n')
+
+        const code = endent`use crate::ParseError;
+
+        /// LayerType旨在用简单结构来表示协议类型
+        /// * 协助判断解析出来的packet中各层是什么协议
+        /// * 也用于options的stop字段说明该在哪一层停止
+        #[derive(Debug, PartialEq, Clone, Copy, Eq, Hash)]
+        pub enum LayerType {
+            ${layersName}
+        }`
+        return code.concat('\n')
+    }
+
+    // 生成layer.rs文件内容，包含对各层级Layer的定义
+    private generateLayerContent() {
+        let code = 'use crate::parsers::*;\n\n'
+        const linkProtocols = this.protocols.filter(p => p.getLevel() === 'L2')
+            .map(p => `${p.getName()}(${p.generateHeadername()}),`)
+            .join('\n')
+        code = code.concat(endent`/// LinkLayer是表示link层各类协议信息的类型。
+        #[derive(Debug, PartialEq, Clone)]
+        pub enum LinkLayer {
+            ${linkProtocols}
+        }`)
+        code = code.concat('\n\n')
+
+        const networkProtocols = this.protocols.filter(p => p.getLevel() === 'L3')
+            .map(p => `${p.getName()}(${p.generateHeadername()}),`)
+            .join('\n')
+        code = code.concat(endent`/// NetworkLayer是表示network层各类协议信息的类型。
+        #[derive(Debug, PartialEq, Clone)]
+        pub enum NetworkLayer<'a> {
+            ${networkProtocols}
+        }`)
+        code = code.concat('\n\n')
+
+        const transProtocols = this.protocols.filter(p => p.getLevel() === 'L4')
+            .map(p => `${p.getName()}(${p.generateHeadername()}),`)
+            .join('\n')
+        code = code.concat(endent`/// TransportLayer是表示transport层各类协议新的类型。
+        #[derive(Debug, PartialEq, Clone)]
+        pub enum TransportLayer<'a> {
+            ${transProtocols}
+        }`)
+        code = code.concat('\n\n')
+
+        const appProtocols = this.protocols.filter(p => p.getLevel() === 'L5')
+            .map(p => `${p.getName()}(${p.generateHeadername()}),`)
+            .join('\n')
+        code = code.concat(endent`/// ApplicationLayer是表示application层各类协议新的类型。
+        #[derive(Debug, PartialEq, Clone)]
+        pub enum ApplicationLayer<'a> {
+            ${appProtocols}
+        }`)
+        code = code.concat('\n')
+
+        return code
     }
 
     private writeFile(path: string, content: string) {
         fs.writeFileSync(path, content)
         console.log(`code generated to ${path}.`)
     }
-
+    
+    // 生成各协议的代码文件内容
     private generateProtocolParser(directory: string, protocol: Protocol): ProtocolParser {
         const filename = protocol.generateFilename(directory)
         const content = protocol.generateParser()
@@ -54,7 +132,11 @@ export class ProtocolParserGenerator {
             this.writeFile(filename, content)
         })
         const modIndex = this.generateModIndexContent()
-        this.writeFile(path.join(directory, `parsers_ts.rs`), modIndex)
+        this.writeFile(path.join(directory, `parsers.rs`), modIndex)
+        const layerType = this.generateLayerTypeContent()
+        this.writeFile(path.join(directory, `layer_type.rs`), layerType)
+        const layer = this.generateLayerContent()
+        this.writeFile(path.join(directory, `layer.rs`), layer)
     }
 
 }

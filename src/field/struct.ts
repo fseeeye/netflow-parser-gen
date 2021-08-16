@@ -12,11 +12,11 @@ export class StructField extends BaseField {
         super(fieldName || struct.snakeCaseName())
     }
 
-    isRef() {
+    isRef(): boolean {
         return this.struct.isRef()
     }
 
-    isUserDefined() {
+    isUserDefined(): boolean {
         return true
     }
 
@@ -24,23 +24,23 @@ export class StructField extends BaseField {
     //     return this.struct.definition()
     // }
 
-    typeName() {
+    typeName(): string {
         if (this.isRef()) {
             return `${this.struct.name}<'a>`
         }
         return this.struct.name
     }
 
-    parserInvocation() {
+    parserInvocation(): string {
         return this.struct.parserFunctionName()
     }
 
-    parserImplementation() {
+    parserImplementation(): string {
         const gen = new StructParserGenerator(this.struct)
         return gen.generateParser()
     }
 
-    generateParseStatement() {
+    generateParseStatement(): string {
         return `let (input, ${this.name}) = ${this.parserInvocation()}(input)?;`
     }
 }

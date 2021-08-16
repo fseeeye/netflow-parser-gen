@@ -28,17 +28,17 @@ export function createCountVar(name: string, expressionGenerator?: (name: string
 }
 
 export function createCountVarWithUnitSize(name: string, unitSize: number, mode: 'div' | 'mul' | 'sub' | 'add'): CountVariable {
-    if (unitSize === 1 && (mode == 'div' || mode == 'mul')) {
+    if (unitSize === 1 && (mode === 'div' || mode === 'mul')) {
         return createCountVar(name)
     }
     const expressionGenerator = (name: string) => {
         if (mode === 'mul') {
             return `${name} as usize * ${unitSize} as usize`
         }
-        else if (mode == 'div') {
+        else if (mode === 'div') {
             return `${name} as usize / ${unitSize} as usize`
         }
-        else if (mode == 'sub') {
+        else if (mode === 'sub') {
             return `${name} as usize - ${unitSize} as usize`
         }
         else {

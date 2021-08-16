@@ -1,7 +1,7 @@
 import endent from "endent"
 import { snakeCase } from "snake-case"
 // import { strict } from "yargs"
-import { StructEnum, AnonymousStructVariant, EnumVariant, PayloadEnum, PayloadEnumVariant, EmptyPayloadEnum, isEmptyPayloadEnum } from "../types/enum"
+import { StructEnum, AnonymousStructVariant, EnumVariant, PayloadEnum, EmptyPayloadEnum, isEmptyPayloadEnum, PayloadEnumVariant } from "../types/enum"
 import { removeDuplicateByKey } from "../utils"
 import { StructParserGenerator } from "./struct"
 
@@ -143,81 +143,82 @@ export class PayloadEnumParserGenerator {
 
     // 输出通配符`_`的match arm (`_ => xxx`)
     // 如果payloadEnum有定义额外的extraPayloadenum，wildcard arm内容就为extraPayloadEnum的match block
-    protected generateWildcardArm(payloadEnum: PayloadEnum | EmptyPayloadEnum): string {
-        let armContent = `_ => Ok((input, ${payloadEnum.name}::Unknown(input))),`
-        
+    private generateWildcardArm(payloadEnum: PayloadEnum): string {
         if (!isEmptyPayloadEnum(payloadEnum) && payloadEnum.extraPayloadEnum != undefined) {
-            armContent = this.generateMainMatchBlock(payloadEnum.extraPayloadEnum)
-        }
+            return endent`_ => ${this.generateMatchBlock(payloadEnum.extraPayloadEnum)}`
+        } else {
+            const layerStatement = `let ${snakeCase(payloadEnum.info.getLevelLayerName())} = ${this.payloadEnum.info.getLevelLayerName()}::${this.payloadEnum.info.name}(${this.payloadEnum.info.header.snakeCaseName()});`
 
-        return endent`
-        ${armContent}
-        `
+            return endent`_ => {
+                ${layerStatement}
+                ${payloadEnum.info.returnLevelPacket()}
+            }`
+        }
     }
 
     // 输出除了`_`的所有match arm
     private generateMatchArm(variant: PayloadEnumVariant): string {
+        const layerStatement = `let ${snakeCase(this.payloadEnum.info.getLevelLayerName())} = ${this.payloadEnum.info.getLevelLayerName()}::${this.payloadEnum.info.name}(${this.payloadEnum.info.header.snakeCaseName()});`
+
         const choiceLiteral = variant.generateChoiceLiteral()
-        const upperName = variant.name
-        const upperNameSnake = snakeCase(variant.name)
-        const payloadName = this.payloadEnum.name
 
         return endent`
-        ${choiceLiteral} => match ${variant.struct.name}::parse(input) {
-            Ok((input, ${upperNameSnake})) => Ok((input, ${payloadName}::${upperName}(${upperNameSnake}))),
-            Err(_) => Ok((input, ${payloadName}::Error(${payloadName}Error::${upperName}(input)))),
+        ${choiceLiteral} => {
+            ${layerStatement}
+            ${variant.parserInvocation()}${this.payloadEnum.info.getNextLayerArgs()}
         },
         `
     }
 
-    protected generateMainMatchBlock(payloadEnum: PayloadEnum): string {
+    private generateMatchBlock(payloadEnum: PayloadEnum): string {
         const choiceArms = payloadEnum.variants.map((variant) => {
             return this.generateMatchArm(variant)
         })
 
-        return endent`_ => match ${payloadEnum.choiceField.asMatchTarget()} {
+        return endent`match ${payloadEnum.choiceField.asMatchTarget()} {
             ${choiceArms.join('\n')}
             ${this.generateWildcardArm(payloadEnum)}
-        },`
+        }`
     }
 
     // 生成match部分的内容
     // 如果是EmptyPayloadEnum，wildcard arm直接输出Unknow
-    protected generateMatchBlock(): string {
-        return endent`
-        match input.len() {
-            0 => match EofPacket::parse(input) {
-                Ok((input, eof)) => Ok((input, ${this.payloadEnum.name}::Eof(eof))),
-                Err(_) => Ok((input, ${this.payloadEnum.name}::Error(${this.payloadEnum.name}Error::Eof(input)))),
-            },
-            ${isEmptyPayloadEnum(this.payloadEnum)? this.generateWildcardArm(this.payloadEnum) : this.generateMainMatchBlock(this.payloadEnum)}
-        }
-        `
-    }
-
     private functionBody(): string {
-        const matchBlock = this.generateMatchBlock()
+        // const matchBlock = this.generateMatchBlock()
+        // if (!isEmptyPayloadEnum(this.payloadEnum)) {
+        //     const choice = this.payloadEnum.choiceField
+        //     const parseAheadStatement = (choice.isInline() && choice.generateParseAheadStatementWithPayloadErrorHandle !== undefined) ? choice.generateParseAheadStatementWithPayloadErrorHandle(this.payloadEnum) : ``
+        //     const statements = parseAheadStatement !== `` ? [parseAheadStatement, matchBlock] : [matchBlock]
+        //     return statements.join(`\n`)
+        // } else {
+        //     return matchBlock
+        // }
+        const layerStatement = `let ${snakeCase(this.payloadEnum.info.getLevelLayerName())} = ${this.payloadEnum.info.getLevelLayerName()}::${this.payloadEnum.info.name}(${this.payloadEnum.info.header.snakeCaseName()});`
+
         if (!isEmptyPayloadEnum(this.payloadEnum)) {
-            const choice = this.payloadEnum.choiceField
-            const parseAheadStatement = (choice.isInline() && choice.generateParseAheadStatementWithPayloadErrorHandle !== undefined) ? choice.generateParseAheadStatementWithPayloadErrorHandle(this.payloadEnum) : ``
-            const statements = parseAheadStatement !== `` ? [parseAheadStatement, matchBlock] : [matchBlock]
-            return statements.join(`\n`)
+            const body =  endent`if input.len() == 0 {
+                ${layerStatement}
+                return ${this.payloadEnum.info.getLevelEofStatement()};
+            }
+            ${this.generateMatchBlock(this.payloadEnum)}`
+
+            return body
         } else {
-            return matchBlock
+            const bodyEmpty = endent`${layerStatement}
+            return ${this.payloadEnum.info.getLevelEofStatement()};`
+            return bodyEmpty
         }
     }
 
     // 生成PayloadEnum parser函数体
-    // 即该类中`private functionBody()`方法的public形式
+    // 当前应用于layer parser函数体中
     generateParserBody(): string {
-        return endent`{
-            ${this.functionBody()}
-        }`
+        return this.functionBody()
     }
 
     // !unecessary
     generateParser(): string {
-        return `!unimpl`
+        throw Error(`PayloadEnumParserGenerator dont impl generateParser()`)
     }
 }
 

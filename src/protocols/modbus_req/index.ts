@@ -8,15 +8,14 @@ import {
 import { BasicEnumChoice } from "../../field/choice"
 import { EnumField } from "../../field/enum"
 import { NumericField } from "../../field/numeric"
-import { PayloadField } from "../../field/payload"
+// import { PayloadField } from "../../field/payload"
 import { StructField } from "../../field/struct"
 import { VecField } from "../../field/vec"
 import { AnonymousStructVariant, EmptyVariant, StructEnum, EmptyPayloadEnum } from "../../types/enum"
 import { Struct } from "../../types/struct"
-import { Protocol } from "../generator"
+import { Protocol, ProtocolInfo } from "../generator"
 
 const protocolName = 'ModbusReq'
-const packetName = `${protocolName}Packet`
 const headerName = `${protocolName}Header`
 const payloadName = `${protocolName}Payload`
 
@@ -185,22 +184,15 @@ const header = new Struct(
     ]
 )
 
+const info = new ProtocolInfo(protocolName, 'L5', header)
+
 const payload = new EmptyPayloadEnum(
     `${payloadName}`,
-)
-
-export const ModbusReqPacket = new Struct(
-    `${packetName}`,
-    [
-        new StructField(header),
-        new PayloadField(payload),
-    ]
+    info
 )
 
 export const ModbusReq = new Protocol({
-    name: `${protocolName}`,
-    packet: ModbusReqPacket,
-    header,
+    info,
     payload,
     structs
 })

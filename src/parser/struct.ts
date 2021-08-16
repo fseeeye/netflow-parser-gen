@@ -1,5 +1,6 @@
 import endent from "endent"
 import { Struct } from "../types/struct"
+import { removeDuplicateByKey } from "../utils"
 
 export class StructParserGenerator {
 
@@ -7,7 +8,7 @@ export class StructParserGenerator {
         readonly struct: Struct,
     ) { }
 
-    protected generateResultSection() {
+    protected generateResultSection(): string {
         const struct = this.struct
         const code = endent`
         Ok((
@@ -20,7 +21,7 @@ export class StructParserGenerator {
         return code
     }
 
-    protected generateParserBlock() {
+    protected generateParserBlock(): string {
         const fieldParsers = this.struct.fields.map((field) => {
             return field.generateParseStatement()
         })
@@ -33,7 +34,7 @@ export class StructParserGenerator {
         }`
     }
 
-    static generateParserName(struct: Struct) {
+    static generateParserName(struct: Struct): string {
         return struct.parserFunctionName()
     }
 
@@ -41,11 +42,12 @@ export class StructParserGenerator {
     //     return this.struct.parserFunctionName()
     // }
 
-    protected generateFunctionSignature() {
+    protected generateFunctionSignature(): string {
         const name = this.struct.parserFunctionName()
         return `fn ${name}(input: &[u8]) -> IResult<&[u8], ${this.struct.name}>`
     }
 
+    // 生成struct的parser函数内容
     generateParser(pub = true): string {
         const visibilitySpecifier = pub ? `pub ` : ``
         const functionSignature = `${visibilitySpecifier}${this.generateFunctionSignature()}`
@@ -62,8 +64,13 @@ export class StructParserGenerator {
         return this.generateParserBlock()
     }
 
+    // unused
     private generateUserDefinedFieldParsers() {
-        const userDefinedFields = this.struct.fields.filter((field) => field.isUserDefined())
+        // 由于存在多个字段使用同种field类型的情况，所以此处需要去重
+        const userDefinedFields = removeDuplicateByKey(
+            this.struct.fields.filter((field) => field.isUserDefined()),
+            (field) => field.constructor.name
+        )
         const userDefinedFieldParsers = userDefinedFields.map((field) => {
             if (field.parserImplementation === undefined) {
                 throw Error(`User defined field ${field.name} has no parser implementation!`)
@@ -73,7 +80,9 @@ export class StructParserGenerator {
         return userDefinedFieldParsers.join(`\n\n`)
     }
 
-    generateParserWithUserDefinedFields() {
+    // unused
+    // 生成struct的parser函数内容(附带用户对field parser的实现)
+    generateParserWithUserDefinedFields(): string {
         const udfParsers = this.generateUserDefinedFieldParsers()
         const structParser = this.generateParser()
         return [udfParsers, structParser].join(`\n\n`)

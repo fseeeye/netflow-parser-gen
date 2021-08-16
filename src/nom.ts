@@ -29,29 +29,39 @@ export enum NomCombinatorFunction {
     eof = 'eof'
 }
 
-export function generateNomImport() {
-    const code = endent`
-    #[allow(unused)]
-    use nom::bits::bits;
-    #[allow(unused)]
-    use nom::bits::complete::take as take_bits;
-    #[allow(unused)]
-    use nom::bytes::complete::{tag, take};
-    #[allow(unused)]
-    use nom::combinator::{eof, map, peek};
-    #[allow(unused)]
-    use nom::error::{ErrorKind, Error};
-    #[allow(unused)]
-    use nom::multi::count;
-    #[allow(unused)]
-    use nom::number::complete::{be_u16, be_u32, u8};
-    #[allow(unused)]
-    use nom::sequence::tuple;
-    #[allow(unused)]
-    use nom::IResult;
+export function generateNomImport(): string {
+    const allow = `#[allow(unused)]`
+    const nom_imports = [
+        'nom::bits::bits',
+        'nom::bits::complete::take as take_bits',
+        'nom::bytes::complete::{tag, take}',
+        'nom::combinator::{eof, map, peek}',
+        'nom::error::{ErrorKind, Error}',
+        'nom::multi::count',
+        'nom::number::complete::{be_u16, be_u32, u8}',
+        'nom::sequence::tuple',
+        'nom::IResult',
+    ]
 
-    use crate::PacketTrait;
+    const nom_imports_code = nom_imports.map(v => {
+        return endent`${allow}
+        use ${v};
+        `
+    }).join('\n')
 
-    `
-    return code
+    const crate_imports = [
+        'crate::errors::ParseError',
+        'crate::layer::{ApplicationLayer, LinkLayer, NetworkLayer, TransportLayer}',
+        'crate::packet_level::{L1Packet, L2Packet, L3Packet, L4Packet, L5Packet}',
+        'crate::packet_quin::{QuinPacket, QuinPacketOptions}',
+        'crate::LayerType',
+        'crate::field_type::*',
+    ]
+
+    const crate_imports_code = crate_imports.map(v => {
+        return endent`${allow}
+        use ${v};`
+    }).join('\n')
+
+    return [nom_imports_code, crate_imports_code].join('\n\n').concat('\n')
 }

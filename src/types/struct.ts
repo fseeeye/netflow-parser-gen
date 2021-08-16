@@ -28,7 +28,7 @@ export class Struct implements FieldType {
         // validateReferenceDependency(fields)
     }
 
-    typeName() {
+    typeName(): string {
         return this.name
     }
 
@@ -41,18 +41,13 @@ export class Struct implements FieldType {
     }
 
     parserFunctionName(): string {
-        return `parse_${snakeCase(this.name)}`
+        return `parse_${this.snakeCaseName()}`
     }
 
     parserFunctionDefinition(): string {
         const gen = new StructParserGenerator(this)
         return gen.generateParser()
-    }
-
-    // 输出Header在Packet Trait中的代码内容(不包含函数签名)
-    parserHeaderFunctionBody(): string {
-        const gen = new StructParserGenerator(this)
-        return gen.generateHeaderParserContent()
+        // return gen.generateParserWithUserDefinedFields()
     }
 
     protected visibilitySpecifier(): VisibilityType {
@@ -86,18 +81,26 @@ export class Struct implements FieldType {
         return [attributes, def].join(`\n`)
     }
 
-    // userDefinedFieldDefinitions() {
-    //     const userDefinedFields = this.fields.filter((field) => field.isUserDefined()).map((field) => {
+    // // unused
+    // private userDefinedFieldDefinitions() {
+    //     const userDefinedFields = removeDuplicateByKey(
+    //         this.fields.filter((field) => field.isUserDefined()),
+    //         (field) => field.typeName()
+    //     )
+
+    //     const userDefinedFieldDefs = userDefinedFields.map((field) => {
     //         if (field.definition === undefined) {
     //             const fieldSignature = '`' + `${field.name}:${field.typeName()}` + '`'
     //             throw Error(`user defined field ${fieldSignature} has no definition!`)
     //         }
-    //         return field.definition()
+    //         return field.definition(this.visibilitySpecifier())
     //     })
-    //     return userDefinedFields.join(`\n\n`)
+
+    //     return userDefinedFieldDefs.join(`\n\n`)
     // }
 
-    // definitionWithFields() {
+    // // unused
+    // definitionWithFields(): string {
     //     return [this.userDefinedFieldDefinitions(), this.definition()].join(`\n\n`)
     // }
 

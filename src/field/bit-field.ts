@@ -16,7 +16,7 @@ export class BitsNumericField extends NumericField {
         }
     }
 
-    parserInvocation() {
+    parserInvocation(): string {
         return `${NomBitsFunction.take}(${this.length}usize)`
     }
 
@@ -40,7 +40,7 @@ export class BitNumericFieldGroup implements Field {
         }
     }
 
-    definition(visibility: VisibilityType) {
+    definition(visibility: VisibilityType): string {
         const fieldDefs = this.fields.map(f => f.definition(visibility))
         return fieldDefs.join(`\n`)
     }
@@ -49,11 +49,11 @@ export class BitNumericFieldGroup implements Field {
         throw Error(`group of bit fields has no type for itself!`)
     }
 
-    parserInvocation() {
+    parserInvocation(): string {
         return `bits::<_, _, nom::error::Error<(&[u8], usize)>, _, _>`
     }
 
-    fieldParsers() {
+    fieldParsers(): string{
         const parsers = this.fields.map(f => f.parserInvocation()).join(`, `)
         return `(${parsers})`
     }
@@ -66,6 +66,6 @@ export class BitNumericFieldGroup implements Field {
         return code
     }
 
-    isRef() { return false }
-    isUserDefined() { return false }
+    isRef(): boolean { return false }
+    isUserDefined(): boolean { return false }
 }
