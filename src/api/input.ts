@@ -5,10 +5,15 @@ import { BytesReferenceField } from "../field/ref"
 import { BitVecField, VecField } from "../field/vec"
 import { CountVariable } from "../len"
 import { BuiltinNumericTypeName, getBuildinNumericTypeByTypeName } from "../types/numeric"
+import { InputLengthField } from "../field/input-len"
 
 export interface NumericFieldConfig {
     name: string
     typeName: BuiltinNumericTypeName
+}
+
+export interface InputLengthFieldConfig {
+	name: string
 }
 
 export function createNumericField({ name, typeName }: NumericFieldConfig): NumericField {
@@ -21,6 +26,16 @@ export function createNumericField({ name, typeName }: NumericFieldConfig): Nume
 
 export function createNumericFieldSimple(name: string, typeName: BuiltinNumericTypeName): NumericField {
     return createNumericField({ name, typeName })
+}
+
+//add createNumericInputLengthField
+export function createInputLengthField({ name }: InputLengthFieldConfig): InputLengthField {
+	return new InputLengthField(name)
+}
+
+//add createNumericInputLengthSimple
+export function createInputLengthSimple(name: string): InputLengthField {
+	return createInputLengthField({ name })
 }
 
 export function createCountVar(name: string, expressionGenerator?: (name: string) => string): CountVariable {
