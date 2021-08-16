@@ -1,4 +1,14 @@
-## 0.4.2 (2021-07-13)
+## [0.5.1](https://github.com/metachris/typescript-boilerplate/compare/v0.5.0...v0.5.1) (2021-08-16)
+
+
+### Features
+
+* adapt to new packet struct ([f55c88c](https://github.com/metachris/typescript-boilerplate/commit/f55c88cdd6996f99ebc13815320da777a65a4c8d))
+* **vec&nom:** add "bitNumVec" and handle unused nom import ([0329cf2](https://github.com/metachris/typescript-boilerplate/commit/0329cf22fe44bc16b7f03fd4a0f876ec6ac770ba))
+
+
+
+# [0.5.0](https://github.com/metachris/typescript-boilerplate/compare/abb9e6efc0f26634cf44ac7d76323b080ca548b7...v0.5.0) (2021-07-09)
 
 
 ### Features
