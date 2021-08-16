@@ -8,6 +8,10 @@ import { Ethernet } from "./ethernet"
 import { Udp } from "./udp"
 import { Ipv6 } from "./ipv6"
 import { ModbusRsp } from "./modbus_rsp"
+import { FinsTcpReq } from "./fins_tcp_req"
+import { FinsTcpRsp } from "./fins_tcp_rsp"
+import { FinsUdpReq } from "./fins_udp_req"
+import { FinsUdpRsp } from "./fins_udp_rsp"
 
 export const BuiltinProtocols = [
     Ethernet,
@@ -16,7 +20,11 @@ export const BuiltinProtocols = [
     Tcp,
     Udp,
     ModbusReq,
-    ModbusRsp,
+	ModbusRsp,
+	FinsTcpReq,
+	FinsTcpRsp,
+	FinsUdpReq,
+	FinsUdpRsp,
 ]
 
 interface ProtocolParser {

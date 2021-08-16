@@ -1,6 +1,6 @@
 import { FinsTcpReq } from './index'
 
-test('test ethernet', () => {
+test('test FinsTcpReq', () => {
 	console.log(FinsTcpReq.generateParser())
 	// expect(
 	// 	`\n` + FinsTcpReq.generateParser()
