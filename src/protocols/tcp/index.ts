@@ -12,8 +12,8 @@ import { PayloadEnumChoice } from "../../field/choice"
 import { StructField } from "../../field/struct"
 // import { PayloadField } from "../../field/payload"
 import { Protocol, ProtocolInfo } from ".././generator"
-import { ModbusReq } from "../modbus_req"
-import { ModbusRsp } from "../modbus_rsp"
+import { ModbusReq } from "../modbus-req"
+import { ModbusRsp } from "../modbus-rsp"
 
 const protocolName = 'Tcp'
 const headerName = `${protocolName}Header`

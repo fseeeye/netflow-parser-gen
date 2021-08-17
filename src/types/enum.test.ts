@@ -14,7 +14,7 @@ export const SimpleReadRequestFields = [
     new NumericField('count', BuiltInNumericType.be_u16),
 ]
 
-export function getRequestDataEnum() {
+export function getRequestDataEnum(): StructEnum {
     const enumName = 'RequestData'
     const functionCodeField = new NumericField('function_code', BuiltInNumericType.u8)
     const variants: EnumVariant[] = [
@@ -57,7 +57,7 @@ export function getRequestDataEnum() {
 test('test enum definition without reference', () => {
     const structEnum = getRequestDataEnum()
     expect(structEnum.definition()).toEqual(endent`
-    #[derive(Debug, PartialEq)]
+    #[derive(Debug, PartialEq, Eq, Clone)]
     pub enum RequestData {
         ReadCoils {
              start_address: u16,
@@ -143,7 +143,7 @@ test('test enum definition without reference', () => {
         ))
     }
     
-    pub fn parse_request_data<'a>(input: &'a [u8], function_code: u8) -> IResult<&'a [u8], RequestData> {
+    pub fn parse_request_data(input: &[u8], function_code: u8) -> IResult<&[u8], RequestData> {
         let (input, request_data) = match function_code {
             0x01 => parse_read_coils(input),
             0x02 => parse_read_discrete_inputs(input),
@@ -156,7 +156,7 @@ test('test enum definition without reference', () => {
     }`)
 })
 
-export function getRequestDataWithRefEnum() {
+export function getRequestDataWithRefEnum(): StructEnum {
     const functionCodeField = new NumericField('function_code', BuiltInNumericType.u8)
     const variants = [
         new AnonymousStructVariant(
@@ -187,7 +187,7 @@ export function getRequestDataWithRefEnum() {
 test('enum definition with reference', () => {
     const structEnum = getRequestDataWithRefEnum()
     expect(structEnum.definition()).toEqual(endent`
-    #[derive(Debug, PartialEq)]
+    #[derive(Debug, PartialEq, Eq, Clone)]
     pub enum RequestData<'a> {
         WriteFileRecordSubRequest {
              ref_type: u8,
@@ -234,7 +234,7 @@ test('enum definition with reference', () => {
         ))
     }
     
-    pub fn parse_request_data<'a>(input: &'a [u8], function_code: u8) -> IResult<&'a [u8], RequestData<'a>> {
+    pub fn parse_request_data(input: &[u8], function_code: u8) -> IResult<&[u8], RequestData> {
         let (input, request_data) = match function_code {
             0x17 => parse_write_file_record_sub_request(input),
             0x06 => parse_write_single_register(input),
@@ -282,7 +282,7 @@ test('enum with user defined variants', () => {
     )
     // console.log(payload.definition())
     expect(payload.definition()).toEqual(endent`
-    #[derive(Debug, PartialEq)]
+    #[derive(Debug, PartialEq, Eq, Clone)]
     pub enum Payload {
         RequestData(RequestData),
         Exception(Exception)
@@ -290,7 +290,7 @@ test('enum with user defined variants', () => {
     `)
     const gen = new StructEnumParserGenerator(payload)
     expect(gen.generateEnumParser()).toEqual(endent`
-    pub fn parse_payload<'a>(input: &'a [u8], function_code: u8) -> IResult<&'a [u8], Payload> {
+    pub fn parse_payload(input: &[u8], function_code: u8) -> IResult<&[u8], Payload> {
         let (input, payload) = match function_code & 0b10000000 {
             0x0 => {
                 let (input, request_data) = parse_request_data(input, function_code)?;
@@ -338,7 +338,7 @@ test('enum with user defined variants with reference', () => {
     )
     // console.log(payload.definition())
     expect(payload.definition()).toEqual(endent`
-    #[derive(Debug, PartialEq)]
+    #[derive(Debug, PartialEq, Eq, Clone)]
     pub enum Payload<'a> {
         RequestData(RequestData<'a>),
         WriteMultipleRegisters {
@@ -365,7 +365,7 @@ test('enum with user defined variants with reference', () => {
         ))
     }
     
-    pub fn parse_payload<'a>(input: &'a [u8], function_code: u8) -> IResult<&'a [u8], Payload<'a>> {
+    pub fn parse_payload(input: &[u8], function_code: u8) -> IResult<&[u8], Payload> {
         let (input, payload) = match function_code & 0b10000000 {
             0x0 => {
                 let (input, request_data) = parse_request_data(input, function_code)?;

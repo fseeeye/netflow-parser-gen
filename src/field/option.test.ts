@@ -43,7 +43,7 @@ test('test optional field', () => {
 //     )
 //     // console.log(ipv4.definition())
 //     expect(ipv4.definition()).toEqual(endent`
-//     #[derive(Debug, PartialEq)]
+//     #[derive(Debug, PartialEq, Eq, Clone)]
 //     pub struct Ipv4<'a> {
 //         pub header: Ipv4Header,
 //         pub options: Option<&'a [u8]>,

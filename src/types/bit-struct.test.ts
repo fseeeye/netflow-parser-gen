@@ -28,7 +28,7 @@
 //     const ipv4Header = getIpv4Header()
 //     // console.log(ipv4Header.definition())
 //     expect(ipv4Header.definition()).toEqual(endent`
-//     #[derive(Debug, PartialEq)]
+//     #[derive(Debug, PartialEq, Eq, Clone)]
 //     pub struct Ipv4Header {
 //         pub version: u8,
 //         pub header_length: u8,

@@ -2,6 +2,7 @@ import { snakeCase } from "snake-case"
 import { generateNomImport } from "../nom"
 import { StructEnum, PayloadEnum, EmptyPayloadEnum } from "../types/enum"
 import { Struct } from "../types/struct"
+import { StructWithLength } from "../types/struct-with-length"
 import * as path from "path"
 import endent from "endent"
 
@@ -144,7 +145,7 @@ export class ProtocolInfo {
 export interface ProtocolDefinition {
     info: ProtocolInfo,
     payload: PayloadEnum | EmptyPayloadEnum,
-    structs: (Struct | StructEnum)[],
+    structs: (Struct | StructEnum| StructWithLength)[],
 }
 
 export class Protocol {
@@ -221,7 +222,7 @@ export class Protocol {
             let current_layertype = LayerType::${protocolName};
 
             ${parseHeaderBlock}
-            
+
             ${optionsBlock}
 
             ${this.definition.payload.parserFunctionBody()}

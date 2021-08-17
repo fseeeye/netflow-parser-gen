@@ -53,9 +53,25 @@ export class StructParserGenerator {
         const functionSignature = `${visibilitySpecifier}${this.generateFunctionSignature()}`
         const parserBlock = this.generateParserBlock()
 
-        return endent`
-        ${functionSignature} ${parserBlock}
-        `
+        const fieldFuction: (string)[] = []
+        this.struct.fields.map((field) => {
+            if (field.generateFunction !== undefined) {
+                fieldFuction.push(field.generateFunction())
+            }
+        })
+
+        if (fieldFuction.length !== 0) {
+            return endent`
+            ${functionSignature} ${parserBlock}
+
+            ${fieldFuction.join("\n")}
+            `
+        } else {
+            return endent`
+            ${functionSignature} ${parserBlock}
+            `
+        }
+        
     }
 
     // 输出Header在Packet Trait中的代码内容(不包含函数签名)

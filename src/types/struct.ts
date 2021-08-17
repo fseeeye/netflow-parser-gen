@@ -19,6 +19,7 @@ import { generateAttributesCode } from "../utils"
 //     })
 // }
 
+
 export class Struct implements FieldType {
 
     constructor(
@@ -70,7 +71,7 @@ export class Struct implements FieldType {
         return this.fields.filter((field) => field.isRef()).length !== 0
     }
 
-    private lifetimeSpecifier(): string {
+    protected lifetimeSpecifier(): string {
         return this.hasReference() ? `<'a>` : ''
     }
 

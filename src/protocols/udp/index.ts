@@ -4,7 +4,7 @@ import { Protocol, ProtocolInfo } from "../generator"
 // import { PayloadField } from "../../field/payload"
 import { PayloadEnumChoice } from "../../field/choice"
 import { StructEnum, PayloadEnum, PayloadEnumVariant } from "../../types/enum"
-import { ModbusReq } from "../modbus_req"
+import { ModbusReq } from "../modbus-req"
 import { StructField } from "../../field/struct"
 
 const protocolName = 'Udp'

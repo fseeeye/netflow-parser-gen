@@ -1,13 +1,13 @@
 import { Protocol } from "./generator"
 import { Ipv4 } from "./ipv4"
-import { ModbusReq } from "./modbus_req"
+import { ModbusReq } from "./modbus-req"
 import { Tcp } from "./tcp"
 import * as fs from "fs"
 import * as path from "path"
 import { Ethernet } from "./ethernet"
 import { Udp } from "./udp"
 import { Ipv6 } from "./ipv6"
-import { ModbusRsp } from "./modbus_rsp"
+import { ModbusRsp } from "./modbus-rsp"
 import endent from "endent"
 
 export const BuiltinProtocols = [
@@ -32,18 +32,20 @@ export class ProtocolParserGenerator {
 
     // 生成parsers.rs文件内容，包含对各parsers模块的引入
     private generateModIndexContent() {
-        let code = this.protocols.map(p => p.generateModName())
+        let code = 'mod eof;\n'
+        code = code.concat(this.protocols.map(p => p.generateModName())
             .sort()
             .map(m => `mod ${m};`)
-            .join('\n')
-        code = code.concat('\nmod eof;\n\n')
+            .join('\n'))
+            .concat('\n')
 
+        code = code.concat('\npub(crate) use eof::*;\n')
         code = code.concat(this.protocols.map(p => p.generateModName())
             .sort()
             .map(m => `pub use ${m}::*;`)
             .join(`\n`))
-        // code = code.concat(`\npub(crate) use eof::*;\n`)
-        code = code.concat('\npub(crate) use eof::*;\n')
+            .concat('\n')
+
         return code
     }
 

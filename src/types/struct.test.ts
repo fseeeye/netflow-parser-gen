@@ -18,7 +18,7 @@ test('test struct with reference', () => {
 
     const writeFileRecordSubRequest = new Struct('WriteFileRecordSubRequest', fields)
     expect(writeFileRecordSubRequest.definition()).toEqual(endent`
-    #[derive(Debug, PartialEq)]
+    #[derive(Debug, PartialEq, Eq, Clone)]
     pub struct WriteFileRecordSubRequest<'a> {
         pub ref_type: u8,
         pub file_number: u16,
@@ -58,7 +58,7 @@ test('test struct with numeric types only', () => {
     const header = new Struct('MBAPHeader', fields)
 
     expect(header.definition()).toEqual(endent`
-    #[derive(Debug, PartialEq)]
+    #[derive(Debug, PartialEq, Eq, Clone)]
     pub struct MBAPHeader {
         pub transaction_id: u8,
         pub protocol_id: u16,

@@ -35,11 +35,12 @@ export class CountVariable {
     //     }
     // }
 
-    count() {
+    count(): string {
         if (this.expressionGenerator !== undefined) {
             return this.expressionGenerator(this.name)
         }
-        return `${this.name} as usize`
+        // return `${this.name} as usize`
+        return `${this.name}`
     }
 
 

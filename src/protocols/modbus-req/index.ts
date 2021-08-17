@@ -10,9 +10,10 @@ import { EnumField } from "../../field/enum"
 import { NumericField } from "../../field/numeric"
 // import { PayloadField } from "../../field/payload"
 import { StructField } from "../../field/struct"
-import { VecField } from "../../field/vec"
+import { VecField, VecLoopField } from "../../field/vec"
 import { AnonymousStructVariant, EmptyVariant, StructEnum, EmptyPayloadEnum } from "../../types/enum"
 import { Struct } from "../../types/struct"
+import { StructWithLength } from "../../types/struct-with-length"
 import { Protocol, ProtocolInfo } from "../generator"
 
 const protocolName = 'ModbusReq'
@@ -43,7 +44,7 @@ const ReadFileRecordSubRequest = new Struct(
 )
 structs.push(ReadFileRecordSubRequest)
 
-const WriteFileRecordSubRequest = new Struct(
+const WriteFileRecordSubRequest = new StructWithLength(
     'WriteFileRecordSubRequest',
     [
         numeric('ref_type', 'u8'),
@@ -125,9 +126,9 @@ const Data = new StructEnum(
             'WriteFileRecord',
             [
                 numeric('byte_count', 'u8'),
-                new VecField('sub_requests',
-                    createCountVarWithUnitSize('byte_count', 7, 'div'), // Q: 7? can't count before parse sub-req
-                    WriteFileRecordSubRequest),
+                new VecLoopField('sub_requests',
+                    WriteFileRecordSubRequest,
+                    numeric('byte_count', 'u8')),
             ]
         ),
         new AnonymousStructVariant(

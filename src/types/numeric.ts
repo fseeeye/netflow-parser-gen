@@ -24,8 +24,14 @@ export class NumericType implements FieldType {
     isUserDefined(): boolean {
         return false
     }
-    
-    // 对应nom的函数名，如be_u16
+
+    // hasConstrain(): boolean {
+    //     return false
+    // }
+
+    // getName(): BuiltInNumericTypeName { return this._name }
+
+    // 对应nom的相应解析函数名，如be_u16
     parserFunctionName(): string {
         return this._parserFunctionName
     }

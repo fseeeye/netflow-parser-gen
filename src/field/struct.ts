@@ -43,4 +43,6 @@ export class StructField extends BaseField {
     generateParseStatement(): string {
         return `let (input, ${this.name}) = ${this.parserInvocation()}(input)?;`
     }
+
+   
 }
