@@ -6,6 +6,7 @@
 .idea/*
 
 .DS_Store
+.DS_Store?
 coverage
 *.log
-.DS_Store
+/.vscode/
