@@ -2,7 +2,6 @@ import { snakeCase } from "snake-case"
 import { generateNomImport } from "../nom"
 import { StructEnum, PayloadEnum, EmptyPayloadEnum } from "../types/enum"
 import { Struct } from "../types/struct"
-import { StructWithLength } from "../types/struct-with-length"
 import * as path from "path"
 import endent from "endent"
 
@@ -145,7 +144,7 @@ export class ProtocolInfo {
 export interface ProtocolDefinition {
     info: ProtocolInfo,
     payload: PayloadEnum | EmptyPayloadEnum,
-    structs: (Struct | StructEnum| StructWithLength)[],
+    structs: (Struct | StructEnum)[],
 }
 
 export class Protocol {

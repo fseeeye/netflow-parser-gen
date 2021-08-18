@@ -108,7 +108,7 @@ test('test struct with struct field with reference', () => {
         let (input, protocol_id) = be_u16(input)?;
         let (input, length) = be_u16(input)?;
         let (input, unit_id) = u8(input)?;
-        let (input, data) = take(length)(input)?;
+        let (input, data) = take(length as usize)(input)?;
         Ok((
             input,
             MBAPHeaderV2 {

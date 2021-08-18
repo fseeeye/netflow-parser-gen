@@ -209,7 +209,7 @@ test('enum definition with reference', () => {
         let (input, file_number) = be_u16(input)?;
         let (input, record_number) = be_u16(input)?;
         let (input, record_len) = be_u16(input)?;
-        let (input, record_data) = take(record_len)(input)?;
+        let (input, record_data) = take(record_len as usize)(input)?;
         Ok((
             input,
             RequestData::WriteFileRecordSubRequest {
@@ -354,7 +354,7 @@ test('enum with user defined variants with reference', () => {
     fn parse_write_multiple_registers(input: &[u8]) -> IResult<&[u8], Payload> {
         let (input, write_start_address) = be_u16(input)?;
         let (input, write_count) = be_u16(input)?;
-        let (input, write_register_values) = take(write_count)(input)?;
+        let (input, write_register_values) = take(write_count as usize)(input)?;
         Ok((
             input,
             Payload::WriteMultipleRegisters {

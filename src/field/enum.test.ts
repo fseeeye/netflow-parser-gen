@@ -182,7 +182,7 @@ test('test struct with enum field with lifetime', () => {
         let (input, file_number) = be_u16(input)?;
         let (input, record_number) = be_u16(input)?;
         let (input, record_len) = be_u16(input)?;
-        let (input, record_data) = take(record_len)(input)?;
+        let (input, record_data) = take(record_len as usize)(input)?;
         Ok((
             input,
             RequestData::WriteFileRecordSubRequest {

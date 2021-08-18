@@ -42,7 +42,11 @@ export class EnumField extends BaseField {
         // const choiceFieldName = this.structEnum.choiceField.name
         // const passByRef = this.structEnum.choiceField.field.isUserDefined()
         // const choiceParameter = passByRef ? `&${choiceFieldName}` : choiceFieldName
-        const choiceParameter = this.structEnum.choiceField.asEnumParserInvocationArgument()
-        return `let (input, ${this.name}) = ${this.parserInvocation()}(input, ${choiceParameter})?;`
+        if (this.structEnum.choiceField.isWithoutInput()) {
+            return `let (input, ${this.name}) = ${this.parserInvocation()}(input)?;`
+        } else {
+            const choiceParameter = this.structEnum.choiceField.asEnumParserInvocationArgument()
+            return `let (input, ${this.name}) = ${this.parserInvocation()}(input, ${choiceParameter})?;`
+        }
     }
 }

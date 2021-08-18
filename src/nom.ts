@@ -22,7 +22,9 @@ export enum NomNumberFunction {
     be_u64 = 'be_u64',
     le_u16 = 'le_u16',
     le_u32 = 'le_u32',
-    le_u64 = 'le_u64',
+	le_u64 = 'le_u64',
+	be_u24 = 'be_u24',
+	usize = 'usize',
 }
 
 export enum NomCombinatorFunction {
@@ -38,7 +40,7 @@ export function generateNomImport(): string {
         'nom::combinator::{eof, map, peek}',
         'nom::error::{ErrorKind, Error}',
         'nom::multi::count',
-        'nom::number::complete::{be_u16, be_u32, u8}',
+        'nom::number::complete::{be_u16, be_u24, be_u32, u8}',
         'nom::sequence::tuple',
         'nom::IResult',
     ]

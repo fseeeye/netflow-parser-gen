@@ -4,8 +4,9 @@ import { Protocol, ProtocolInfo } from "../generator"
 // import { PayloadField } from "../../field/payload"
 import { PayloadEnumChoice } from "../../field/choice"
 import { StructEnum, PayloadEnum, PayloadEnumVariant } from "../../types/enum"
-import { ModbusReq } from "../modbus-req"
 import { StructField } from "../../field/struct"
+import { FinsUdpRsp } from "../fins-udp-rsp"
+import { FinsUdpReq } from "../fins-udp-req"
 
 const protocolName = 'Udp'
 const headerName = `${protocolName}Header`
@@ -27,11 +28,22 @@ const UdpPayload = new PayloadEnum(
     payloadName,
     info,
     [
-        new PayloadEnumVariant(502, ModbusReq), 
+        new PayloadEnumVariant(9600, FinsUdpRsp),
     ],
     new PayloadEnumChoice(
         new StructField(header),
         'src_port',
+    ),
+    new PayloadEnum(
+        `${payloadName}`,
+        info,
+        [
+            new PayloadEnumVariant(9600, FinsUdpReq),
+        ],
+        new PayloadEnumChoice(
+            new StructField(header),
+            'dst_port',
+        )
     )
 )
 

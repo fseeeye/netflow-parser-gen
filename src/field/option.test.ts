@@ -24,7 +24,7 @@ test('test optional field', () => {
     // console.log(optionalRef.generateParseStatement())
     expect(optionalRef.generateParseStatement()).toEqual(endent`
     let (input, options) = if header.header_length * 4 > 20 {
-        let (input, options) = take(header.header_length * 4 - 20)(input)?;
+        let (input, options) = take((header.header_length * 4 - 20) as usize)(input)?;
         Ok((input, Some(options)))
     } else {
         Ok((input, None))

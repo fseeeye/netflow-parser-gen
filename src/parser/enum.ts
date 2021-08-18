@@ -39,17 +39,21 @@ export class StructEnumParserGenerator {
 
     functionSignature(): string {
         const structEnum = this.structEnum
-        // 如果 choice 是用户自定义类型，就接受引用作为参数
-        // const choiceParameterType = choiceField.isUserDefined() ? `&${choiceField.typeName()}` : choiceField.typeName()
-        // const choiceParameter = `${choiceField.name}: ${choiceParameterType}`
-        const choiceParameter = structEnum.choiceField.asEnumParserFunctionParameterSignature()
         const lifetimeSpecifier = structEnum.choiceField.isFieldRef() ? `<'a>` : ``
         const lifetimeRefSpecifier = structEnum.choiceField.isFieldRef() ? `'a ` : ``
-
         // 如果 Enum 类型带有生命周期标记，在返回值中需要标记()
         const returnType = (structEnum.choiceField.isFieldRef() && structEnum.isRef()) ? `${structEnum.name}${lifetimeSpecifier}` : structEnum.name
 
-        return `pub fn parse_${structEnum.snakeCaseName()}${lifetimeSpecifier}(input: &${lifetimeRefSpecifier}[u8], ${choiceParameter}) -> IResult<&${lifetimeRefSpecifier}[u8], ${returnType}>`
+        if (this.structEnum.choiceField.isWithoutInput()) {
+            return `pub fn parse_${structEnum.snakeCaseName()}${lifetimeSpecifier}(input: &${lifetimeRefSpecifier}[u8]) -> IResult<&${lifetimeRefSpecifier}[u8], ${returnType}>`
+        } else {
+            // 如果 choice 是用户自定义类型，就接受引用作为参数
+            // const choiceParameterType = choiceField.isUserDefined() ? `&${choiceField.typeName()}` : choiceField.typeName()
+            // const choiceParameter = `${choiceField.name}: ${choiceParameterType}`
+            const choiceParameter = structEnum.choiceField.asEnumParserFunctionParameterSignature()
+
+            return `pub fn parse_${structEnum.snakeCaseName()}${lifetimeSpecifier}(input: &${lifetimeRefSpecifier}[u8], ${choiceParameter}) -> IResult<&${lifetimeRefSpecifier}[u8], ${returnType}>`
+        }
     }
 
 
@@ -79,14 +83,23 @@ export class StructEnumParserGenerator {
             return this.generateMatchArm(variant)
         })
         const parsedEnumVariable = structEnum.snakeCaseName()
-
-        return endent`
-        let (input, ${parsedEnumVariable}) = match ${structEnum.choiceField.asMatchTarget()} {
-            ${choiceArms.join('\n')}
-            ${this.generateErrorArm()}
-        }?;
-        Ok((input, ${parsedEnumVariable}))
-        `
+        // 如果设置了default arm，那么将不会生成再生成error arm作为default arm
+        if (structEnum.variants.filter((variant) => variant.generateChoiceLiteral() === '_').length === 0) {
+            return endent`
+            let (input, ${parsedEnumVariable}) = match ${structEnum.choiceField.asMatchTarget()} {
+                ${choiceArms.join('\n')}
+                ${this.generateErrorArm()}
+            }?;
+            Ok((input, ${parsedEnumVariable}))
+            `
+        } else {
+            return endent`
+            let (input, ${parsedEnumVariable}) = match ${structEnum.choiceField.asMatchTarget()} {
+                ${choiceArms.join('\n')}
+            }?;
+            Ok((input, ${parsedEnumVariable}))
+            `
+        }
     }
 
     generateVariantParserFunctions(): string {

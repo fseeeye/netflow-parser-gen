@@ -5,6 +5,7 @@ import { StructField } from "./struct"
 
 export interface EnumChoice {
     isInline(): boolean
+    isWithoutInput(): boolean
     generateParseAheadStatement?: () => string
     generateParseAheadStatementWithPayloadErrorHandle?: (payloadEnum:PayloadEnum) => string,
     matchTargetExprGenerator?: (matchField: string) => string,
@@ -21,6 +22,10 @@ export class BasicEnumChoice implements EnumChoice {
     ) { }
 
     isInline(): boolean {
+        return false
+    }
+
+    isWithoutInput(): boolean {
         return false
     }
 
@@ -132,6 +137,37 @@ export class InlineChoice extends BasicEnumChoice {
         };`
     }
 }
+
+export class InputLengthChoice implements EnumChoice {
+    isWithoutInput(): boolean {
+        return true
+    }
+
+    isInline(): boolean {
+        return false
+    }
+
+    isFieldRef(): boolean {
+        return false
+    }
+
+    protected matchFieldExpr(): string {
+        return 'input.len()'
+    }
+
+    asMatchTarget(): string {
+        return this.matchFieldExpr()
+    }
+
+    asEnumParserFunctionParameterSignature(): string {
+        throw Error(`InputLengthChoice dont need input :(`)
+    }
+
+    asEnumParserInvocationArgument(): string {
+        throw Error(`InputLengthChoice dont need input :(`)
+    }
+}
+
 
 // export class ChoiceField {
 //     constructor(

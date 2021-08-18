@@ -26,5 +26,4 @@ export class BytesReferenceField extends BaseField {
     parserInvocation(): string {
         return `${NomBytesFunction.take}(${this.lengthVariable.count()})`
     }
-
 }

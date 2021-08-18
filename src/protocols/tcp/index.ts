@@ -14,6 +14,8 @@ import { StructField } from "../../field/struct"
 import { Protocol, ProtocolInfo } from ".././generator"
 import { ModbusReq } from "../modbus-req"
 import { ModbusRsp } from "../modbus-rsp"
+import { FinsTcpReq } from "../fins-tcp-req"
+import { FinsTcpRsp } from "../fins-tcp-rsp"
 
 const protocolName = 'Tcp'
 const headerName = `${protocolName}Header`
@@ -60,7 +62,8 @@ const payload = new PayloadEnum(
     `${payloadName}`,
     info,
     [
-        new PayloadEnumVariant(502, ModbusRsp), 
+        new PayloadEnumVariant(502, ModbusRsp),
+        new PayloadEnumVariant(9600, FinsTcpRsp),
     ],
     new PayloadEnumChoice(
         new StructField(header),
@@ -71,6 +74,7 @@ const payload = new PayloadEnum(
         info,
         [
             new PayloadEnumVariant(502, ModbusReq), 
+            new PayloadEnumVariant(9600, FinsTcpReq),
         ],
         new PayloadEnumChoice(
             new StructField(header),

@@ -13,7 +13,6 @@ import { StructField } from "../../field/struct"
 import { VecField, VecLoopField } from "../../field/vec"
 import { AnonymousStructVariant, EmptyVariant, StructEnum, EmptyPayloadEnum } from "../../types/enum"
 import { Struct } from "../../types/struct"
-import { StructWithLength } from "../../types/struct-with-length"
 import { Protocol, ProtocolInfo } from "../generator"
 
 const protocolName = 'ModbusReq'
@@ -44,7 +43,7 @@ const ReadFileRecordSubRequest = new Struct(
 )
 structs.push(ReadFileRecordSubRequest)
 
-const WriteFileRecordSubRequest = new StructWithLength(
+const WriteFileRecordSubRequest = new Struct(
     'WriteFileRecordSubRequest',
     [
         numeric('ref_type', 'u8'),
@@ -61,6 +60,7 @@ const SimpleReadFields: NumericField[] = [
     numeric('count', 'be_u16'),
 ]
 
+const byte_count = numeric('byte_count', 'u8')
 const Data = new StructEnum(
     'Data',
     [
@@ -93,7 +93,7 @@ const Data = new StructEnum(
             [
                 numeric('start_address', 'be_u16'),
                 numeric('output_count', 'be_u16'),
-                numeric('byte_count', 'u8'),
+                byte_count,
                 numVec('output_values', createCountVar('byte_count'), 'u8'),
             ]
         ),
@@ -103,7 +103,7 @@ const Data = new StructEnum(
             [
                 numeric('start_address', 'be_u16'),
                 numeric('output_count', 'be_u16'),
-                numeric('byte_count', 'u8'),
+                byte_count,
                 numVec('output_values',
                     //  { name: 'output_count', unitSize: 2 }, 
                     createCountVar('byte_count'),
@@ -115,7 +115,7 @@ const Data = new StructEnum(
             0x14,
             'ReadFileRecord',
             [
-                numeric('byte_count', 'u8'),
+                byte_count,
                 new VecField('sub_requests',
                     createCountVarWithUnitSize('byte_count', 7, 'div'),
                     ReadFileRecordSubRequest),
@@ -125,10 +125,10 @@ const Data = new StructEnum(
             0x15,
             'WriteFileRecord',
             [
-                numeric('byte_count', 'u8'),
+                byte_count,
                 new VecLoopField('sub_requests',
                     WriteFileRecordSubRequest,
-                    numeric('byte_count', 'u8')),
+                    byte_count),
             ]
         ),
         new AnonymousStructVariant(

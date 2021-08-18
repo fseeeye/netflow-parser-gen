@@ -9,7 +9,6 @@ export interface Field {
     parserInvocation(): string // <u8, be_u16, ...> field被调用时所生成的内容
     parserImplementation?(): string // 该feild用户实现的解析函数
     generateParseStatement(): string // 生成parser中对该field的解析语句
-    hasFunction(): boolean
     generateFunction?(): string
     // validateDependency?: (prevFields: FieldRe[]) => boolean
 }
@@ -24,9 +23,6 @@ export abstract class BaseField implements Field {
     abstract typeName(): string
     abstract parserInvocation(): string
     // abstract definition?(): string
-    hasFunction(): boolean {
-        return false
-    }
 
     definition(visibility: VisibilityType): string {
         return `${visibility} ${this.name}: ${this.typeName()},`

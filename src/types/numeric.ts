@@ -5,7 +5,8 @@ enum BuiltInNumericTypeName {
     u8 = 'u8',
     u16 = 'u16',
     u32 = 'u32',
-    u64 = 'u64',
+	u64 = 'u64',
+	usize = 'usize',
 }
 
 
@@ -24,12 +25,6 @@ export class NumericType implements FieldType {
     isUserDefined(): boolean {
         return false
     }
-
-    // hasConstrain(): boolean {
-    //     return false
-    // }
-
-    // getName(): BuiltInNumericTypeName { return this._name }
 
     // 对应nom的相应解析函数名，如be_u16
     parserFunctionName(): string {
@@ -52,7 +47,7 @@ export const BuiltInNumericType = {
     le_u64: new NumericType(BuiltInNumericTypeName.u64, NomNumberFunction.le_u64, 64),
 }
 
-export type BuiltinNumericTypeName = 'u8' | 'be_u16' | 'be_u32' | 'be_u64' | 'le_u16' | 'le_u32' | 'le_u64'
+export type BuiltinNumericTypeName = | 'usize' | 'u8' | 'be_u16' | 'be_u24' | 'be_u32' | 'be_u64' | 'le_u16' | 'le_u32' | 'le_u64'
 
 const BuiltinNumericTypes: Map<BuiltinNumericTypeName, NumericType> = new Map([
     ['u8', new NumericType(BuiltInNumericTypeName.u8, NomNumberFunction.u8, 8)],
@@ -61,7 +56,9 @@ const BuiltinNumericTypes: Map<BuiltinNumericTypeName, NumericType> = new Map([
     ['be_u64', new NumericType(BuiltInNumericTypeName.u64, NomNumberFunction.be_u64, 64),],
     ['le_u16', new NumericType(BuiltInNumericTypeName.u16, NomNumberFunction.le_u16, 16),],
     ['le_u32', new NumericType(BuiltInNumericTypeName.u32, NomNumberFunction.le_u32, 32),],
-    ['le_u64', new NumericType(BuiltInNumericTypeName.u64, NomNumberFunction.le_u64, 64),],
+	['le_u64', new NumericType(BuiltInNumericTypeName.u64, NomNumberFunction.le_u64, 64),],
+	['be_u24', new NumericType(BuiltInNumericTypeName.u32, NomNumberFunction.be_u24, 32),],
+	['usize', new NumericType(BuiltInNumericTypeName.usize, NomNumberFunction.usize, 64),],
 ])
 
 export function getBuildinNumericTypeByTypeName(typeName: BuiltinNumericTypeName): NumericType | undefined {
