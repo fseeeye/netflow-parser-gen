@@ -1,6 +1,6 @@
 {
   "name": "parser-gen",
-  "version": "0.5.2",
+  "version": "0.5.1",
   "description": "Boilerplate for TypeScript projects (Node.js and browser modules)",
   "author": "Chris Hager <chris@linuxuser.at>",
   "repository": "https://github.com/metachris/typescript-boilerplate",
