@@ -1,11 +1,9 @@
 // import { Ipv6 } from "./index"
 
-const answer = ``
-
 test('test ipv6', () => {
     // console.log(Ipv6.generateParser())
     // expect(
     //     `\n` + Ipv6.generateParser()
     // ).toEqual(answer)
-    expect(``).toEqual(answer)
+    expect(``).toEqual(``)
 })

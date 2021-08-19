@@ -10,7 +10,7 @@ import { EnumField } from "../../field/enum"
 import { NumericField } from "../../field/numeric"
 // import { PayloadField } from "../../field/payload"
 import { StructField } from "../../field/struct"
-import { VecField, VecLoopField } from "../../field/vec"
+import { LimitedVecLoopField, VecField } from "../../field/vec"
 import { AnonymousStructVariant, EmptyVariant, StructEnum, EmptyPayloadEnum } from "../../types/enum"
 import { Struct } from "../../types/struct"
 import { Protocol, ProtocolInfo } from "../generator"
@@ -126,7 +126,7 @@ const Data = new StructEnum(
             'WriteFileRecord',
             [
                 byte_count,
-                new VecLoopField('sub_requests',
+                new LimitedVecLoopField('sub_requests',
                     WriteFileRecordSubRequest,
                     byte_count),
             ]

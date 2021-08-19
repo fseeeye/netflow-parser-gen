@@ -6,7 +6,7 @@ import { AnonymousStructVariant, StructEnum} from "../types/enum"
 import { EnumField } from "../field/enum"
 import { Field } from "./base"
 import { NumericField } from "./numeric"
-import { VecField, VecLoopField } from "./vec"
+import { LimitedVecLoopField, UnlimitedVecLoopField, VecField } from "./vec"
 import { createCountVar, createCountVarWithUnitSize } from "../api/input"
 import { BytesReferenceField } from "./ref"
 import { bytesRef, numeric } from "../api"
@@ -146,7 +146,7 @@ test('test struct with vec loop (with lengthNum)', () => {
 
     const fields: Field[] = [   
         new NumericField('byte_count', BuiltInNumericType.u8),
-        new VecLoopField('sub_req', WriteFileRecordSubRequest, numeric('byte_count', 'u8')),
+        new LimitedVecLoopField('sub_req', WriteFileRecordSubRequest, numeric('byte_count', 'u8')),
     ]
 
     const WriteFileRecord = new Struct('WriteFileRecord', fields)
@@ -283,7 +283,7 @@ test('test struct with vec loop (without lengthNum)', () => {
 
     const fields: Field[] = [
         numeric('rsp_code', 'be_u16'),
-        new VecLoopField('data', MultipleMemoryAreaReadItem),
+        new UnlimitedVecLoopField('data', MultipleMemoryAreaReadItem),
     ]
     const MultipleMemoryAreaRead = new Struct('MultipleMemoryAreaRead', fields)
 

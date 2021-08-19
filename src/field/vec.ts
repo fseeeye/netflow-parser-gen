@@ -73,14 +73,10 @@ export class BitVecField extends BaseField {
 }
 
 // 用于解析未知长度的vec
-// 有如下两种情况：
-// 1. 有指导field来标明该vec应解析的范围，但不能计算出vec所包含的元素个数（即，元素长度可变）
-// 2. 无指导field，此时需要对所剩input全部解析
-export class VecLoopField extends BaseField {
+abstract class VecLoopField extends BaseField {
     constructor(
         readonly name: string,
         readonly elementType: FieldType,
-        readonly lengthNum?: NumericField
     ){
         super(name)
     }
@@ -104,104 +100,86 @@ export class VecLoopField extends BaseField {
         return `get_${this.name}_with_${snakeCase(this.elementType.typeName())}`
     }
 
+    abstract generateFunction(): string 
+    abstract generateParseStatement(): string 
+}
+
+// 用于：有指导field来标明该vec应解析的范围，但不能计算出vec所包含的元素个数（即，元素长度可变）
+export class LimitedVecLoopField extends VecLoopField {
+    constructor(
+        readonly name: string,
+        readonly elementType: FieldType,
+        readonly lengthNum: NumericField,
+    ){
+        super(name, elementType)
+    }
+
     generateFunction(): string {
-        if (this.lengthNum !== undefined) {
-            const elementParserFunc = this.elementType.parserFunctionName()
-            const elementTypeName = this.elementType.typeName()
-            const name = this.name
-            
-            const code = endent`
-            fn ${this.parserInvocation()}(input: &[u8], ${this.lengthNum.name}: ${this.lengthNum.typeName()}) -> IResult<&[u8], Vec<${elementTypeName}>> {
-                let mut ${name} = Vec::new();
-                let mut _${name}: ${elementTypeName};
-                let mut input = input;
-                let len_flag = input.len() - ${this.lengthNum.name} as usize;
+        const elementParserFunc = this.elementType.parserFunctionName()
+        const elementTypeName = this.elementType.typeName()
+        const name = this.name
+        
+        const code = endent`
+        fn ${this.parserInvocation()}(input: &[u8], ${this.lengthNum.name}: ${this.lengthNum.typeName()}) -> IResult<&[u8], Vec<${elementTypeName}>> {
+            let mut ${name} = Vec::new();
+            let mut _${name}: ${elementTypeName};
+            let mut input = input;
+            let len_flag = input.len() - ${this.lengthNum.name} as usize;
 
-                while input.len() > len_flag {
-                    (input, _${name}) = ${elementParserFunc}(input)?;
-                    ${name}.push(_${name});
-                }
-
-                Ok((
-                    input,
-                    ${name}
-                ))
+            while input.len() > len_flag {
+                (input, _${name}) = ${elementParserFunc}(input)?;
+                ${name}.push(_${name});
             }
-            `
-            return code
-        } else {
-            const elementParserFunc = this.elementType.parserFunctionName()
-            const elementTypeName = this.elementType.typeName()
-            const name = this.name
 
-            const code = endent`
-            fn ${this.parserInvocation()}(input: &[u8]) -> IResult<&[u8], Vec<${elementTypeName}>> {
-                let mut ${name} = Vec::new();
-                let mut _${name}: ${elementTypeName};
-                let mut input = input;
-
-                while input.len() > 0 {
-                    (input, _${name}) = ${elementParserFunc}(input)?;
-                    ${name}.push(_${name});
-                }
-
-                Ok((
-                    input,
-                    ${name}
-                ))
-            }
-            `
-            return code
+            Ok((
+                input,
+                ${name}
+            ))
         }
+        `
+        return code
     }
 
     generateParseStatement(): string {
-        if (this.lengthNum !== undefined) {
-            return `let (input, ${this.name}) = ${this.parserInvocation()}(input, ${this.lengthNum.name})?;`
-        } else {
-            return `let (input, ${this.name}) = ${this.parserInvocation()}(input)?;`
-        }
+        return `let (input, ${this.name}) = ${this.parserInvocation()}(input, ${this.lengthNum.name})?;`
     }
 }
 
-// export class LoopField extends BaseField {
+// 用于：无指导field，此时需要对所剩input全部解析
+export class UnlimitedVecLoopField extends VecLoopField {
+    constructor(
+        readonly name: string,
+        readonly elementType: FieldType,
+    ){
+        super(name, elementType)
+    }
 
-// 	constructor(
-// 		readonly struct: Struct,
-// 		readonly resName: string,
-// 	) {
-// 		super(resName || struct.snakeCaseName())
-// 	}
+    generateFunction(): string {
+        const elementParserFunc = this.elementType.parserFunctionName()
+        const elementTypeName = this.elementType.typeName()
+        const name = this.name
 
-// 	isRef() {
-// 		return this.struct.isRef()
-// 	}
+        const code = endent`
+        fn ${this.parserInvocation()}(input: &[u8]) -> IResult<&[u8], Vec<${elementTypeName}>> {
+            let mut ${name} = Vec::new();
+            let mut _${name}: ${elementTypeName};
+            let mut input = input;
 
-// 	isUserDefined() {
-// 		return true
-// 	}
+            while input.len() > 0 {
+                (input, _${name}) = ${elementParserFunc}(input)?;
+                ${name}.push(_${name});
+            }
 
-// 	typeName(): string {
-// 		if (this.isRef()) {
-// 			return `Vec<${this.struct.name}<'a>>`
-// 		}
-// 		return `Vec<${this.struct.name}>`
-// 	}
+            Ok((
+                input,
+                ${name}
+            ))
+        }
+        `
+        return code
+    }
 
-// 	parserInvocation() {
-// 		return this.struct.parserFunctionName()
-// 	}
-
-// 	generateParseStatement() {
-// 		return `let mut input = input;
-// 		let mut ${this.resName} = Vec::new();
-// 		let mut item:${this.struct.name};
-// 		loop{
-// 			if input.len()<=0{
-// 				break;
-// 			}
-// 			(input,item) = parse_${this.struct.snakeCaseName()}(input)?;
-// 			${this.resName}.push(item);
-// 		}`
-// 	}
-// }
+    generateParseStatement(): string {
+        return `let (input, ${this.name}) = ${this.parserInvocation()}(input)?;`
+    }
+}

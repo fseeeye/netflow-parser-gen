@@ -7,7 +7,7 @@ import {
 import { BasicEnumChoice, InputLengthChoice } from "../../field/choice"
 import { Field } from "../../field/base"
 import { EnumField } from "../../field/enum"
-import { VecField, VecLoopField } from "../../field/vec"
+import { UnlimitedVecLoopField, VecField } from "../../field/vec"
 import { StructField } from "../../field/struct"
 import { AnonymousStructVariant, StructEnum, EmptyPayloadEnum, EmptyVariant } from "../../types/enum"
 import { Struct } from "../../types/struct"
@@ -282,7 +282,7 @@ const Order = new StructEnum(
 		]),
 		new AnonymousStructVariant(0x0104, 'MultipleMemoryAreaRead', [
 			numeric('rsp_code', 'be_u16'),
-			new VecLoopField('data', MultipleMemoryAreaReadItem)
+			new UnlimitedVecLoopField('data', MultipleMemoryAreaReadItem)
 		]),
 		new AnonymousStructVariant(0x0105, 'MemoryAreaTransfer', [
 			numeric('rsp_code', 'be_u16')
@@ -303,7 +303,7 @@ const Order = new StructEnum(
 		new AnonymousStructVariant(0x0220, 'DataLinkTableRead', [
 			numeric('rsp_code', 'be_u16'),
 			numeric('number_of_link_nodes', 'u8'),
-			new VecLoopField('data', DLTBLockDataItem),
+			new UnlimitedVecLoopField('data', DLTBLockDataItem),
 		]),
 		new AnonymousStructVariant(0x0221, 'DataLinkTableRWrite', [
 			numeric('rsp_code', 'be_u16'),
@@ -342,8 +342,7 @@ const Order = new StructEnum(
 		new AnonymousStructVariant(0x0502, 'ConnectionDataRead', [
 			numeric('rsp_code', 'be_u16'),
 			numeric('number_of_units', 'u8'),
-			new VecLoopField('data', ConnectionDataReadDataItem),
-			//new VecField('data', createCountVarWithUnitSize('input.len()', 21, 'div'), ConnectionDataReadDataItem)
+			new UnlimitedVecLoopField('data', ConnectionDataReadDataItem),
 		]),
 		new AnonymousStructVariant(0x0601, 'ControllerStatusRead', [
 			numeric("rsp_code", 'be_u16'),
@@ -416,7 +415,7 @@ const Order = new StructEnum(
 			numeric("max_number_of_stored_records", 'be_u16'),
 			numeric("number_of_stored_records", 'be_u16'),
 			numeric("number_of_records", 'be_u16'),
-			new VecLoopField('error_log_data', ErrorLogReadDataItem)
+			new UnlimitedVecLoopField('error_log_data', ErrorLogReadDataItem)
 		]),
 		new AnonymousStructVariant(0x2103, 'ErrorLogClear', [
 			numeric("rsp_code", 'be_u16'),
@@ -425,7 +424,7 @@ const Order = new StructEnum(
 			numeric("rsp_code", 'be_u16'),
 			new StructField(FileNameReadDiskDataItem, "disk_data"),
 			numeric("number_of_files", 'be_u16'),
-			new VecLoopField('error_log_data', FileNameReadFileDataItem)
+			new UnlimitedVecLoopField('error_log_data', FileNameReadFileDataItem)
 		]),
 		new AnonymousStructVariant(0x2202, 'SingleFileRead', [
 			numeric("rsp_code", 'be_u16'),
@@ -470,7 +469,7 @@ const Order = new StructEnum(
 			numeric("number_of_blocks_remaining", 'be_u16'),
 			numeric("total_number_of_blocks", 'be_u16'),
 			numeric("omron_type", 'u8'),
-			new VecLoopField("data", FileMemoryIndexReadDataItem)
+			new UnlimitedVecLoopField("data", FileMemoryIndexReadDataItem)
 		]),
 		new AnonymousStructVariant(0x2210, 'FileMemoryRead', [
 			numeric("rsp_code", 'be_u16'),
