@@ -168,6 +168,46 @@ export class InputLengthChoice implements EnumChoice {
     }
 }
 
+export class ArgsBitOperatorChoice implements EnumChoice {
+	constructor(
+		readonly field: Field,
+		readonly mod: string,
+		readonly operand: string,
+		readonly matchTargetExprGenerator?: (matchField: string) => string,
+	) { }
+
+	isInline(): boolean {
+		return false
+	}
+
+	isWithoutInput(): boolean {
+		return false
+	}
+
+	isFieldRef(): boolean {
+		return this.field.isRef()
+	}
+
+	protected matchFieldExpr(): string {
+		return this.field.name
+	}
+
+	asMatchTarget(): string {
+		const matchField = this.matchFieldExpr()
+		if (this.matchTargetExprGenerator === undefined) {
+			return matchField
+		}
+		return this.matchTargetExprGenerator(matchField)
+	}
+
+	asEnumParserFunctionParameterSignature(): string {
+		return `${this.field.name}: ${this.field.typeName()}`
+	}
+
+	asEnumParserInvocationArgument(): string {
+		return this.matchFieldExpr() + '.bit' + this.mod + '(' + this.operand + ')'
+	}
+}
 
 // export class ChoiceField {
 //     constructor(
