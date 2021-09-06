@@ -13,6 +13,7 @@ export interface EnumChoice {
     asEnumParserFunctionParameterSignature(): string
     asEnumParserInvocationArgument(): string
     isFieldRef(): boolean
+    getChoiceFieldName(): string
 }
 
 export class BasicEnumChoice implements EnumChoice {
@@ -51,6 +52,10 @@ export class BasicEnumChoice implements EnumChoice {
 
     asEnumParserInvocationArgument(): string {
         return this.matchFieldExpr()
+    }
+
+    getChoiceFieldName(): string {
+        return this.field.name
     }
 }
 
@@ -165,6 +170,10 @@ export class InputLengthChoice implements EnumChoice {
 
     asEnumParserInvocationArgument(): string {
         throw Error(`InputLengthChoice dont need input :(`)
+    }
+
+    getChoiceFieldName(): string {
+        return ''
     }
 }
 

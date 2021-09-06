@@ -1,6 +1,5 @@
 import endent from "endent"
 import { snakeCase } from "snake-case"
-// import { strict } from "yargs"
 import { StructEnum, AnonymousStructVariant, EnumVariant, PayloadEnum, EmptyPayloadEnum, isEmptyPayloadEnum, PayloadEnumVariant } from "../types/enum"
 import { removeDuplicateByKey } from "../utils"
 import { StructParserGenerator } from "./struct"
@@ -234,26 +233,3 @@ export class PayloadEnumParserGenerator {
         throw Error(`PayloadEnumParserGenerator dont impl generateParser()`)
     }
 }
-
-// export class StructEnumWithInlineChoiceParserGenerator extends StructEnumParserGenerator {
-//     functionSignature() {
-//         const structEnum = this.structEnum
-//         return `pub fn parse_${structEnum.snakeCaseName()}(input: &[u8]) -> IResult<&[u8], ${structEnum.name}>`
-//     }
-
-//     private generatePeekChoice() {
-//         const choicField = this.structEnum.choiceField
-//         return `let (input, ${choicField.asMatchTarget()}) = peek(${choicField.field.parserInvocation()})(input)?;`
-//     }
-
-//     generateEnumParser() {
-//         const signature = this.functionSignature()
-//         const parserBlock = endent`{
-//             ${this.generatePeekChoice()}
-//             ${this.generateMatchBlock()}
-//         }`
-//         return endent`
-//         ${signature} ${parserBlock}
-//         `
-//     }
-// }

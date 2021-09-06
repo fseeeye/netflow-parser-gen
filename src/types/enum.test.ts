@@ -4,7 +4,7 @@ import { BasicEnumChoice } from "../field/choice"
 import { NumericField } from "../field/numeric"
 import { BytesReferenceField } from "../field/ref"
 import { StructEnumParserGenerator } from "../parser/enum"
-import { AnonymousStructVariant, EnumVariant, StructEnum, NamedStructVariant, NamedEnumVariant, EmptyVariant } from "./enum"
+import { AnonymousStructVariant, EnumVariant, StructEnum, NamedStructVariant, NamedEnumVariant, EofVariant } from "./enum"
 import { BuiltInNumericType } from "./numeric"
 import { Struct } from "./struct"
 
@@ -256,7 +256,7 @@ test('enum with user defined variants', () => {
                 createNumericField({ name: 'output_address', typeName: 'be_u16' }),
                 createNumericField({ name: 'output_value', typeName: 'be_u16' }),
             ]),
-            new EmptyVariant(0x0b, 'GetCommEventCounter'),
+            new EofVariant(0x0b, 'GetCommEventCounter'),
         ],
         new BasicEnumChoice(createNumericField({ name: 'function_code', typeName: 'u8' })),
     )
@@ -320,7 +320,7 @@ test('enum with user defined variants with reference', () => {
                 createNumericField({ name: 'output_address', typeName: 'be_u16' }),
                 createNumericField({ name: 'output_value', typeName: 'be_u16' }),
             ]),
-            new EmptyVariant(0x0b, 'GetCommEventCounter'),
+            new EofVariant(0x0b, 'GetCommEventCounter'),
         ],
         new BasicEnumChoice(createNumericField({ name: 'function_code', typeName: 'u8' })),
     )

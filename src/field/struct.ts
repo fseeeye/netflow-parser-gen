@@ -1,5 +1,8 @@
+import endent from "endent"
+import { snakeCase } from "snake-case"
 import { StructParserGenerator } from "../parser/struct"
 import { Struct } from "../types/struct"
+import { generateSerdeAttributesCode } from "../utils"
 import { BaseField } from "./base"
 
 
@@ -24,6 +27,14 @@ export class StructField extends BaseField {
     //     return this.struct.definition()
     // }
 
+    definitionRuleArg(): string {
+        const serdeAttributes = generateSerdeAttributesCode(['flatten'])
+        return endent`
+            ${serdeAttributes}
+            pub ${this.struct.snakeCaseName()}: Option<${this.struct.name}>,
+        `
+    }
+
     typeName(): string {
         if (this.isRef()) {
             return `${this.struct.name}<'a>`
@@ -44,5 +55,26 @@ export class StructField extends BaseField {
         return `let (input, ${this.name}) = ${this.parserInvocation()}(input)?;`
     }
 
-   
+    generateDetectCode(parentType: "Struct" | "StructEnum", parentName: string): string {
+        const name = this.name
+
+        if (parentType === "Struct") {
+            return endent`
+                if let Some(${name}) = &self.${name} {
+                    if !${name}.check_arg(&${snakeCase(parentName)}.${name}) {
+                        return false
+                    }
+                }
+            `
+        } else { // s instanceof StructEnum
+            // 此时属于Enum中某variant的field
+            return endent`
+                if let Some(${name}) = ${name} {
+                    if !${name}.check_arg(_${name}) {
+                        return false
+                    }
+                }
+            `
+        }
+    }
 }

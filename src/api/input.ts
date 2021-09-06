@@ -3,7 +3,7 @@ import { FixSizedBytes } from "../field/fix-sized-bytes"
 import { NumericField } from "../field/numeric"
 import { BytesReferenceField } from "../field/ref"
 import { BitVecField, VecField } from "../field/vec"
-import { CountVariable } from "../len"
+import { CountVariable } from "../utils/variables"
 import { BuiltinNumericTypeName, getBuildinNumericTypeByTypeName } from "../types/numeric"
 
 export interface NumericFieldConfig {

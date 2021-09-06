@@ -1,10 +1,5 @@
-import { snakeCase } from "snake-case"
-import { generateNomImport } from "../nom"
-import { StructEnum, PayloadEnum, EmptyPayloadEnum } from "../types/enum"
-import { Struct } from "../types/struct"
-import * as path from "path"
 import endent from "endent"
-
+import { Struct } from "../types/struct"
 
 export type ProtocolLevel = 'L1' | 'L2' | 'L3' | 'L4' | 'L5'
 export type LevelLayerName = 'LinkLayer' | 'NetworkLayer' | 'TransportLayer' | 'ApplicationLayer'
@@ -24,6 +19,16 @@ export class ProtocolInfo {
             case 'L3': return 'NetworkLayer'
             case 'L4': return 'TransportLayer'
             case 'L5': return 'ApplicationLayer'
+        }
+    }
+
+    getLevelLayerTypeName(flag: 0 | 1 = 1): string {
+        switch(this.level) {
+            case 'L1': throw Error(`L1 dont have layer type name`)
+            case 'L2': return flag ? 'LayerType::Link' : 'LinkLayerType'
+            case 'L3': return flag ? 'LayerType::Network' : 'NetworkLayerType'
+            case 'L4': return flag ? 'LayerType::Transport' : 'TransportLayerType'
+            case 'L5': return flag ? 'LayerType::Application' : 'ApplicationLayerType'
         }
     }
 
@@ -138,93 +143,5 @@ export class ProtocolInfo {
                 }
             )`
         }
-    }
-}
-
-export interface ProtocolDefinition {
-    info: ProtocolInfo,
-    payload: PayloadEnum | EmptyPayloadEnum,
-    structs: (Struct | StructEnum)[],
-}
-
-export class Protocol {
-    constructor(
-        readonly definition: ProtocolDefinition
-    ) { }
-    
-    getName(): string {
-        return this.definition.info.name
-    }
-
-    getLevel(): ProtocolLevel {
-        return this.definition.info.level
-    }
-
-    getHeader(): Struct {
-        return this.definition.info.header
-    }
-
-    isRef(): boolean {
-        return this.getHeader().isRef()
-    }
-
-    generateParser(): string {
-        const { structs } = this.definition
-        const nomImports = generateNomImport() // 文件顶部导入nom依赖
-        const HeaderDef = this.getHeader().definition() // 生成protocol的header定义
-        const PayloadDef = this.definition.payload.definition() // 生成payload所需imports
-        const structDefs = structs.map(s => s.definition()) // 生成除packet/header/payload之外struct的定义
-        const parserHeader = this.getHeader().parserFunctionDefinition() // 生成Header的parser函数
-        const parserFunctions = structs.map(s => s.parserFunctionDefinition()) // 生成除packet/header/payload之外struct的parser函数
-        const parserLayer = this.generateLayerParser() // 生成该协议的layer parser
-
-        const rst = [nomImports, PayloadDef, HeaderDef, parserHeader, parserLayer]
-        if (structDefs.length > 0) {rst.push(structDefs.join(`\n\n`))}
-        if (parserFunctions.length > 0) {rst.push(parserFunctions.join(`\n\n`))}
-        return rst.join(`\n\n`)
-    }
-    
-    generateModName(): string {
-        return snakeCase(this.getName())
-    }
-    
-    generateFilename(directory: string): string {
-        const filename = `${this.generateModName()}.rs`
-        return path.join(directory, filename)
-    }
-
-    generateHeadername(): string {
-        if (this.isRef()) {
-            return `${this.getName()}Header<'a>`
-        }
-        return `${this.getName()}Header`
-    }
-
-    generateLayerParser(): string {
-        const headerSnakeName = this.getHeader().snakeCaseName()
-        const protocolName = this.getName()
-        const layerLevelName = this.definition.info.getLevelLayerName()
-        const layerStatement = `let ${snakeCase(layerLevelName)} = ${layerLevelName}::${protocolName}(${headerSnakeName});`
-
-        const parseHeaderBlock = endent`let (input, ${headerSnakeName}) = match ${this.getHeader().parserFunctionName()}(input) {
-            Ok(o) => o,
-            Err(_e) => {
-                ${this.definition.info.returnLevelPacket(true, true)}
-            }
-        };`
-        const optionsBlock = endent`if Some(current_layertype) == options.stop {
-            ${layerStatement}
-            ${this.definition.info.returnLevelPacket()}
-        };`
-
-        return endent`pub(crate) fn parse_${snakeCase(this.getName())}_layer${this.definition.info.getLevelLifeTime()}${this.definition.info.getLevelLayerArgs()} -> QuinPacket${this.definition.info.getLevelLifeTime()} {
-            let current_layertype = LayerType::${protocolName};
-
-            ${parseHeaderBlock}
-
-            ${optionsBlock}
-
-            ${this.definition.payload.parserFunctionBody()}
-        }`
     }
 }

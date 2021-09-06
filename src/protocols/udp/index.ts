@@ -1,6 +1,7 @@
 import { Struct } from "../../types/struct"
 import { numeric } from "../../api/index"
-import { Protocol, ProtocolInfo } from "../generator"
+import { Protocol } from "../protocol"
+import { ProtocolInfo } from "../protocol-info"
 // import { PayloadField } from "../../field/payload"
 import { PayloadEnumChoice } from "../../field/choice"
 import { StructEnum, PayloadEnum, PayloadEnumVariant } from "../../types/enum"

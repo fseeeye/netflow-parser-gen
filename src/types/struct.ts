@@ -1,23 +1,10 @@
 import endent from "endent"
 import { snakeCase } from "snake-case"
-import { Field, VisibilityType } from "../field/base"
+import { Field } from "../field/base"
 import { FieldType } from "./base"
 import { StructParserGenerator } from "../parser/struct"
 import { generateAttributesCode } from "../utils"
-// import { BytesReferenceField, BYTES_REF_TYPENAME } from "../field/ref"
-
-// function validateReferenceDependency(fields: Field[]) {
-//     fields.forEach((field, index) => {
-//         if (field.typeName() !== BYTES_REF_TYPENAME) {
-//             return
-//         }
-//         const depdendencyName = (field as BytesReferenceField).lengthVariable.name
-//         const prevFieldNames = fields.slice(0, index).map(field => field.name)
-//         if (prevFieldNames.includes(depdendencyName) === false) {
-//             throw Error(`bytes reference dependency check failed: length variable for ${field.name} : ${depdendencyName} not found!`)
-//         }
-//     })
-// }
+import { VisibilityType } from "../utils/variables"
 
 
 export class Struct implements FieldType {
@@ -25,9 +12,7 @@ export class Struct implements FieldType {
     constructor(
         readonly name: string,
         readonly fields: Field[],
-    ) {
-        // validateReferenceDependency(fields)
-    }
+    ) {}
 
     typeName(): string {
         return this.name
@@ -82,30 +67,55 @@ export class Struct implements FieldType {
         return [attributes, def].join(`\n`)
     }
 
-    // // unused
-    // private userDefinedFieldDefinitions() {
-    //     const userDefinedFields = removeDuplicateByKey(
-    //         this.fields.filter((field) => field.isUserDefined()),
-    //         (field) => field.typeName()
-    //     )
-
-    //     const userDefinedFieldDefs = userDefinedFields.map((field) => {
-    //         if (field.definition === undefined) {
-    //             const fieldSignature = '`' + `${field.name}:${field.typeName()}` + '`'
-    //             throw Error(`user defined field ${fieldSignature} has no definition!`)
-    //         }
-    //         return field.definition(this.visibilitySpecifier())
-    //     })
-
-    //     return userDefinedFieldDefs.join(`\n\n`)
-    // }
-
-    // // unused
-    // definitionWithFields(): string {
-    //     return [this.userDefinedFieldDefinitions(), this.definition()].join(`\n\n`)
-    // }
-
     snakeCaseName(): string {
         return snakeCase(this.name)
+    }
+
+    protected generateRuleArgFields(pub = true): string {
+        const fieldLines = this.fields
+            .map((field) => {
+                if (field.definitionRuleArg !== undefined) {
+                    return field.definitionRuleArg()
+                } else {
+                    throw Error(`${field.name}(${field.constructor.name}) unimpl Field.definitionRuleArg()`)
+                }
+            })
+            .filter((str) => str.length != 0) // 去掉定义内容为空的string
+
+        return endent`${pub ? fieldLines.join('\n') : fieldLines.map(s => s.replace(/^pub /g, '')).join('\n')}`
+    }
+
+    detectorDefinition(rename: string | undefined = undefined): string {
+        const serdeDerive = generateAttributesCode(['Serialize', 'Deserialize', 'Debug'])
+        
+        return endent`
+            ${serdeDerive}
+            pub struct ${rename === undefined? this.name : rename} {
+                ${this.generateRuleArgFields()}
+            }
+        `
+    }
+
+    // 生成struct的check_arg方法代码
+    detectorFunctionDefinition(modName: string, rename: string | undefined = undefined): string {
+        // 生成struct所有有效feilds的比较代码
+        const fieldDetectCodes: (string)[] = []
+        this.fields.forEach(f => {
+            if (f.generateDetectCode !== undefined) {
+                fieldDetectCodes.push(f.generateDetectCode("Struct", this.name))
+            }
+            else {
+                console.log(`${this.name} Filtered Field:`, f)
+            }
+        })
+        
+        return endent`
+            impl ${rename === undefined? this.name : rename} {
+                pub fn check_arg(&self, ${this.snakeCaseName()}: &${modName}::${this.name}) -> bool {
+                    ${fieldDetectCodes.join('\n').concat('\n')}
+                    true
+                }
+            }
+        `
     }
 }

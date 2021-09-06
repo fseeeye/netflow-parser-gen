@@ -20,6 +20,10 @@ yarn test
 ```
 ts-node ./src/tooling/cli.ts generate -o <随便指定一个目录>
 ```
+or
+```
+yarn cli generate -o <随便指定一个目录>
+```
 
 ## 设计简述
 

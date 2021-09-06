@@ -9,9 +9,10 @@ import { Field } from "../../field/base"
 import { VecField } from "../../field/vec"
 import { EnumField, } from "../../field/enum"
 import { StructField } from "../../field/struct"
-import { AnonymousStructVariant, StructEnum, EmptyPayloadEnum, EmptyVariant } from "../../types/enum"
+import { AnonymousStructVariant, StructEnum, EmptyPayloadEnum, EofVariant } from "../../types/enum"
 import { Struct } from "../../types/struct"
-import { Protocol, ProtocolInfo } from "../generator"
+import { Protocol } from "../protocol"
+import { ProtocolInfo } from "../protocol-info"
 
 const protocolName = 'FinsTcpReq'
 const headerName = `${protocolName}Header`
@@ -149,7 +150,7 @@ const Order = new StructEnum(
 			numeric("program_number", 'be_u16'),
 			bytesRef('mode_code', createCountVar('input.len()'))
 		]),
-		new EmptyVariant(0x0402, 'Stop'),
+		new EofVariant(0x0402, 'Stop'),
 		new AnonymousStructVariant(0x0501, 'ControllerDataRead', [
 			bytesRef('command_data', createCountVar('input.len()'))
 		]),
@@ -157,12 +158,12 @@ const Order = new StructEnum(
 			numeric("unit_address", 'u8'),
 			bytesRef('number_of_units', createCountVar('input.len()'))
 		]),
-		new EmptyVariant(0x0601, 'ControllerStatusRead'),
-		new EmptyVariant(0x0603, 'DataLinkStatusRead'),
+		new EofVariant(0x0601, 'ControllerStatusRead'),
+		new EofVariant(0x0603, 'DataLinkStatusRead'),
 		new AnonymousStructVariant(0x0620, 'CycleTimeRead', [
 			numeric("initializes_cycle_time", 'u8')
 		]),
-		new EmptyVariant(0x0701, 'ClcokRead'),
+		new EofVariant(0x0701, 'ClcokRead'),
 		new AnonymousStructVariant(0x0702, 'ClcokWrite', [
 			numeric("year", 'u8'),
 			numeric("month", 'u8'),
@@ -174,7 +175,7 @@ const Order = new StructEnum(
 		new AnonymousStructVariant(0x0801, 'LoopBackTest', [
 			bytesRef('data', createCountVar('input.len()'))
 		]),
-		new EmptyVariant(0x0802, 'BroadcastTestResultsRead'),
+		new EofVariant(0x0802, 'BroadcastTestResultsRead'),
 		new AnonymousStructVariant(0x0803, 'BroadcastTestDataSend', [
 			bytesRef('data', createCountVar('input.len()'))
 		]),
@@ -197,7 +198,7 @@ const Order = new StructEnum(
 			numeric("beginning_record", 'be_u16'),
 			numeric("record_numbers", 'be_u16'),
 		]),
-		new EmptyVariant(0x2103, 'ErrorLogClear'),
+		new EofVariant(0x2103, 'ErrorLogClear'),
 		new AnonymousStructVariant(0x2201, 'FileNameRead', [
 			numeric("disk_number", 'be_u16'),
 			numeric("beginning_file_position", 'be_u16'),
@@ -286,7 +287,7 @@ const Order = new StructEnum(
 			numeric("number_of_bits_flags", 'be_u16'),
 			new VecField("data", createCountVarWithUnitSize("input.len()", 6, 'div'), ForcedSetOrResetDataItem)
 		]),
-		new EmptyVariant(0x2302, 'ForcedSetOrResetCancel'),
+		new EofVariant(0x2302, 'ForcedSetOrResetCancel'),
 		new AnonymousStructVariant(0x230a, 'MultipleForcedStatusRead', [
 			numeric("memory_area_code", 'u8'),
 			numeric("beginning_address", 'be_u24'),
@@ -295,8 +296,8 @@ const Order = new StructEnum(
 		new AnonymousStructVariant(0x2601, 'NameSet', [
 			bytesRef("name_data", createCountVar("input.len()"))
 		]),
-		new EmptyVariant(0x2602, 'NameDelete'),
-		new EmptyVariant(0x2603, 'NameRead'),
+		new EofVariant(0x2602, 'NameDelete'),
+		new EofVariant(0x2603, 'NameRead'),
 	],
 	new BasicEnumChoice(
 		numeric('cmd_code', "be_u16")

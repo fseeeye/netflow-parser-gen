@@ -1,7 +1,8 @@
 import endent from "endent"
-import { NomBitsFunction } from "../nom"
+import { NomBitsFunction } from "../utils/nom"
+import { VisibilityType } from "../utils/variables"
 import { NumericType } from "../types/numeric"
-import { Field, VisibilityType } from "./base"
+import { Field } from "./base"
 import { NumericField } from "./numeric"
 
 export class BitsNumericField extends NumericField {
@@ -43,6 +44,11 @@ export class BitNumericFieldGroup implements Field {
     definition(visibility: VisibilityType): string {
         const fieldDefs = this.fields.map(f => f.definition(visibility))
         return fieldDefs.join(`\n`)
+    }
+
+    definitionRuleArg(): string {
+        const fieldRuleArgDefs = this.fields.map(f => f.definitionRuleArg())
+        return fieldRuleArgDefs.join(`\n`)
     }
 
     typeName(): string {

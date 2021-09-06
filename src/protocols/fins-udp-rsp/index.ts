@@ -8,9 +8,10 @@ import { BasicEnumChoice, InputLengthChoice } from "../../field/choice"
 import { EnumField, } from "../../field/enum"
 import { UnlimitedVecLoopField, VecField } from "../../field/vec"
 import { StructField } from "../../field/struct"
-import { AnonymousStructVariant, StructEnum, EmptyPayloadEnum, EmptyVariant } from "../../types/enum"
+import { AnonymousStructVariant, StructEnum, EmptyPayloadEnum, EofVariant } from "../../types/enum"
 import { Struct } from "../../types/struct"
-import { Protocol, ProtocolInfo } from "../generator"
+import { Protocol } from "../protocol"
+import { ProtocolInfo } from "../protocol-info"
 
 const protocolName = 'FinsUdpRsp'
 const headerName = `${protocolName}Header`
@@ -394,7 +395,7 @@ const Order = new StructEnum(
 			numeric("rsp_code", 'be_u16'),
 			numeric("number_of_receptions", 'be_u16'),
 		]),
-		new EmptyVariant(0x0803, 'BroadcastTestDataSend'),
+		new EofVariant(0x0803, 'BroadcastTestDataSend'),
 		new AnonymousStructVariant(0x0920, 'MessageReadClearFALSRead', [
 			new EnumField(MessageReadOrClearOrFALSReadChoice)
 		]),
@@ -463,7 +464,7 @@ const Order = new StructEnum(
 			numeric("rsp_code", 'be_u16'),
 			numeric("number_of_word_or_bytes", 'be_u16'),
 		]),
-		new EmptyVariant(0x220c, 'ProgramAreaFileTransfer'),
+		new EofVariant(0x220c, 'ProgramAreaFileTransfer'),
 		new AnonymousStructVariant(0x220f, 'FileMemoryIndexRead', [
 			numeric("rsp_code", 'be_u16'),
 			numeric("number_of_blocks_remaining", 'be_u16'),
@@ -499,7 +500,7 @@ const Order = new StructEnum(
 		new AnonymousStructVariant(0x2602, 'NameDelete', [
 			numeric("rsp_code", 'be_u16'),
 		]),
-		new EmptyVariant(0x2603, 'NameRead'),
+		new EofVariant(0x2603, 'NameRead'),
 	],
 	new BasicEnumChoice(
 		numeric('cmd_code', "be_u16")

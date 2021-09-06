@@ -8,12 +8,12 @@ import {
 import { BasicEnumChoice } from "../../field/choice"
 import { EnumField } from "../../field/enum"
 import { NumericField } from "../../field/numeric"
-// import { PayloadField } from "../../field/payload"
 import { StructField } from "../../field/struct"
 import { LimitedVecLoopField, VecField } from "../../field/vec"
-import { AnonymousStructVariant, EmptyVariant, StructEnum, EmptyPayloadEnum } from "../../types/enum"
+import { AnonymousStructVariant, EofVariant, StructEnum, EmptyPayloadEnum } from "../../types/enum"
 import { Struct } from "../../types/struct"
-import { Protocol, ProtocolInfo } from "../generator"
+import { Protocol } from "../protocol"
+import { ProtocolInfo } from "../protocol-info"
 
 const protocolName = 'ModbusReq'
 const headerName = `${protocolName}Header`
@@ -65,7 +65,7 @@ const Data = new StructEnum(
     'Data',
     [
         new AnonymousStructVariant(0x01, 'ReadCoils', SimpleReadFields),
-        new AnonymousStructVariant(0x02, 'ReadDiscreInputs', SimpleReadFields),
+        new AnonymousStructVariant(0x02, 'ReadDiscreteInputs', SimpleReadFields),
         new AnonymousStructVariant(0x03, 'ReadHoldingRegisters', SimpleReadFields),
         new AnonymousStructVariant(0x04, 'ReadInputRegisters', SimpleReadFields),
         new AnonymousStructVariant(
@@ -84,9 +84,9 @@ const Data = new StructEnum(
                 numeric('register_value', 'be_u16'),
             ]
         ),
-        new EmptyVariant(0x07, 'ReadExceptionStatus'),
-        new EmptyVariant(0x0B, 'GetCommEventCounter'),
-        new EmptyVariant(0x0C, 'GetCommEventLog'),
+        new EofVariant(0x07, 'ReadExceptionStatus'),
+        new EofVariant(0x0B, 'GetCommEventCounter'),
+        new EofVariant(0x0C, 'GetCommEventLog'),
         new AnonymousStructVariant(
             0x0F,
             'WriteMultipleCoils',
@@ -110,7 +110,7 @@ const Data = new StructEnum(
                     'be_u16')
             ]
         ),
-        new EmptyVariant(0x11, 'ReportServerID'),
+        new EofVariant(0x11, 'ReportServerID'),
         new AnonymousStructVariant(
             0x14,
             'ReadFileRecord',

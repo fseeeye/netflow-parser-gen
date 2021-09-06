@@ -1,10 +1,4 @@
-// export type CountMode = 'mul' | 'div'
-
-// export interface CountVariable {
-//     name: string
-//     unitSize?: number
-//     mode?: CountMode
-// }
+export type VisibilityType = `pub` | `` | `pub(crate)`
 
 export class CountVariable {
     constructor(

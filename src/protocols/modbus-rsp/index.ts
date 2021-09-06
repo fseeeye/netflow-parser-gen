@@ -9,12 +9,12 @@ import {
 import { BasicEnumChoice } from "../../field/choice"
 import { EnumField } from "../../field/enum"
 import { NumericField } from "../../field/numeric"
-// import { PayloadField } from "../../field/payload"
 import { StructField } from "../../field/struct"
 import { VecField } from "../../field/vec"
 import { AnonymousStructVariant, StructEnum, EmptyPayloadEnum } from "../../types/enum"
 import { Struct } from "../../types/struct"
-import { Protocol, ProtocolInfo } from "../generator"
+import { Protocol } from "../protocol"
+import { ProtocolInfo } from "../protocol-info"
 
 const protocolName = 'ModbusRsp'
 const headerName = `${protocolName}Header`
@@ -74,13 +74,13 @@ const Data = new StructEnum(
         new AnonymousStructVariant(0x81, 'ReadCoilsExc', ExceptionFields),
         new AnonymousStructVariant(
             0x02, 
-            'ReadDiscreInputs', // Error: value of `coil_status` is a bit count.
+            'ReadDiscreteInputs', // Error: value of `coil_status` is a bit count.
             [
                 numeric('byte_count', 'u8'),
                 bitNumVec('coil_status', createCountVarWithUnitSize('byte_count', 8, "mul"), 'u8'),
             ]
         ),
-        new AnonymousStructVariant(0x82, 'ReadDiscreInputsExc', ExceptionFields),
+        new AnonymousStructVariant(0x82, 'ReadDiscreteInputsExc', ExceptionFields),
         new AnonymousStructVariant(
             0x03, 
             'ReadHoldingRegisters', 

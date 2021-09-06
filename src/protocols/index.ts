@@ -1,9 +1,8 @@
-import { Protocol } from "./generator"
+import { Protocol } from "./protocol"
 import { Ipv4 } from "./ipv4"
 import { ModbusReq } from "./modbus-req"
 import { Tcp } from "./tcp"
 import * as fs from "fs"
-import * as path from "path"
 import { Ethernet } from "./ethernet"
 import { Udp } from "./udp"
 import { Ipv6 } from "./ipv6"
@@ -31,6 +30,11 @@ export const BuiltinProtocols = [
 interface ProtocolParser {
     filename: string,
     content: string,
+}
+
+interface ProtocolRuleArg {
+    ICSRuleArgFilename: string,
+    ICSRuleArgContent: string,
 }
 
 export class ProtocolParserGenerator {
@@ -136,17 +140,28 @@ export class ProtocolParserGenerator {
         return { filename, content }
     }
 
+    // 生成各协议规则的rule_arg文件内容
+    private generateProtocolICSRulearg(directory: string, protocol: Protocol): ProtocolRuleArg {
+        const ICSRuleArgFilename = protocol.generateFilename(directory)
+        const ICSRuleArgContent = protocol.generateRuleArg()
+        return { ICSRuleArgFilename, ICSRuleArgContent }
+    }
+
     generate(directory: string): void {
         this.protocols.forEach(p => {
-            const { filename, content } = this.generateProtocolParser(directory.concat(`/parsers_ts`), p)
-            this.writeFile(filename, content)
+            if (p.getName() === 'ModbusReq') {
+                const { filename, content } = this.generateProtocolParser(directory.concat(`/parsers_ts`), p)
+                this.writeFile(filename, content)
+                const { ICSRuleArgFilename, ICSRuleArgContent } = this.generateProtocolICSRulearg(directory.concat(`/ics_rule/rule_arg_ts`), p)
+                this.writeFile(ICSRuleArgFilename, ICSRuleArgContent)
+            }
         })
-        const modIndex = this.generateModIndexContent()
-        this.writeFile(path.join(directory, `parsers.rs`), modIndex)
-        const layerType = this.generateLayerTypeContent()
-        this.writeFile(path.join(directory, `layer_type.rs`), layerType)
-        const layer = this.generateLayerContent()
-        this.writeFile(path.join(directory, `layer.rs`), layer)
+        // const modIndex = this.generateModIndexContent()
+        // this.writeFile(path.join(directory, `parsers.rs`), modIndex)
+        // const layerType = this.generateLayerTypeContent()
+        // this.writeFile(path.join(directory, `layer_type.rs`), layerType)
+        // const layer = this.generateLayerContent()
+        // this.writeFile(path.join(directory, `layer.rs`), layer)
     }
 
 }

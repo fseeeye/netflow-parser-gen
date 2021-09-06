@@ -1,12 +1,14 @@
 import endent from "endent"
 import { snakeCase } from "snake-case"
-import { generateAttributesCode, removeDuplicateByKey } from "../utils"
-import { Struct } from "./struct"
-import { Field, VisibilityType } from "../field/base"
-import { FieldType } from "./base"
-import { PayloadEnumParserGenerator, StructEnumParserGenerator, StructEnumVariantParserGenerator } from "../parser/enum"
+import { generateAttributesCode, generateSerdeAttributesCode, removeDuplicateByKey } from "../utils"
+import { VisibilityType } from "../utils/variables"
+import { Field } from "../field/base"
 import { EnumChoice } from "../field/choice"
-import { Protocol, ProtocolInfo } from "../protocols/generator"
+import { PayloadEnumParserGenerator, StructEnumParserGenerator, StructEnumVariantParserGenerator } from "../parser/enum"
+import { Protocol } from "../protocols/protocol"
+import { Struct } from "./struct"
+import { FieldType } from "./base"
+import { ProtocolInfo } from "../protocols/protocol-info"
 
 export type ChoiceType = string | number
 
@@ -15,10 +17,12 @@ export interface EnumVariant {
     hasParserImplementation: boolean
     choice: ChoiceType
     definition(): string
+    definitionRuleArg?(): string
     hasReference(): boolean
     parserInvocation(): string
     generateChoiceLiteral(): ChoiceType
-    parserImplementation?: (enumName: string) => string
+    parserImplementation?(enumName: string): string
+    detectorImplementation?(s: StructEnum, modName: string): string // 生成：check_arg()方法中该variant的match arm，内为比较代码
 }
 
 class BasicEnumVariant{
@@ -49,7 +53,7 @@ class BasicEnumVariant{
 }
 
 // 用法：用于表示enum空值或者占位
-export class EmptyVariant extends BasicEnumVariant implements EnumVariant {
+export class EofVariant extends BasicEnumVariant implements EnumVariant {
     hasParserImplementation = true
 
     constructor(
@@ -59,6 +63,19 @@ export class EmptyVariant extends BasicEnumVariant implements EnumVariant {
 
     definition(): string {
         return `${this.name} {}`
+    }
+
+    definitionRuleArg(): string {
+        const aliasVec: string[] = []
+        if (typeof this.choice === 'number') {
+            aliasVec.push(`alias = "${this.choice}"`)
+        }
+        aliasVec.push(`alias = "${this.generateChoiceLiteral()}"`)
+        const serdeAttributes = generateSerdeAttributesCode(aliasVec)
+        return endent`
+            ${serdeAttributes}
+            ${this.name} {}
+        `
     }
 
     hasReference(): boolean {
@@ -86,6 +103,19 @@ export class EmptyVariant extends BasicEnumVariant implements EnumVariant {
         }`
         return `${functionSignature} ${parserBlock}`
     }
+
+    detectorImplementation(s: StructEnum, modName: string): string {
+        const name = this.name
+
+        return endent`
+            ${s.name}::${name} {} => {
+                match ${s.snakeCaseName()} {
+                    ${modName}::${s.name}::${name} {} => {},
+                    _ => return false
+                }
+            }
+        `
+    }
 }
 
 export class AnonymousStructVariant extends Struct implements EnumVariant {
@@ -105,6 +135,22 @@ export class AnonymousStructVariant extends Struct implements EnumVariant {
 
     definition(): string {
         return `${this.name} ${this.generateFields()}`
+    }
+
+    definitionRuleArg(): string {
+        const aliasVec: string[] = []
+        if (typeof this.choice === 'number') {
+            aliasVec.push(`alias = "${this.choice}"`)
+        }
+        aliasVec.push(`alias = "${this.generateChoiceLiteral()}"`)
+        const serdeAttributes = generateSerdeAttributesCode(aliasVec)
+
+        return endent`
+            ${serdeAttributes}
+            ${this.name} {
+                ${this.generateRuleArgFields(false)}
+            }
+        `
     }
 
     parserInvocation(): string {
@@ -135,6 +181,31 @@ export class AnonymousStructVariant extends Struct implements EnumVariant {
             return `0x${hex}`
         }
         return this.choice
+    }
+
+    detectorImplementation(s: StructEnum, modName: string): string {
+        const name = this.name
+        const fieldDetectCodes: string[] = []
+        const cleanFields = this.fields
+
+        cleanFields.forEach(f => {
+            if (f.generateDetectCode !== undefined) {
+                fieldDetectCodes.push(f.generateDetectCode("StructEnum", s.name))
+            }
+            else {
+                console.log(`${s.name}.${name} Filtered Field:`, f)
+            }
+        })
+
+        return endent`
+            ${s.name}::${name} {${cleanFields.map(f => f.name).join(', ')}} => {
+                if let ${modName}::${s.name}::${name} {${cleanFields.map(f => `${f.name}: _${f.name}`).join(', ')}, .. } = &${s.snakeCaseName()} {
+                    ${fieldDetectCodes.join('\n')}
+                } else {
+                    return false
+                }
+            },
+        `
     }
 }
 
@@ -427,7 +498,7 @@ export class StructEnum implements FieldType {
         return this.variants.filter((variant) => variant.hasReference()).length !== 0
     }
 
-    private lifetimeSpecifier(): string {
+    private lifetimeSpecifier() {
         return this.hasReference() ? `<'a>` : ''
     }
 
@@ -441,4 +512,58 @@ export class StructEnum implements FieldType {
         return snakeCase(this.name)
     }
 
+    private generateRuleArgVariants() {
+        const uniqueVariants = removeDuplicateByKey(
+            this.variants,
+            (v) => v.name
+        ).map(v => {
+            if (v.definitionRuleArg !== undefined) {
+                return v.definitionRuleArg()
+            } else {
+                throw Error(`${v.name}(${v.constructor.name}) unimpl EnumVariant.definitionRuleArg()`)
+            }
+        })
+        return uniqueVariants.join(',\n')
+    }
+
+    detectorDefinition(rename: string | undefined = undefined): string {
+        const serdeDerive = generateAttributesCode(['Serialize', 'Deserialize', 'Debug'])
+        
+        const serdeTag = this.choiceField.asMatchTarget()
+        const serdeContent = this.snakeCaseName()
+        const serdeAttributes = generateSerdeAttributesCode([`tag = "${serdeTag}"`, `content = "${serdeContent}"`])
+
+        return endent`
+            ${serdeDerive}
+            ${serdeAttributes}
+            pub enum ${rename === undefined? this.name : rename} {
+                ${this.generateRuleArgVariants()}
+            }
+        `
+    }
+
+    detectorFunctionDefinition(modName: string, rename: string | undefined = undefined): string {
+        // 生成enum所有有效variants的比较代码
+        const variantsDetectCode: string[] = []
+        
+        this.variants.forEach(v => {
+            if (v.detectorImplementation !== undefined) {
+                variantsDetectCode.push(v.detectorImplementation(this, modName))
+            } else {
+                console.log(`${this.name} Filtered Variant:`, v)
+            }
+        })
+
+        return endent`
+            impl ${rename === undefined? this.name : rename} {
+                pub fn check_arg(&self, ${this.snakeCaseName()}: &${modName}::${this.name}) -> bool {
+                    match self {
+                        ${variantsDetectCode.join('\n')}
+                    }
+
+                    true
+                }
+            }
+        `
+    }
 }

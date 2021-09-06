@@ -1,4 +1,4 @@
-import { NomBytesFunction } from "../nom"
+import { NomBytesFunction } from "../utils/nom"
 import { BaseField } from "./base"
 import { BYTES_REF_TYPENAME } from "./ref"
 

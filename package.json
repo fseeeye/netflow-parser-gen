@@ -17,7 +17,7 @@
     "my-cli-tool": "./dist/esbuild/cli.js"
   },
   "scripts": {
-    "cli": "ts-node src/cli.ts",
+    "cli": "ts-node src/tooling/cli.ts",
     "lint": "eslint src/ --ext .js,.jsx,.ts,.tsx",
     "test": "jest",
     "clean": "rm -rf dist build package",
@@ -48,6 +48,7 @@
   },
   "dependencies": {
     "endent": "^2.1.0",
+    "madge": "^5.0.1",
     "snake-case": "^3.0.4",
     "yargs": "^17.0.1"
   }
