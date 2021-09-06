@@ -12,6 +12,7 @@ import { FinsTcpRsp } from "./fins-tcp-rsp"
 import { FinsUdpReq } from "./fins-udp-req"
 import { FinsUdpRsp } from "./fins-udp-rsp"
 import endent from "endent"
+import path from "path"
 
 export const BuiltinProtocols = [
     Ethernet,
@@ -149,19 +150,17 @@ export class ProtocolParserGenerator {
 
     generate(directory: string): void {
         this.protocols.forEach(p => {
-            if (p.getName() === 'ModbusReq') {
-                const { filename, content } = this.generateProtocolParser(directory.concat(`/parsers_ts`), p)
-                this.writeFile(filename, content)
-                const { ICSRuleArgFilename, ICSRuleArgContent } = this.generateProtocolICSRulearg(directory.concat(`/ics_rule/rule_arg_ts`), p)
-                this.writeFile(ICSRuleArgFilename, ICSRuleArgContent)
-            }
+            const { filename, content } = this.generateProtocolParser(directory.concat(`/parsers_ts`), p)
+            this.writeFile(filename, content)
+            const { ICSRuleArgFilename, ICSRuleArgContent } = this.generateProtocolICSRulearg(directory.concat(`/ics_rule/rule_arg_ts`), p)
+            this.writeFile(ICSRuleArgFilename, ICSRuleArgContent)
         })
-        // const modIndex = this.generateModIndexContent()
-        // this.writeFile(path.join(directory, `parsers.rs`), modIndex)
-        // const layerType = this.generateLayerTypeContent()
-        // this.writeFile(path.join(directory, `layer_type.rs`), layerType)
-        // const layer = this.generateLayerContent()
-        // this.writeFile(path.join(directory, `layer.rs`), layer)
+        const modIndex = this.generateModIndexContent()
+        this.writeFile(path.join(directory, `parsers.rs`), modIndex)
+        const layerType = this.generateLayerTypeContent()
+        this.writeFile(path.join(directory, `layer_type.rs`), layerType)
+        const layer = this.generateLayerContent()
+        this.writeFile(path.join(directory, `layer.rs`), layer)
     }
 
 }
