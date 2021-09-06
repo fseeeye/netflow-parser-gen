@@ -189,7 +189,7 @@ export class ArgsBitOperatorChoice implements EnumChoice {
 	}
 
 	protected matchFieldExpr(): string {
-		return this.field.name
+		return this.field.name + '.bit' + this.mod + '(' + this.operand + ')'
 	}
 
 	asMatchTarget(): string {
@@ -205,7 +205,7 @@ export class ArgsBitOperatorChoice implements EnumChoice {
 	}
 
 	asEnumParserInvocationArgument(): string {
-		return this.matchFieldExpr() + '.bit' + this.mod + '(' + this.operand + ')'
+		return this.field.name
 	}
 }
 
