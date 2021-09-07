@@ -170,6 +170,7 @@ Tysrcipt项目自动生成的目标是Rust项目中`src/ics_rule/rule_arg/`下�
   ```rust
   #[derive(Serialize, Deserialize, Debug)]
   pub struct ModbusRspArg {
+      // fields成员的definitionRuleArg?()方法生成的内容：
       #[serde(flatten)]
       pub mbap_header: Option<MbapHeader>,
       // ...
@@ -186,6 +187,7 @@ Tysrcipt项目自动生成的目标是Rust项目中`src/ics_rule/rule_arg/`下�
   #[derive(Serialize, Deserialize, Debug)]
   #[serde(tag = "function_code", content = "data")]
   pub enum Data {
+      // variants成员的definitionRuleArg?()方法生成的内容：
       #[serde(alias = "1", alias = "0x01")]
       ReadCoils {
           byte_count: Option<u8>,
@@ -254,13 +256,14 @@ Tysrcipt项目自动生成的目标是Rust项目中`src/ics_rule/rule_arg/`下�
 
 ### Struct/StructEnum代码实现
 
-* `src/types/struct.ts`：在`Struct`类中新建方法`detectorFunctionDefinition()`。首先生成主体框架，然后遍历其`fields`成员，调用成员的`generateDetectCode()`方法，生成`check_arg`方法的比较代码。
+* `src/types/struct.ts`：在`Struct`类中新建方法`detectorFunctionDefinition()`。首先生成主体框架，然后遍历其`fields`成员，调用成员的`generateDetectCode?()`方法，生成`check_arg`方法的比较代码。
 
   * 示例生成代码文件内容：
 
   ```rust
   impl MbapHeader {
       pub fn check_arg(&self, mbap_header: &modbus_rsp::MbapHeader) -> bool {
+          // fields成员的generateDetectCode?()方法生成的内容：
           if let Some(transaction_id) = self.transaction_id {
               if transaction_id != mbap_header.transaction_id {
                   return false
@@ -273,7 +276,7 @@ Tysrcipt项目自动生成的目标是Rust项目中`src/ics_rule/rule_arg/`下�
   }
   ```
 
-* `src/types/enum.ts`：在`StructEnum`类中同样新建方法`detectorFunctionDefinition()`。首先生成主体框架，然后遍历其`variants`成员，调用成员的`detectorImplementation()`方法，生成`check_arg`方法的比较代码。
+* `src/types/enum.ts`：在`StructEnum`类中同样新建方法`detectorFunctionDefinition()`。首先生成主体框架，然后遍历其`variants`成员，调用成员的`detectorImplementation?()`方法，生成`check_arg`方法的比较代码。
 
   * 示例生成代码文件内容：
 
@@ -281,6 +284,7 @@ Tysrcipt项目自动生成的目标是Rust项目中`src/ics_rule/rule_arg/`下�
   impl Data {
       pub fn check_arg(&self, data: &modbus_rsp::Data) -> bool {
           match self {
+              // variants成员的detectorImplementation?()方法生成的内容：
               Data::ReadCoils {byte_count} => {
                   if let modbus_rsp::Data::ReadCoils {byte_count: _byte_count, .. } = &data {
                       if let Some(byte_count) = byte_count {
@@ -316,7 +320,7 @@ Tysrcipt项目自动生成的目标是Rust项目中`src/ics_rule/rule_arg/`下�
   }
   ```
 
-  * 示例生成代码文件内容 (祖父类型为StructEnum)：
+  * 示例生成代码文件内容 (父类型为EnumVariant, 祖父类型为StructEnum)：
 
   ```rust
   if let Some(transaction_id) = transaction_id {
@@ -340,7 +344,7 @@ Tysrcipt项目自动生成的目标是Rust项目中`src/ics_rule/rule_arg/`下�
   }
   ```
 
-  * 示例生成代码文件内容 (祖父类型为StructEnum)：
+  * 示例生成代码文件内容 (父类型为EnumVariant, 祖父类型为StructEnum)：
 
   ```rust
   if let Some(pdu) = pdu {
@@ -364,7 +368,7 @@ Tysrcipt项目自动生成的目标是Rust项目中`src/ics_rule/rule_arg/`下�
   }
   ```
 
-  * 示例生成代码文件内容：
+  * 示例生成代码文件内容 (父类型为EnumVariant, 祖父类型为StructEnum)：
 
   ```rust
   if let Some(data) = data {
