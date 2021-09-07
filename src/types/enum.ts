@@ -550,7 +550,7 @@ export class StructEnum implements FieldType {
             if (v.detectorImplementation !== undefined) {
                 variantsDetectCode.push(v.detectorImplementation(this, modName))
             } else {
-                console.log(`${this.name} Filtered Variant:`, v)
+                throw Error(`${v.name}(${v.constructor.name}) unimpl EnumVariant.detectorImplementation()`)
             }
         })
 

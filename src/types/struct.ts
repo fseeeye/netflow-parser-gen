@@ -73,11 +73,11 @@ export class Struct implements FieldType {
 
     protected generateRuleArgFields(pub = true): string {
         const fieldLines = this.fields
-            .map((field) => {
-                if (field.definitionRuleArg !== undefined) {
-                    return field.definitionRuleArg()
+            .map(f => {
+                if (f.definitionRuleArg !== undefined) {
+                    return f.definitionRuleArg()
                 } else {
-                    throw Error(`${field.name}(${field.constructor.name}) unimpl Field.definitionRuleArg()`)
+                    throw Error(`${f.name}(${f.constructor.name}) unimpl Field.definitionRuleArg()`)
                 }
             })
             .filter((str) => str.length != 0) // 去掉定义内容为空的string
@@ -105,7 +105,7 @@ export class Struct implements FieldType {
                 fieldDetectCodes.push(f.generateDetectCode("Struct", this.name))
             }
             else {
-                console.log(`${this.name} Filtered Field:`, f)
+                throw Error(`${f.name}(${f.constructor.name}) unimpl Field.generateDetectCode()`)
             }
         })
         
