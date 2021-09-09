@@ -33,6 +33,10 @@ export class BasicEnumChoice implements EnumChoice {
         return this.field.isRef()
     }
 
+	private matchFieldExprForward(): string {
+		return this.field.name.replace('.', '_')
+	}
+
     protected matchFieldExpr(): string {
         return this.field.name
     }
@@ -45,9 +49,9 @@ export class BasicEnumChoice implements EnumChoice {
         return this.matchTargetExprGenerator(matchField)
     }
 
-    asEnumParserFunctionParameterSignature(): string {
-        return `${this.field.name}: ${this.field.typeName()}`
-    }
+	asEnumParserFunctionParameterSignature(): string {
+		return `${this.matchFieldExprForward()}: ${this.field.typeName()}`
+	}
 
     asEnumParserInvocationArgument(): string {
         return this.matchFieldExpr()
@@ -188,8 +192,12 @@ export class ArgsBitOperatorChoice implements EnumChoice {
 		return this.field.isRef()
 	}
 
+	private matchFieldExprForward(): string {
+		return this.field.name.replace('.', '_')
+	}
+
 	protected matchFieldExpr(): string {
-		return this.field.name + '.bit' + this.mod + '(' + this.operand + ')'
+		return `${this.matchFieldExprForward()}.bit${this.mod}(${this.operand})`
 	}
 
 	asMatchTarget(): string {
@@ -201,7 +209,7 @@ export class ArgsBitOperatorChoice implements EnumChoice {
 	}
 
 	asEnumParserFunctionParameterSignature(): string {
-		return `${this.field.name}: ${this.field.typeName()}`
+		return `${this.matchFieldExprForward()}: ${this.field.typeName()}`
 	}
 
 	asEnumParserInvocationArgument(): string {
