@@ -7,12 +7,12 @@ import {
 	createCountVar,
 	createCountVarWithUnitSize,
 } from "../../api/input"
-import { BasicEnumChoice, ArgsBitOperatorChoice, InputLengthChoice } from "../../field/choice"
+import { BasicEnumChoice, NumericBitOperatorChoice, StructBitOperatorChoice, InputLengthChoice } from "../../field/choice"
 import { EnumField } from "../../field/enum"
 import { BerTLField } from "../../field/ber-tl"
 import { NumericField } from "../../field/numeric"
 // import { PayloadField } from "../../field/payload"
-import { StructField } from "../../field/struct"
+import { StructField, StructMemberField } from "../../field/struct"
 import { VecField, LimitedVecLoopField, UnlimitedVecLoopField } from "../../field/vec"
 import { AnonymousStructVariant, StructEnum, EmptyPayloadEnum, NamedStructVariant } from "../../types/enum"
 import { Struct } from "../../types/struct"
@@ -385,8 +385,8 @@ const ObjectClass = new StructEnum(
 			new StructField(SimpleItem, 'operator_station'),
 		]),
 	],
-	new ArgsBitOperatorChoice(
-		numeric('object_class_tl.tag', 'u8'),
+	new StructBitOperatorChoice(
+		new StructMemberField(new BerTLField('object_class_tl'), numeric('tag', 'u8')),
 		'and',
 		'0x1f'
 	)
@@ -415,8 +415,8 @@ const ObjectScope = new StructEnum(
 			new StructField(Identifier, 'object_scope_aa_specific')
 		]),
 	],
-	new ArgsBitOperatorChoice(
-		numeric('object_scope_tl.tag', 'u8'),
+	new StructBitOperatorChoice(
+		new StructMemberField(new BerTLField('object_scope_tl'), numeric('tag', 'u8')),
 		'and',
 		'0x1f'
 	)
@@ -456,11 +456,8 @@ const ObjectName = new StructEnum(
 			new StructField(Identifier, 'object_name_aa_specific')
 		]),
 	],
-	// new BasicEnumChoice(
-	// 	numeric('object_name_tag.bitand(0x1f)', 'u8')
-	// )
-	new ArgsBitOperatorChoice(
-		numeric('object_name_tl.tag', 'u8'),
+	new StructBitOperatorChoice(
+		new StructMemberField(new BerTLField('object_name_tl'), numeric('tag', 'u8')),
 		'and',
 		'0x1f'
 	)
@@ -491,11 +488,8 @@ const VariableSpecification = new StructEnum(
 			bytesRef('value', createCountVar('variable_specification_tl.length'))
 		]),
 	],
-	// new BasicEnumChoice(
-	// 	numeric('variable_specification_tag.bitand(0x1f)', 'u8')
-	// )
-	new ArgsBitOperatorChoice(
-		numeric('variable_specification_tl.tag', 'u8'),
+	new StructBitOperatorChoice(
+		new StructMemberField(new BerTLField('variable_specification_tl'), numeric('tag', 'u8')),
 		'and',
 		'0x1f'
 	)
@@ -564,8 +558,8 @@ const DataAccessError = new StructEnum(
 			new StructField(SimpleU8Data, 'object_value_invalid'),
 		]),
 	],
-	new ArgsBitOperatorChoice(
-		numeric('data_access_error_tl.tag', 'u8'),
+	new StructBitOperatorChoice(
+		new StructMemberField(new BerTLField('data_access_error_tl'), numeric('tag', 'u8')),
 		'and',
 		'0x1f'
 	)
@@ -601,8 +595,8 @@ const AccessResult = new StructEnum(
 			new StructField(Data, 'success'),
 		]),
 	],
-	new ArgsBitOperatorChoice(
-		numeric('access_result_tl.tag', 'u8'),
+	new StructBitOperatorChoice(
+		new StructMemberField(new BerTLField('access_result_tl'), numeric('tag', 'u8')),
 		'and',
 		'0x1f'
 	)
@@ -680,11 +674,10 @@ const VariableAccessSpecificationChoice = new StructEnum(
 			new StructField(ObjectNameStruct, 'res')
 		]),
 	],
-	new ArgsBitOperatorChoice(
-		numeric('variable_access_specification_choice_tl.tag', 'u8'),
+	new StructBitOperatorChoice(
+		new StructMemberField(new BerTLField('variable_access_specification_choice_tl'), numeric('tag', 'u8')),
 		'and',
 		'0x1f'
-		,
 	)
 )
 structs.push(VariableAccessSpecificationChoice)
@@ -714,9 +707,16 @@ const ReadRequestChoice = new StructEnum(
 			new StructField(VariableAccessSpecificationChoiceStruct, 'res')
 		]),
 	],
-	new BasicEnumChoice(
-		numeric('read_request_choice_tl.tag', 'u8')
+	new StructBitOperatorChoice(
+		new StructMemberField(new BerTLField('read_request_choice_tl'), numeric('tag', 'u8')),
+		'and',
+		'0x1f'
 	)
+	// new NumericBitOperatorChoice(
+	// 	numeric('read_request_choice_tl.tag', 'u8'),
+	// 	'and',
+	// 	'0x1f'
+	// )
 )
 structs.push(ReadRequestChoice)
 
@@ -829,8 +829,8 @@ const WriteResponseChoice = new StructEnum(
 			// Success is NULL
 		]),
 	],
-	new ArgsBitOperatorChoice(
-		numeric('write_response_choice_tl.tag', 'u8'),
+	new StructBitOperatorChoice(
+		new StructMemberField(new BerTLField('write_response_choice_tl'), numeric('tag', 'u8')),
 		'and',
 		'0x1f'
 	)
@@ -919,8 +919,8 @@ const ConfirmedServiceRequestChoice = new StructEnum(
 			new StructField(GetNamedVariableListAttributesRequestChoiceConstruct, 'res')
 		]),
 	],
-	new ArgsBitOperatorChoice(
-		numeric('service_tl.tag', 'u8'),
+	new StructBitOperatorChoice(
+		new StructMemberField(new BerTLField('service_tl'), numeric('tag', 'u8')),
 		'and',
 		'0x1f'
 	)
@@ -947,8 +947,8 @@ const ConfirmedServiceResponseChoice = new StructEnum(
 			new StructField(GetNamedVariableListAttributesResponseChoice, 'res')
 		]),
 	],
-	new ArgsBitOperatorChoice(
-		numeric('service_tl.tag', 'u8'),
+	new StructBitOperatorChoice(
+		new StructMemberField(new BerTLField('service_tl'), numeric('tag', 'u8')),
 		'and',
 		'0x1f'
 	)
@@ -978,8 +978,8 @@ const UnConfirmedChoice = new StructEnum(
 			new StructField(InformationReportChoice, 'res')
 		]),
 	],
-	new ArgsBitOperatorChoice(
-		numeric('service_tl.tag', 'u8'),
+	new StructBitOperatorChoice(
+		new StructMemberField(new BerTLField('service_tl'), numeric('tag', 'u8')),
 		'and',
 		'0x1f'
 	)
@@ -1073,8 +1073,8 @@ const MmsPduChoice = new StructEnum(
 			new StructField(InitiateResponsePDU, 'value')
 		]),
 	],
-	new ArgsBitOperatorChoice(
-		numeric('mms_pdu_choice_tl.tag', 'u8'),
+	new StructBitOperatorChoice(
+		new StructMemberField(new BerTLField('mms_pdu_choice_tl'), numeric('tag', 'u8')),
 		'and',
 		'0x1f'
 	)
