@@ -1,11 +1,22 @@
+import { numeric } from "../api"
 import { NumericType } from "../types/numeric"
+import { Struct } from "../types/struct"
 import { BaseField } from "./base"
+import { StructField } from "./struct"
 
-export class BerTLField extends BaseField {
+export class BerTLField extends StructField {
 	constructor(
-		readonly name: string,
+		readonly name: string
 	) {
-		super(name)
+		super(
+			new Struct(
+				name,
+				[
+					numeric('tag', 'u8'),
+					numeric('length', 'be_u16'),
+				]
+			)
+		)
 	}
 
 	isRef(): boolean {
