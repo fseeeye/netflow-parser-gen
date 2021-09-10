@@ -199,16 +199,39 @@ const OsiPresUserData = new Struct(
 )
 structs.push(OsiPresUserData)
 
-const OsiPresPduNormalModeParametersCp = new Struct(
-	'OsiPresPduNormalModeParametersCp',
+const NormalModeParametersCpWithProtocolVersion = new Struct(
+	'NormalModeParametersCpWithProtocolVersion',
 	[
-		//new StructField(SimpleItem,'protocol_version'), 可选值  标志:0x80
+		new StructField(SimpleItem, 'protocol_version'),
 		new StructField(SimpleItem, 'calling_presentation_selector'),
 		new StructField(SimpleItem, 'called_presentation_selector'),
 		new StructField(SimpleItem, 'presentation_context_definition_list'),
 		new StructField(SimpleItem, 'presentation_requirements'),
-		// numeric('user_data_tag','u8'),
-		// numeric('user_data_length','be_u16'),
+		new BerTLField('user_data_tl'),
+		new StructField(OsiPresUserData, 'user_data')
+	]
+)
+structs.push(NormalModeParametersCpWithProtocolVersion)
+
+const NormalModeParametersCpaWithProtocolVersion = new Struct(
+	'NormalModeParametersCpaWithProtocolVersion',
+	[
+		new StructField(SimpleItem, 'protocol_version'),
+		new StructField(SimpleItem, 'responding_presentation_selector'),
+		new StructField(SimpleItem, 'presentation_context_definition_result_list'),
+		new BerTLField('user_data_tl'),
+		new StructField(OsiPresUserData, 'user_data')
+	]
+)
+structs.push(NormalModeParametersCpaWithProtocolVersion)
+
+const OsiPresPduNormalModeParametersCp = new Struct(
+	'OsiPresPduNormalModeParametersCp',
+	[
+		new StructField(SimpleItem, 'calling_presentation_selector'),
+		new StructField(SimpleItem, 'called_presentation_selector'),
+		new StructField(SimpleItem, 'presentation_context_definition_list'),
+		new StructField(SimpleItem, 'presentation_requirements'),
 		new BerTLField('user_data_tl'),
 		new StructField(OsiPresUserData, 'user_data')
 	]
@@ -218,31 +241,65 @@ structs.push(OsiPresPduNormalModeParametersCp)
 const OsiPresPduNormalModeParametersCpa = new Struct(
 	'OsiPresPduNormalModeParametersCpa',
 	[
-		//new StructField(SimpleItem,'protocol_version'), 可选值  标志:0x80
 		new StructField(SimpleItem, 'responding_presentation_selector'),
 		new StructField(SimpleItem, 'presentation_context_definition_result_list'),
-		// numeric('user_data_tag','u8'),
-		// numeric('user_data_length','be_u16'),
 		new BerTLField('user_data_tl'),
 		new StructField(OsiPresUserData, 'user_data')
 	]
 )
 structs.push(OsiPresPduNormalModeParametersCpa)
 
+const OsiPresPduNormalModeParametersCpChoice = new StructEnum(
+	'OsiPresPduNormalModeParametersCpChoice',
+	[
+		new AnonymousStructVariant(0x80, 'NormalModeParametersCpWithProtocolVersionChoice',
+			[
+				new StructField(NormalModeParametersCpWithProtocolVersion),
+			]
+		),
+		new AnonymousStructVariant('_', 'NormalModeParametersCpChoice',
+			[
+				new StructField(OsiPresPduNormalModeParametersCp)
+			]
+		)
+	],
+	new StructBitOperatorChoice(
+		new StructMemberField(new BerTLField('normal_mode_parameters_tl'), numeric('tag', 'u8')),
+		'and',
+		'0xff'
+	)
+)
+structs.push(OsiPresPduNormalModeParametersCpChoice)
+
+const OsiPresPduNormalModeParametersCpaChoice = new StructEnum(
+	'OsiPresPduNormalModeParametersCpaChoice',
+	[
+		new AnonymousStructVariant(0x80, 'NormalModeParametersCpaWithProtocolVersionChoice',
+			[
+				new StructField(NormalModeParametersCpaWithProtocolVersion),
+			]
+		),
+		new AnonymousStructVariant('_', 'NormalModeParametersCpaChoice',
+			[
+				new StructField(OsiPresPduNormalModeParametersCpa)
+			])
+	],
+	new StructBitOperatorChoice(
+		new StructMemberField(new BerTLField('normal_mode_parameters_tl'), numeric('tag', 'u8')),
+		'and',
+		'0xff'
+	)
+)
+structs.push(OsiPresPduNormalModeParametersCpaChoice)
+
 const OsiPresCp = new Struct(
 	'OsiPresCp',
 	[
-		// numeric('pres_tag','u8'),
-		// numeric('pres_length', 'be_u16'),
 		new BerTLField('pres_tl'),
-		// numeric('pres_cp_tag','u8'),
-		// numeric('pres_cp_length', 'be_u16'),
 		new BerTLField('pres_cp_tl'),
 		new StructField(SimpleItem, 'pres_cp_mode_selector'),
-		// numeric('normal_mode_parameters_tag', 'u8'),
-		// numeric('normal_mode_parameters_length', 'be_u16'),
 		new BerTLField('normal_mode_parameters_tl'),
-		new StructField(OsiPresPduNormalModeParametersCp, 'normal_mode_parameters')
+		new EnumField(OsiPresPduNormalModeParametersCpChoice, 'normal_mode_parameters')
 	]
 )
 structs.push(OsiPresCp)
@@ -250,17 +307,11 @@ structs.push(OsiPresCp)
 const OsiPresCpa = new Struct(
 	'OsiPresCpa',
 	[
-		// numeric('pres_tag', 'u8'),
-		// numeric('pres_length', 'be_u16'),
 		new BerTLField('pres_tl'),
-		// numeric('pres_cpa_tag','u8'),
-		// numeric('pres_cpa_length', 'be_u16'),
 		new BerTLField('pres_cpa_tl'),
 		new StructField(SimpleItem, 'pres_cp_mode_selector'),
-		// numeric('normal_mode_parameters_tag', 'u8'),
-		// numeric('normal_mode_parameters_length', 'be_u16'),
 		new BerTLField('normal_mode_parameters_tl'),
-		new StructField(OsiPresPduNormalModeParametersCpa, 'normal_mode_parameters')
+		new EnumField(OsiPresPduNormalModeParametersCpaChoice, 'normal_mode_parameters')
 	]
 )
 structs.push(OsiPresCpa)
@@ -268,23 +319,15 @@ structs.push(OsiPresCpa)
 const OsiAcseAarq = new Struct(
 	'OsiAcseAarq',
 	[
-		// numeric('acse_aarq_tag', 'u8'),
-		// numeric('acse_aarq_length', 'be_u16'),
 		new BerTLField('acse_aarq_tl'),
 		new StructField(SimpleItem, 'protocol_version'),
 		new StructField(SimpleItem, 'aso_context_name'),
 		new StructField(SimpleItem, 'called_ap_title'),
 		new StructField(SimpleItem, 'called_ae_qualifier'),
-		// numeric('user_information_tag','u8'),
-		// numeric('user_information_length','be_u16'),
 		new BerTLField('user_information_tl'),
-		// numeric('association_data_tag','u8'),
-		// numeric('association_data_length','be_u16'),
 		new BerTLField('association_data_tl'),
 		new StructField(SimpleItem, 'direct_ref'),
 		new StructField(SimpleItem, 'indirect_ref'),
-		// numeric('encoding_tag','u8'),
-		// numeric('encoding_length','be_u16'),
 		new BerTLField('encoding_tl'),
 	]
 )
@@ -293,8 +336,6 @@ structs.push(OsiAcseAarq)
 const OsiAcseAare = new Struct(
 	'OsiAcseAare',
 	[
-		// numeric('acse_aare_tag', 'u8'),
-		// numeric('acse_aare_length', 'be_u16'),
 		new BerTLField('acse_aare_tl'),
 		new StructField(SimpleItem, 'protocol_version'),
 		new StructField(SimpleItem, 'aso_context_name'),
