@@ -1,3 +1,25 @@
+## [0.6.1](https://github.com/metachris/typescript-boilerplate/compare/v0.6.0...v0.6.1) (2021-09-23)
+
+
+### Bug Fixes
+
+* **field:** fix Struct member vars in enum choice ([45fa6aa](https://github.com/metachris/typescript-boilerplate/commit/45fa6aac8ac6e3a73e182dc05e5235a9a21e28bc))
+* **field:** fix the compatibility of arguments and parameters when they include periods ([a4fd291](https://github.com/metachris/typescript-boilerplate/commit/a4fd2917cbd01884f95419ab5e259ac4db990d1e))
+* **protocol:** fix arguments and parameters in function-call and  match-block ([1c36f6c](https://github.com/metachris/typescript-boilerplate/commit/1c36f6c7bd4c038edf359b34933b1b369b177bbb))
+* **protocol:** some pcaps don't include 'protocol version' in osi_pres, made a choice ([1f4582a](https://github.com/metachris/typescript-boilerplate/commit/1f4582ad238702137514ce8a660c4783c9e87384))
+
+
+### Features
+
+* **field:** add ber-tl field ([af901d7](https://github.com/metachris/typescript-boilerplate/commit/af901d7c3ec6e85c0272858c1de94a853cc4a83c))
+* **protocol:** add a new choice type of field ([4aafb85](https://github.com/metachris/typescript-boilerplate/commit/4aafb859a7fdb61da265fc6f01cab258e3d90423))
+* **protocol:** add bit operator of std ([07bd81a](https://github.com/metachris/typescript-boilerplate/commit/07bd81a90f2dcb679fccf3ef8274bb2e92290e67))
+* **protocol:** add mms ([5af3884](https://github.com/metachris/typescript-boilerplate/commit/5af3884b15f350e2c52ff058f58f98eb9ba61165))
+* **protocol:** add mms ([64b357f](https://github.com/metachris/typescript-boilerplate/commit/64b357f5b1d8b668ebcb8281cbe71cc9e7a6cac9))
+* **protocol:** mms without its protocol stack ([29b710e](https://github.com/metachris/typescript-boilerplate/commit/29b710e7106bb151a6ba54034a4a64dd52001bb5))
+
+
+
 # [0.6.0](https://github.com/metachris/typescript-boilerplate/compare/v0.5.1...v0.6.0) (2021-09-22)
 
 
