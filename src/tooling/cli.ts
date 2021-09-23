@@ -19,19 +19,44 @@ function generateParser(outputDir: string) {
     gen.generate(outputDir)
 }
 
+function generateDebug(outputDir: string, protocolName: string) {
+    const gen = new ProtocolParserGenerator(BuiltinProtocols)
+    gen.debug(outputDir, protocolName)
+}
+
 function main() {
     yargs
-        .command('generate', 'generate parser', (yargs) => {
-            return yargs.option('output', {
-                alias: 'o',
-                type: 'string',
-                demandOption: true,
-                description: 'output directory for generated code'
-            })
-        },
+        .command('generate', 'generate parser & rule args', (yargs) => {
+                return yargs.option('output', {
+                    alias: 'o',
+                    type: 'string',
+                    demandOption: true,
+                    description: 'output directory for generated code'
+                })
+            },
             (argv) => {
                 generateParser(argv.output)
-            })
+            }
+        )
+        .command('debug', 'generate debug parser', (yargs) => {
+                return yargs
+                    .option('output', {
+                        alias: 'o',
+                        type: 'string',
+                        demandOption: true,
+                        description: 'output directory for generated code'
+                    })
+                    .option('protocol', {
+                        alias: 'p',
+                        type: 'string',
+                        demandOption: true,
+                        description: 'protocol name which you want to gen'
+                    })
+            },
+            (argv) => {
+                generateDebug(argv.output, argv.protocol)
+            }
+        )
         .help()
         .check((argv: Args) => {
             if (validatePath(argv.output) === false) {

@@ -5,7 +5,7 @@ import {
     createCountVar
 } from "../../api/input"
 import { Struct } from "../../types/struct"
-import { StructEnum, PayloadEnum, PayloadEnumVariant } from "../../types/enum"
+import { StructEnum, PayloadEnum, PayloadEnumVariant, UndefPayloadEnumVariant } from "../../types/enum"
 import { ConditionImpl, OptionField } from "../../field/option"
 import { BitNumericFieldGroup } from "../../field/bit-field"
 import { PayloadEnumChoice } from "../../field/choice"
@@ -16,7 +16,6 @@ import { ModbusReq } from "../modbus-req"
 import { ModbusRsp } from "../modbus-rsp"
 import { FinsTcpReq } from "../fins-tcp-req"
 import { FinsTcpRsp } from "../fins-tcp-rsp"
-import { Mms } from "../mms"
 
 const protocolName = 'Tcp'
 const headerName = `${protocolName}Header`
@@ -65,7 +64,7 @@ const payload = new PayloadEnum(
     [
         new PayloadEnumVariant(502, ModbusRsp),
         new PayloadEnumVariant(9600, FinsTcpRsp),
-        new PayloadEnumVariant(102, Mms),
+        new UndefPayloadEnumVariant(102, 'Iso'),
     ],
     new PayloadEnumChoice(
         new StructField(header),
@@ -77,7 +76,7 @@ const payload = new PayloadEnum(
         [
             new PayloadEnumVariant(502, ModbusReq), 
             new PayloadEnumVariant(9600, FinsTcpReq),
-            new PayloadEnumVariant(102, Mms),
+            new UndefPayloadEnumVariant(102, 'Iso'),
         ],
         new PayloadEnumChoice(
             new StructField(header),

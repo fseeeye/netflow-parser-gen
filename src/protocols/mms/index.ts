@@ -6,8 +6,6 @@ import {
 import { BasicEnumChoice, StructBitOperatorChoice, InputLengthChoice } from "../../field/choice"
 import { EnumField } from "../../field/enum"
 import { BerTLField, BlankStructField } from "../../field/ber-tl"
-import { NumericField } from "../../field/numeric"
-// import { PayloadField } from "../../field/payload"
 import { StructField, StructMemberField } from "../../field/struct"
 import { LimitedVecLoopField } from "../../field/vec"
 import { AnonymousStructVariant, StructEnum, EmptyPayloadEnum } from "../../types/enum"
@@ -42,77 +40,6 @@ const SimpleU8Data = new Struct(
 	]
 )
 structs.push(SimpleU8Data)
-
-const Tpkt = new Struct(
-	'Tpkt',
-	[
-		numeric('version', 'u8'),
-		numeric('reserved', 'u8'),
-		numeric('length', 'be_u16'),
-	]
-)
-structs.push(Tpkt)
-
-const ConnectRequestFields: NumericField[] = [
-	numeric('destination_reference', 'be_u16'),
-	numeric('source_reference', 'be_u16'),
-	numeric('bit_mask', 'u8'),
-	numeric('parameter_src_tsap', 'u8'),
-	numeric('parameter_src_length', 'u8'),
-	numeric('source_tsap', 'be_u16'),
-	numeric('parameter_dst_tsap', 'u8'),
-	numeric('parameter_dst_length', 'u8'),
-	numeric('destination_tsap', 'be_u16'),
-
-]
-
-const ConnectConfirmFields: NumericField[] = [
-	numeric('destination_reference', 'be_u16'),
-	numeric('source_reference', 'be_u16'),
-	numeric('bit_mask', 'u8'),
-	numeric('parameter_src_tsap', 'u8'),
-	numeric('parameter_src_length', 'u8'),
-	numeric('source_tsap', 'be_u16'),
-	numeric('parameter_dst_tsap', 'u8'),
-	numeric('parameter_dst_length', 'u8'),
-	numeric('destination_tsap', 'be_u16'),
-	numeric('parameter_tpdu_size', 'u8'),
-	numeric('parameter_tpdu_length', 'u8'),
-	numeric('tpdu_size', 'u8'),
-]
-
-const DataFields: NumericField[] = [
-	numeric('bit_mask', 'u8'),
-]
-
-const CotpPduData = new StructEnum(
-	'CotpPduData',
-	[
-		new AnonymousStructVariant(0xe0, 'ConnectRequest', ConnectRequestFields),
-		new AnonymousStructVariant(0xd0, 'ConnectConfirm', ConnectConfirmFields),
-		new AnonymousStructVariant(0xf0, 'CotpPduDataData', DataFields)
-	],
-	new BasicEnumChoice(numeric('pdu_type', 'u8'))
-)
-structs.push(CotpPduData)
-
-const CotpPdu = new Struct(
-	'CotpPdu',
-	[
-		numeric('pdu_type', 'u8'),
-		new EnumField(CotpPduData)
-	],
-)
-structs.push(CotpPdu)
-
-const Cotp = new Struct(
-	'Cotp',
-	[
-		numeric('length', 'u8'),
-		new StructField(CotpPdu),
-	]
-)
-structs.push(Cotp)
 
 //OsiProtocolStack
 
@@ -1119,15 +1046,6 @@ const MmsPduChoice = new StructEnum(
 )
 structs.push(MmsPduChoice)
 
-const MmsapHeader = new Struct(
-	'MmsapHeader',
-	[
-		new StructField(Tpkt),
-		new StructField(Cotp),
-	]
-)
-structs.push(MmsapHeader)
-
 const PDU = new Struct(
 	'MmsPdu',
 	[
@@ -1142,7 +1060,6 @@ structs.push(PDU)
 const header = new Struct(
 	`${headerName}`,
 	[
-		new StructField(MmsapHeader),
 		new StructField(OsiProtocolStack),
 		new StructField(PDU),
 	]

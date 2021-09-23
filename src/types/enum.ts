@@ -306,12 +306,44 @@ export class PayloadEnumVariant extends BasicEnumVariant implements EnumVariant 
     }
 }
 
+export class UndefPayloadEnumVariant extends BasicEnumVariant implements EnumVariant {
+    hasParserImplementation = false
+
+    constructor(
+        readonly choice: ChoiceType,
+        readonly payloadProtocolName: string,
+        readonly isProtocolRef?: boolean,
+    ) { 
+        super(choice)
+    }
+
+    readonly name = ``
+    
+    // 用于lifetime判断
+    hasReference(): boolean {
+        if (this.isProtocolRef === undefined) {
+            return false
+        }
+        return this.isProtocolRef
+    }
+
+    // 获取Variant在生成Rust enum类型时的内容
+    definition(): string {
+        throw Error(`PayloadEnumVariant dont impl definition()`)
+    }
+
+    // 返回Variant在生成match arm时调用的上层parser函数名，如`parse_ipv4_layer`
+    parserInvocation(): string {
+        return `parse_${snakeCase(this.payloadProtocolName)}_layer`
+    }
+}
+
 export class PayloadEnum implements FieldType {
 
     constructor(
         readonly name: string,
         readonly info: ProtocolInfo,
-        readonly variants: PayloadEnumVariant[],
+        readonly variants: (PayloadEnumVariant| UndefPayloadEnumVariant)[],
         readonly choiceField: EnumChoice,
         readonly extraPayloadEnum?: PayloadEnum,
     ) { }
@@ -358,7 +390,7 @@ export class PayloadEnum implements FieldType {
         return true
     }
 
-    getAllVariants(): PayloadEnumVariant[] {
+    getAllVariants(): (PayloadEnumVariant| UndefPayloadEnumVariant)[] {
         let vars = this.variants
         if (this.extraPayloadEnum != undefined) {
             vars = vars.concat(this.extraPayloadEnum.getAllVariants())

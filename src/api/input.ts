@@ -5,6 +5,8 @@ import { BytesReferenceField } from "../field/ref"
 import { BitVecField, VecField } from "../field/vec"
 import { CountVariable } from "../utils/variables"
 import { BuiltinNumericTypeName, getBuildinNumericTypeByTypeName } from "../types/numeric"
+import { BuiltInSliceName, getSliceTypeBySliceName } from "../types/slice"
+import { SliceField } from "../field/slice"
 
 export interface NumericFieldConfig {
     name: string
@@ -21,6 +23,14 @@ export function createNumericField({ name, typeName }: NumericFieldConfig): Nume
 
 export function createNumericFieldSimple(name: string, typeName: BuiltinNumericTypeName): NumericField {
     return createNumericField({ name, typeName })
+}
+
+export function createSliceFieldSimple(name: string, typeName: BuiltInSliceName): SliceField {
+    const sliceType = getSliceTypeBySliceName(typeName);
+    if (sliceType === undefined) {
+        throw Error('bad typename for slice field!')
+    }
+    return new SliceField(name, sliceType)
 }
 
 export function createCountVar(name: string, expressionGenerator?: (name: string) => string): CountVariable {

@@ -14,6 +14,7 @@ import { FinsUdpRsp } from "./fins-udp-rsp"
 import endent from "endent"
 import path from "path"
 import { Mms } from "./mms"
+import { S7comm } from "./s7comm"
 
 export const BuiltinProtocols = [
     Ethernet,
@@ -28,6 +29,7 @@ export const BuiltinProtocols = [
 	FinsUdpReq,
 	FinsUdpRsp,
     Mms,
+    S7comm,
 ]
 
 interface ProtocolParser {
@@ -163,6 +165,15 @@ export class ProtocolParserGenerator {
         this.writeFile(path.join(directory, `layer_type.rs`), layerType)
         const layer = this.generateLayerContent()
         this.writeFile(path.join(directory, `layer.rs`), layer)
+    }
+
+    debug(directory: string, protocolName: string): void {
+        this.protocols.forEach(p => {
+            if (p.getName() === protocolName) {
+                const { filename, content } = this.generateProtocolParser(directory.concat(`/parsers`), p)
+                this.writeFile(filename, content)
+            }
+        })
     }
 
 }

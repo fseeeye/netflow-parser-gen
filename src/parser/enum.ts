@@ -1,6 +1,6 @@
 import endent from "endent"
 import { snakeCase } from "snake-case"
-import { StructEnum, AnonymousStructVariant, EnumVariant, PayloadEnum, EmptyPayloadEnum, isEmptyPayloadEnum, PayloadEnumVariant } from "../types/enum"
+import { StructEnum, AnonymousStructVariant, EnumVariant, PayloadEnum, EmptyPayloadEnum, isEmptyPayloadEnum, PayloadEnumVariant, UndefPayloadEnumVariant } from "../types/enum"
 import { removeDuplicateByKey } from "../utils"
 import { StructParserGenerator } from "./struct"
 
@@ -172,7 +172,7 @@ export class PayloadEnumParserGenerator {
     }
 
     // 输出除了`_`的所有match arm
-    private generateMatchArm(variant: PayloadEnumVariant): string {
+    private generateMatchArm(variant: PayloadEnumVariant | UndefPayloadEnumVariant): string {
         const layerStatement = `let ${snakeCase(this.payloadEnum.info.getLevelLayerName())} = ${this.payloadEnum.info.getLevelLayerName()}::${this.payloadEnum.info.name}(${this.payloadEnum.info.header.snakeCaseName()});`
 
         const choiceLiteral = variant.generateChoiceLiteral()
