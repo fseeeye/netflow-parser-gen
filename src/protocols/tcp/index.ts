@@ -10,13 +10,13 @@ import { ConditionImpl, OptionField } from "../../field/option"
 import { BitNumericFieldGroup } from "../../field/bit-field"
 import { PayloadEnumChoice } from "../../field/choice"
 import { StructField } from "../../field/struct"
-// import { PayloadField } from "../../field/payload"
 import { Protocol } from "../protocol"
 import { ProtocolInfo } from "../protocol-info"
 import { ModbusReq } from "../modbus-req"
 import { ModbusRsp } from "../modbus-rsp"
 import { FinsTcpReq } from "../fins-tcp-req"
 import { FinsTcpRsp } from "../fins-tcp-rsp"
+import { Mms } from "../mms"
 
 const protocolName = 'Tcp'
 const headerName = `${protocolName}Header`
@@ -65,6 +65,7 @@ const payload = new PayloadEnum(
     [
         new PayloadEnumVariant(502, ModbusRsp),
         new PayloadEnumVariant(9600, FinsTcpRsp),
+        new PayloadEnumVariant(102, Mms),
     ],
     new PayloadEnumChoice(
         new StructField(header),
@@ -76,6 +77,7 @@ const payload = new PayloadEnum(
         [
             new PayloadEnumVariant(502, ModbusReq), 
             new PayloadEnumVariant(9600, FinsTcpReq),
+            new PayloadEnumVariant(102, Mms),
         ],
         new PayloadEnumChoice(
             new StructField(header),

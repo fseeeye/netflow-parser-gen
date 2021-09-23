@@ -42,10 +42,11 @@ export class Struct implements FieldType {
 
     protected generateFields(): string {
         const fieldLines = this.fields.map((field) => {
-            // return `${this.visibilitySpecifier()} ${field.name}: ${field.typeName()},`
-            const fieldDef = field.definition(this.visibilitySpecifier())
-            return `${fieldDef}`
-        })
+                // return `${this.visibilitySpecifier()} ${field.name}: ${field.typeName()},`
+                const fieldDef = field.definition(this.visibilitySpecifier())
+                return `${fieldDef}`
+            })
+            .filter((fieldDef) => fieldDef !== '')
         return endent`{
             ${fieldLines.join('\n')}
         }`

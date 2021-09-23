@@ -1,7 +1,8 @@
 import endent from "endent"
 import { PayloadEnum } from "../types/enum"
 import { Field } from "./base"
-import { StructField } from "./struct"
+import { NumericField } from "./numeric"
+import { StructField, StructMemberField } from "./struct"
 
 export interface EnumChoice {
     isInline(): boolean
@@ -60,113 +61,121 @@ export class BasicEnumChoice implements EnumChoice {
 }
 
 export class StructEnumChoice extends BasicEnumChoice {
-    constructor(
-        readonly structField: StructField,
-        readonly matchFieldName: string,
-        readonly matchTargetExprGenerator?: (matchField: string) => string,
-    ) {
-        super(structField, matchTargetExprGenerator)
-        if (this.validateMatchField() === false) {
-            throw Error(`'${matchFieldName}' is not a field of struct ${structField.name}!`)
-        }
-    }
+	constructor(
+		readonly structField: StructField,
+		readonly matchFieldName: string,
+		readonly matchTargetExprGenerator?: (matchField: string) => string,
+	) {
+		super(structField, matchTargetExprGenerator)
+		if (this.validateMatchField() === false) {
+			throw Error(`'${matchFieldName}' is not a field of struct ${structField.name}!`)
+		}
+	}
 
-    private validateMatchField() {
-        const fieldNames = this.structField.struct.fields.map(f => f.name)
-        return fieldNames.includes(this.matchFieldName)
-    }
+	private validateMatchField() {
+		const fieldNames = this.structField.struct.fields.map(f => f.name)
+		return fieldNames.includes(this.matchFieldName)
+	}
 
-    protected matchFieldExpr(): string {
-        return `${this.structField.name}.${this.matchFieldName}`
-    }
+	protected matchFieldExpr(): string {
+		return `${this.structField.name}.${this.matchFieldName}`
+	}
+	//add this func
+	asMatchTarget(): string {
+		const matchField = this.matchFieldExpr()
+		if (this.matchTargetExprGenerator === undefined) {
+			return matchField
+		}
+		return this.matchTargetExprGenerator(matchField)
+	}
 
-    // 定义 enum parser 的参数类型签名与调用 enum parser 时提供的参数形式一一对应。
+	// 定义 enum parser 的参数类型签名与调用 enum parser 时提供的参数形式一一对应。
 
-    asEnumParserFunctionParameterSignature(): string {
-        return `${this.structField.name}: &${this.structField.typeName()}`
-    }
+	asEnumParserFunctionParameterSignature(): string {
+		return `${this.structField.name}: &${this.structField.typeName()}`
+	}
 
-    asEnumParserInvocationArgument(): string {
-        return `&${this.structField.name}`
-    }
+	asEnumParserInvocationArgument(): string {
+		return `&${this.structField.name}`
+	}
 }
 
 export class PayloadEnumChoice extends BasicEnumChoice {
-    constructor(
-        readonly struct: StructField,
-        readonly matchFieldName: string,
-        readonly matchTargetExprGenerator?: (matchField: string) => string,
-    ) {
-        super(struct, matchTargetExprGenerator)
-        // if (this.validateMatchField() === false) {
-        //     throw Error(`'${matchFieldName}' is not a field of struct ${struct.name}!`)
-        // }
-    }
+	constructor(
+		readonly struct: StructField,
+		readonly matchFieldName: string,
+		readonly matchTargetExprGenerator?: (matchField: string) => string,
+	) {
+		super(struct, matchTargetExprGenerator)
+		// if (this.validateMatchField() === false) {
+		//     throw Error(`'${matchFieldName}' is not a field of struct ${struct.name}!`)
+		// }
+	}
 
-    // private validateMatchField() {
-    //     const fieldNames = this.struct.struct.fields.map(f => f.name)
-    //     return fieldNames.includes(this.matchFieldName)
-    // }
+	// private validateMatchField() {
+	//     const fieldNames = this.struct.struct.fields.map(f => f.name)
+	//     return fieldNames.includes(this.matchFieldName)
+	// }
 
-    protected matchFieldExpr(): string {
-        return `${this.struct.name}.${this.matchFieldName}`
-    }
+	protected matchFieldExpr(): string {
+		return `${this.struct.name}.${this.matchFieldName}`
+	}
 
-    // 定义enum parser的参数类型签名 与 调用enum parser时提供的参数形式一一对应。
-    asEnumParserFunctionParameterSignature(): string {
-        return `${this.struct.name}: &${this.struct.typeName()}`
-    }
+	// 定义enum parser的参数类型签名 与 调用enum parser时提供的参数形式一一对应。
+	asEnumParserFunctionParameterSignature(): string {
+		return `${this.struct.name}: &${this.struct.typeName()}`
+	}
 
-    asEnumParserInvocationArgument(): string {
-        return `&${this.struct.name}`
-    }
+	asEnumParserInvocationArgument(): string {
+		return `&${this.struct.name}`
+	}
 }
 
 export class InlineChoice extends BasicEnumChoice {
 
-    isInline(): boolean {
-        return true
-    }
+	isInline(): boolean {
+		return true
+	}
 
-    generateParseAheadStatement(): string {
-        return `let (input, ${this.matchFieldExpr()}) = peek(${this.field.parserInvocation()})(input)?;`
-    }
+	generateParseAheadStatement(): string {
+		return `let (input, ${this.matchFieldExpr()}) = peek(${this.field.parserInvocation()})(input)?;`
+	}
 
-    generateParseAheadStatementWithPayloadErrorHandle(payloadEnum: PayloadEnum): string {
-        return endent`let (input, ${this.field.name}) = match peek(${this.field.parserInvocation()})(input) {
+	generateParseAheadStatementWithPayloadErrorHandle(payloadEnum: PayloadEnum): string {
+		return endent`let (input, ${this.field.name}) = match peek(${this.field.parserInvocation()})(input) {
             Ok((input, ${this.field.name})) => (input, ${this.field.name}),
             Err(nom::Err::Error((input, _))) => {
                 return Ok((input, ${payloadEnum.name}::Error(${payloadEnum.name}Error::NomPeek(input))))
             }
             _ => return Ok((input, ${payloadEnum.name}::Error(${payloadEnum.name}Error::NomPeek(input)))),
         };`
-    }
+	}
 }
 
 export class InputLengthChoice implements EnumChoice {
-    isWithoutInput(): boolean {
-        return true
-    }
+	isWithoutInput(): boolean {
+		return true
+	}
 
-    isInline(): boolean {
-        return false
-    }
+	isInline(): boolean {
+		return false
+	}
 
-    isFieldRef(): boolean {
-        return false
-    }
+	isFieldRef(): boolean {
+		return false
+	}
 
-    protected matchFieldExpr(): string {
-        return 'input.len()'
-    }
+	protected matchFieldExpr(): string {
+		return 'input.len()'
+	}
 
-    asMatchTarget(): string {
-        return this.matchFieldExpr()
-    }
+	asMatchTarget(): string {
+		return this.matchFieldExpr()
+	}
 
-    asEnumParserFunctionParameterSignature(): string {
-        throw Error(`InputLengthChoice dont need input :(`)
-    }
+	asEnumParserFunctionParameterSignature(): string {
+		throw Error(`InputLengthChoice dont need input :(`)
+	}
 
     asEnumParserInvocationArgument(): string {
         throw Error(`InputLengthChoice dont need input :(`)
@@ -177,6 +186,115 @@ export class InputLengthChoice implements EnumChoice {
     }
 }
 
+export class NumericBitOperatorChoice extends BasicEnumChoice {
+	constructor(
+		readonly field: NumericField,
+		readonly mod: string,
+		readonly operand: string,
+		readonly matchTargetExprGenerator?: (matchField: string) => string,
+	) {
+		super(field, matchTargetExprGenerator)
+	}
+
+	isInline(): boolean {
+		return false
+	}
+
+	isWithoutInput(): boolean {
+		return false
+	}
+
+	isFieldRef(): boolean {
+		return this.field.isRef()
+	}
+
+	matchFieldTypeName(): string {
+		return this.field.typeName()
+	}
+
+	protected matchFieldExprParameter(): string {
+		return this.field.name
+	}
+
+	protected matchFieldExprArgument(): string {
+		return this.field.name
+	}
+
+	protected matchFieldExpr(): string {
+		return `${this.matchFieldExprParameter()}.bit${this.mod}(${this.operand})`
+	}
+
+	asMatchTarget(): string {
+		const matchField = this.matchFieldExpr()
+		if (this.matchTargetExprGenerator === undefined) {
+			return matchField
+		}
+		return this.matchTargetExprGenerator(matchField)
+	}
+
+	asEnumParserFunctionParameterSignature(): string {
+		return `${this.matchFieldExprParameter()}: ${this.matchFieldTypeName()}`
+	}
+
+	asEnumParserInvocationArgument(): string {
+		return this.matchFieldExprArgument()
+	}
+}
+
+export class StructBitOperatorChoice extends BasicEnumChoice {
+	constructor(
+		readonly field: StructMemberField,
+		readonly mod: string,
+		readonly operand: string,
+		readonly matchTargetExprGenerator?: (matchField: string) => string,
+	) {
+		super(field, matchTargetExprGenerator)
+	}
+
+	isInline(): boolean {
+		return false
+	}
+
+	isWithoutInput(): boolean {
+		return false
+	}
+
+	isFieldRef(): boolean {
+		return this.field.isRef()
+	}
+
+	matchFieldTypeName(): string {
+		return this.field.matchFieldName.typeName()
+	}
+
+	protected matchFieldExprParameter(): string {
+		return `${this.field.name}_${this.field.matchFieldName.name}`
+	}
+
+	protected matchFieldExprArgument(): string {
+		return `${this.field.name}.${this.field.matchFieldName.name}`
+	}
+
+	protected matchFieldExpr(): string {
+		return `${this.matchFieldExprParameter()}.bit${this.mod}(${this.operand})`
+	}
+
+	asMatchTarget(): string {
+		const matchField = this.matchFieldExpr()
+		if (this.matchTargetExprGenerator === undefined) {
+			return matchField
+		}
+		return this.matchTargetExprGenerator(matchField)
+	}
+
+	asEnumParserFunctionParameterSignature(): string {
+		return `${this.matchFieldExprParameter()}: ${this.matchFieldTypeName()}`
+	}
+
+	asEnumParserInvocationArgument(): string {
+		return this.matchFieldExprArgument()
+	}
+}
 
 // export class ChoiceField {
 //     constructor(

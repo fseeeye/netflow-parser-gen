@@ -3,7 +3,7 @@ import { snakeCase } from "snake-case"
 import { StructParserGenerator } from "../parser/struct"
 import { Struct } from "../types/struct"
 import { generateSerdeAttributesCode } from "../utils"
-import { BaseField } from "./base"
+import { BaseField, Field } from "./base"
 
 
 export class StructField extends BaseField {
@@ -77,4 +77,39 @@ export class StructField extends BaseField {
             `
         }
     }
+}
+
+
+export class StructMemberField extends BaseField {
+	constructor(
+		readonly struct: StructField,
+		readonly matchFieldName: Field,
+		readonly fieldName?: string,
+	) {
+        super(fieldName || struct.name)
+	}
+
+	isRef(): boolean {
+		return this.struct.isRef()
+	}
+
+	isUserDefined(): boolean {
+		return true
+	}
+
+	typeName(): string {
+		if (this.isRef()) {
+			return `${this.struct.name}<'a>`
+		}
+		return this.struct.name
+	}
+
+	parserInvocation(): string {
+		return this.struct.struct.parserFunctionName()
+	}
+
+	generateParseStatement(): string {
+		return `let (input, ${this.name}) = ${this.parserInvocation()}(input)?;`
+	}
+
 }

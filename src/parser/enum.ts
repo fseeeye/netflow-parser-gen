@@ -18,7 +18,10 @@ export class StructEnumVariantParserGenerator extends StructParserGenerator {
         Ok((
             input,
             ${variantType} {
-                ${this.struct.fields.map((field) => field.name).join(',\n')}
+                ${this.struct.fields.map((field) => field.name)
+                    .filter((filedName) => filedName !== '' && !filedName.startsWith('_'))
+                    .join(',\n')
+                }
             }
         ))
         `

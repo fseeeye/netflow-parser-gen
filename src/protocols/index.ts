@@ -13,6 +13,7 @@ import { FinsUdpReq } from "./fins-udp-req"
 import { FinsUdpRsp } from "./fins-udp-rsp"
 import endent from "endent"
 import path from "path"
+import { Mms } from "./mms"
 
 export const BuiltinProtocols = [
     Ethernet,
@@ -26,6 +27,7 @@ export const BuiltinProtocols = [
 	FinsTcpRsp,
 	FinsUdpReq,
 	FinsUdpRsp,
+    Mms,
 ]
 
 interface ProtocolParser {

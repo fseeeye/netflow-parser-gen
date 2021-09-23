@@ -1,3 +1,12 @@
+# [0.6.0](https://github.com/metachris/typescript-boilerplate/compare/v0.5.1...v0.6.0) (2021-09-22)
+
+
+### Features
+
+* **all:** adapt to ICS Rule ([d41b447](https://github.com/metachris/typescript-boilerplate/commit/d41b447e54cf818cc27999ac071b8bfe23b9305e))
+
+
+
 ## [0.5.1](https://github.com/metachris/typescript-boilerplate/compare/v0.5.0...v0.5.1) (2021-08-18)
 
 

@@ -14,7 +14,10 @@ export class StructParserGenerator {
         Ok((
             input,
             ${struct.name} {
-                ${struct.fields.map((field) => field.name).join(',\n')}
+                ${struct.fields.map((field) => field.name)
+                    .filter((filedName) => filedName !== '' && !filedName.startsWith('_'))
+                    .join(',\n')
+                }
             }
         ))
         `
