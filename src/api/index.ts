@@ -1,5 +1,6 @@
 export {
     createBytesReferenceFieldSimple as bytesRef,
+    createStrReferenceFieldSimple as strRef,
     createNumericFieldSimple as numeric,
     createBitNumericField as bitNumeric,
     createFixSizedBytesField as sizedBytes,

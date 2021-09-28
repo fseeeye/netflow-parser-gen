@@ -1,6 +1,6 @@
 import endent from "endent"
 import { snakeCase } from "snake-case"
-import { StructEnum, AnonymousStructVariant, EnumVariant, PayloadEnum, EmptyPayloadEnum, isEmptyPayloadEnum, PayloadEnumVariant, UndefPayloadEnumVariant } from "../types/enum"
+import { StructEnum, AnonymousStructVariant, EnumVariant, PayloadEnum, EmptyPayloadEnum, isEmptyPayloadEnum, PayloadEnumVariant, UndefPayloadEnumVariant, IfStructEnum } from "../types/enum"
 import { removeDuplicateByKey } from "../utils"
 import { StructParserGenerator } from "./struct"
 
@@ -29,7 +29,7 @@ export class StructEnumVariantParserGenerator extends StructParserGenerator {
     }
 
     protected generateFunctionSignature(): string {
-        const name = this.struct.parserFunctionName()
+        const name = this.struct.parserFunctionNameOverwrite(this.enumName)
         return `fn ${name}(input: &[u8]) -> IResult<&[u8], ${this.enumName}>`
     }
 }
@@ -41,10 +41,10 @@ export class StructEnumParserGenerator {
 
     functionSignature(): string {
         const structEnum = this.structEnum
-        const lifetimeSpecifier = structEnum.choiceField.isFieldRef() ? `<'a>` : ``
-        const lifetimeRefSpecifier = structEnum.choiceField.isFieldRef() ? `'a ` : ``
+        let lifetimeSpecifier = structEnum.choiceField.isFieldRef() ? `<'a>` : ``
+        let lifetimeRefSpecifier = structEnum.choiceField.isFieldRef() ? `'a ` : ``
         // 如果 Enum 类型带有生命周期标记，在返回值中需要标记()
-        const returnType = (structEnum.choiceField.isFieldRef() && structEnum.isRef()) ? `${structEnum.name}${lifetimeSpecifier}` : structEnum.name
+        let returnType = (structEnum.choiceField.isFieldRef() && structEnum.isRef()) ? `${structEnum.name}${lifetimeSpecifier}` : structEnum.name
 
         if (this.structEnum.choiceField.isWithoutInput()) {
             return `pub fn parse_${structEnum.snakeCaseName()}${lifetimeSpecifier}(input: &${lifetimeRefSpecifier}[u8]) -> IResult<&${lifetimeRefSpecifier}[u8], ${returnType}>`
@@ -53,6 +53,11 @@ export class StructEnumParserGenerator {
             // const choiceParameterType = choiceField.isUserDefined() ? `&${choiceField.typeName()}` : choiceField.typeName()
             // const choiceParameter = `${choiceField.name}: ${choiceParameterType}`
             const choiceParameter = structEnum.choiceField.asEnumParserFunctionParameterSignature()
+            if (choiceParameter.includes('&')) {
+                lifetimeSpecifier = `<'a>`
+                lifetimeRefSpecifier = `'a`
+                returnType = returnType.concat(`<'a>`)
+            }
 
             return `pub fn parse_${structEnum.snakeCaseName()}${lifetimeSpecifier}(input: &${lifetimeRefSpecifier}[u8], ${choiceParameter}) -> IResult<&${lifetimeRefSpecifier}[u8], ${returnType}>`
         }
@@ -60,20 +65,34 @@ export class StructEnumParserGenerator {
 
 
     protected generateErrorArm(errorKind = 'Verify'): string {
-        return endent`
-        _ =>  Err(nom::Err::Error(nom::error::Error::new(input, nom::error::ErrorKind::${errorKind}))),
-        `
+        if (!this.structEnum.withoutErrorArm) {
+            return endent`
+            _ =>  Err(nom::Err::Error(nom::error::Error::new(input, nom::error::ErrorKind::${errorKind}))),
+            `
+        } else {
+            return ``
+        }
     }
 
-    private generateMatchArm(variant: EnumVariant) {
+    private generateMatchArm(variant: EnumVariant, allInOne = false) {
         const choiceLiteral = variant.generateChoiceLiteral()
 
-        return endent`
-        ${choiceLiteral} => ${variant.parserInvocation()},
-        `
+        if (allInOne) {
+            if (variant.parserImplementation === undefined) {
+                throw Error(`variant has no parser implementation!: ${variant.name}`)
+            }
+            const parserImpl = variant.parserImplementation(this.structEnum.name, false)
+            return endent`
+                ${choiceLiteral} => {
+                    ${parserImpl}
+                }
+            `
+        } else {
+            return endent`${choiceLiteral} => ${variant.parserInvocation(this.structEnum.name)},`
+        }
     }
 
-    protected generateMatchBlock(): string {
+    protected generateMatchBlock(allInOne = false): string {
         const structEnum = this.structEnum
         // console.log(structEnum.variantMap)
         const choiceArms = structEnum.variants.map((variant) => {
@@ -82,7 +101,7 @@ export class StructEnumParserGenerator {
             // return endent`
             // ${choiceLiteral} => ${variantParserName}(input),
             // `
-            return this.generateMatchArm(variant)
+            return this.generateMatchArm(variant, allInOne)
         })
         const parsedEnumVariable = structEnum.snakeCaseName()
         // 如果设置了default arm，那么将不会生成再生成error arm作为default arm
@@ -123,30 +142,35 @@ export class StructEnumParserGenerator {
         return parsers.join(`\n\n`)
     }
 
-    private functionBody() {
+    private functionBody(allInOne = false) {
         const choice = this.structEnum.choiceField
         const parseAheadStatement = (choice.isInline() && choice.generateParseAheadStatement !== undefined) ? choice.generateParseAheadStatement() : ``
-        const matchBlock = this.generateMatchBlock()
+        const matchBlock = this.generateMatchBlock(allInOne)
         const statements = parseAheadStatement !== `` ? [parseAheadStatement, matchBlock] : [matchBlock]
         return statements.join(`\n`)
     }
 
-    generateEnumParser(): string {
+    generateEnumParser(allInOne = false): string {
         const signature = this.functionSignature()
         const parserBlock = endent`{
-            ${this.functionBody()}
+            ${this.functionBody(allInOne)}
         }`
         return endent`
         ${signature} ${parserBlock}
         `
     }
 
-    generateParser(): string {
+    generateParser(allInOne = false): string {
         // const nomImports = generateNomImport()
         // const enumDef = this.structEnum.definition()
-        const variantParsers = this.generateVariantParserFunctions()
-        const enumParser = this.generateEnumParser()
-        return [variantParsers, enumParser].join(`\n\n`)
+        if (!allInOne) {
+            const variantParsers = this.generateVariantParserFunctions()
+            const enumParser = this.generateEnumParser()
+            return [variantParsers, enumParser].join(`\n\n`)
+        } else {
+            const enumParser = this.generateEnumParser(allInOne)
+            return enumParser
+        }
     }
 
 }
@@ -234,5 +258,168 @@ export class PayloadEnumParserGenerator {
     // !unecessary
     generateParser(): string {
         throw Error(`PayloadEnumParserGenerator dont impl generateParser()`)
+    }
+}
+
+export class IfStructEnumParserGenerator {
+    constructor(
+        readonly ifStructEnum: IfStructEnum,
+    ) { }
+
+    functionSignature(): string {
+        const structEnum = this.ifStructEnum
+        let lifetimeSpecifier = structEnum.choiceField.isFieldRef() ? `<'a>` : ``
+        let lifetimeRefSpecifier = structEnum.choiceField.isFieldRef() ? `'a ` : ``
+        // 如果 Enum 类型带有生命周期标记，在返回值中需要标记()
+        const returnType = (structEnum.choiceField.isFieldRef() && structEnum.isRef()) ? `${structEnum.name}${lifetimeSpecifier}` : structEnum.name
+
+        if (structEnum.choiceField.isWithoutInput()) {
+            return `pub fn parse_${structEnum.snakeCaseName()}${lifetimeSpecifier}(input: &${lifetimeRefSpecifier}[u8]) -> IResult<&${lifetimeRefSpecifier}[u8], ${returnType}>`
+        } else {
+            // 如果 choice 是用户自定义类型，就接受引用作为参数
+            // const choiceParameterType = choiceField.isUserDefined() ? `&${choiceField.typeName()}` : choiceField.typeName()
+            // const choiceParameter = `${choiceField.name}: ${choiceParameterType}`
+            const choiceParameter = structEnum.choiceField.asEnumParserFunctionParameterSignature()
+            if (choiceParameter.includes('&')) {
+                lifetimeSpecifier = `<'a>`
+                lifetimeRefSpecifier = `'a`
+            }
+
+            return `pub fn parse_${structEnum.snakeCaseName()}${lifetimeSpecifier}(input: &${lifetimeRefSpecifier}[u8], ${choiceParameter}) -> IResult<&${lifetimeRefSpecifier}[u8], ${returnType}>`
+        }
+    }
+
+    protected generateErrorElseArm(errorKind = 'Verify'): string {
+        return endent`
+            else {
+                return Err(nom::Err::Error(nom::error::Error::new(input, nom::error::ErrorKind::${errorKind})))
+            }
+        `
+    }
+
+    private generateIfArm(variant: EnumVariant, allInOne: boolean, flag: 'if' | 'else if' | 'else' = 'else if') {
+        if (flag === 'if' || flag === 'else if') {
+            if (!allInOne) {
+                return endent`
+                    ${flag} ${variant.generateChoiceLiteral()} {
+                        ${variant.parserInvocation(this.ifStructEnum.name)}
+                    }
+                `
+            } else {
+                if (variant.parserImplementation === undefined) {
+                    throw Error(`variant has no parser implementation!: ${variant.name}`)
+                }
+                const parserImpl = variant.parserImplementation(this.ifStructEnum.name, false)
+                return endent`
+                    ${flag} ${variant.generateChoiceLiteral()} {
+                        ${parserImpl}
+                    }
+                `
+            }
+        } else {
+            if (!allInOne) {
+                return endent`
+                    ${flag} {
+                        ${variant.parserInvocation(this.ifStructEnum.name)}
+                    }
+                `
+            } else {
+                if (variant.parserImplementation === undefined) {
+                    throw Error(`variant has no parser implementation!: ${variant.name}`)
+                }
+                const parserImpl = variant.parserImplementation(this.ifStructEnum.name)
+                return endent`
+                    ${flag} {
+                        ${parserImpl}
+                    }
+                `
+            }
+        }
+    }
+
+    protected generateIfBlock(allInOne: boolean): string {
+        const structEnum = this.ifStructEnum
+
+        if (structEnum.variants.length <= 0) {
+            throw Error(`ifStructEnum(${structEnum.name})'s variants is empty!`)
+        } else if (structEnum.variants.length === 1) {
+            const variant = structEnum.variants[0]
+            return endent`
+                ${this.generateIfArm(variant, allInOne, 'if')}
+                ${this.generateErrorElseArm()}
+            `
+        } else {
+            let res = ``
+            let else_res = ``
+
+            let isSetFirstFlag = false;
+            let isSetElseFlag = false;
+
+            structEnum.variants.forEach((variant) => {
+                if (variant.choice === '_') {
+                    if (!isSetElseFlag) {
+                        else_res = this.generateIfArm(variant, allInOne, 'else')
+                        isSetElseFlag = true
+                    } else {
+                        throw Error(`IfStructEnum(${structEnum.name}) has more than one "else arm"!`)
+                    }
+                }
+                else if (!isSetFirstFlag) {
+                    res = this.generateIfArm(variant, allInOne, 'if')
+                    isSetFirstFlag = true
+                } else {
+                    res = res.concat('\n').concat(this.generateIfArm(variant, allInOne))
+                }
+            })
+
+            if (!isSetElseFlag) {
+                else_res = this.generateErrorElseArm()
+            }
+
+            return endent`
+                ${res}
+                ${else_res}
+            `
+        }
+    }
+
+    generateVariantParserFunctions(): string {
+        // 按照 variant 的名字生成解析函数。需要去重，因为一个 variant （例如 Eof）可以对应多个 choice。
+        // const variantsWithOwnParsers = this.structEnum.variants.filter(v => v.inlineParsable === false)
+        // const variantNamesWithOwnParsers = variantsWithOwnParsers.map(v => v.name)
+        // const uniqueVariantNamesWithOwnParsers = variantsWithOwnParsers.filter(({ name }, index) => variantNamesWithOwnParsers.includes(name, index + 1) === false)
+        const uniqueVariantNamesWithOwnParsers = removeDuplicateByKey(
+            this.ifStructEnum.variants.filter(v => v.hasParserImplementation === true),
+            (v) => v.name
+        )
+        const parsers = uniqueVariantNamesWithOwnParsers.map((variant) => {
+            if (variant.parserImplementation === undefined) {
+                throw Error(`variant has no parser implementation!: ${variant.name}`)
+            }
+            return variant.parserImplementation(this.ifStructEnum.name)
+        })
+
+        return parsers.join(`\n\n`)
+    }
+
+    generateEnumParser(allInOne: boolean): string {
+        const signature = this.functionSignature()
+        const parserBlock = endent`{
+            ${this.generateIfBlock(allInOne)}
+        }`
+
+        return endent`
+        ${signature} ${parserBlock}
+        `
+    }
+
+    generateParser(allInOne = false): string {
+        if (!allInOne) {
+            const variantParsers = this.generateVariantParserFunctions()
+            const enumParser = this.generateEnumParser(allInOne)
+            return [variantParsers, enumParser].join(`\n\n`)
+        } else {
+            return this.generateEnumParser(allInOne)
+        }
     }
 }

@@ -61,6 +61,11 @@ const BuiltinNumericTypes: Map<BuiltinNumericTypeName, NumericType> = new Map([
 	['usize', new NumericType(BuiltInNumericTypeName.usize, NomNumberFunction.usize, 64),],
 ])
 
-export function getBuildinNumericTypeByTypeName(typeName: BuiltinNumericTypeName): NumericType | undefined {
-    return BuiltinNumericTypes.get(typeName)
+export function getBuildinNumericTypeByTypeName(typeName: BuiltinNumericTypeName): NumericType {
+    const rst = BuiltinNumericTypes.get(typeName)
+    if (rst === undefined) {
+        throw Error('undefined Buildin Numeric Type')
+    } else {
+        return rst
+    }
 }

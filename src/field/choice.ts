@@ -1,6 +1,7 @@
 import endent from "endent"
 import { PayloadEnum } from "../types/enum"
 import { Field } from "./base"
+import { EnumField } from "./enum"
 import { NumericField } from "./numeric"
 import { StructField, StructMemberField } from "./struct"
 
@@ -36,8 +37,14 @@ export class BasicEnumChoice implements EnumChoice {
     }
 
     protected matchFieldExpr(): string {
-        return this.field.name
+        return this.fixFiledName()
     }
+
+	protected fixFiledName(): string {
+		const splitedFieldName = this.field.name.split('.')
+		const fixedFieldName = splitedFieldName[splitedFieldName.length - 1]
+		return fixedFieldName
+	}
 
     asMatchTarget(): string {
         const matchField = this.matchFieldExpr()
@@ -48,19 +55,19 @@ export class BasicEnumChoice implements EnumChoice {
     }
 
     asEnumParserFunctionParameterSignature(): string {
-        return `${this.field.name}: ${this.field.typeName()}`
+        return `${this.fixFiledName()}: ${this.field.typeName()}`
     }
 
     asEnumParserInvocationArgument(): string {
-        return this.matchFieldExpr()
+        return this.field.name
     }
 
     getChoiceFieldName(): string {
-        return this.field.name
+        return this.fixFiledName()
     }
 }
 
-export class StructEnumChoice extends BasicEnumChoice {
+export class StructChoice extends BasicEnumChoice {
 	constructor(
 		readonly structField: StructField,
 		readonly matchFieldName: string,
@@ -80,7 +87,7 @@ export class StructEnumChoice extends BasicEnumChoice {
 	protected matchFieldExpr(): string {
 		return `${this.structField.name}.${this.matchFieldName}`
 	}
-	//add this func
+
 	asMatchTarget(): string {
 		const matchField = this.matchFieldExpr()
 		if (this.matchTargetExprGenerator === undefined) {
@@ -90,7 +97,6 @@ export class StructEnumChoice extends BasicEnumChoice {
 	}
 
 	// 定义 enum parser 的参数类型签名与调用 enum parser 时提供的参数形式一一对应。
-
 	asEnumParserFunctionParameterSignature(): string {
 		return `${this.structField.name}: &${this.structField.typeName()}`
 	}
@@ -137,16 +143,17 @@ export class InlineChoice extends BasicEnumChoice {
 		return true
 	}
 
+	isWithoutInput(): boolean {
+		return true
+	}
+
 	generateParseAheadStatement(): string {
 		return `let (input, ${this.matchFieldExpr()}) = peek(${this.field.parserInvocation()})(input)?;`
 	}
 
 	generateParseAheadStatementWithPayloadErrorHandle(payloadEnum: PayloadEnum): string {
-		return endent`let (input, ${this.field.name}) = match peek(${this.field.parserInvocation()})(input) {
+		return endent`let (input, ${this.field.name}) = match peek::<_,_,nom::error::Error<&[u8]>,_>(${this.field.parserInvocation()})(input) {
             Ok((input, ${this.field.name})) => (input, ${this.field.name}),
-            Err(nom::Err::Error((input, _))) => {
-                return Ok((input, ${payloadEnum.name}::Error(${payloadEnum.name}Error::NomPeek(input))))
-            }
             _ => return Ok((input, ${payloadEnum.name}::Error(${payloadEnum.name}Error::NomPeek(input)))),
         };`
 	}
@@ -294,6 +301,75 @@ export class StructBitOperatorChoice extends BasicEnumChoice {
 	asEnumParserInvocationArgument(): string {
 		return this.matchFieldExprArgument()
 	}
+}
+
+// Now, only for IfStructEnum
+export class EnumMultiChoice implements EnumChoice {
+    constructor(
+        readonly fields: Field[], // if enum variant需要用到的fields
+    ) { }
+
+    isInline(): boolean {
+        return false
+    }
+
+    isWithoutInput(): boolean {
+		if (this.fields === []) {
+			return true
+		}
+        return false
+    }
+
+    isFieldRef(): boolean {
+		let res = false
+
+        this.fields.forEach((field) => {
+			if (field.isRef() === true) {
+				res = true
+			}
+		})
+		this.fields.forEach((field) => {
+			if ((field instanceof StructField) || (field instanceof EnumField)) {
+				res = true
+			}
+		})
+
+		return res
+    }
+
+    asMatchTarget(): string {
+        throw Error(`This IfEnumChoice don't impl asMatchTarget()`)
+    }
+
+    asEnumParserFunctionParameterSignature(): string {
+		return this.fields
+		.map((field) => {
+				const splitedFiledName = field.name.split('.')
+				const fixedFiledName = splitedFiledName[splitedFiledName.length - 1]
+				if ((field instanceof StructField) || (field instanceof EnumField)) {
+					return `${fixedFiledName}: &${field.typeName()}`
+				} else {
+					return `${fixedFiledName}: ${field.typeName()}`
+				}
+			})
+			.join(', ')
+    }
+
+    asEnumParserInvocationArgument(): string {
+        return this.fields
+			.map((field) => {
+				if ((field instanceof StructField) || (field instanceof EnumField)) {
+					return `&${field.name}`
+				} else {
+					return `${field.name}`
+				}
+			})
+			.join(', ')
+    }
+
+    getChoiceFieldName(): string {
+        throw Error(`This IfEnumChoice don't impl getChoiceFieldName()`)
+    }
 }
 
 // export class ChoiceField {

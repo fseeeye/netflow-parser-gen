@@ -3,6 +3,7 @@ import { InputLengthChoice } from "../field/choice"
 import { EnumField } from "../field/enum"
 import { NumericField } from "../field/numeric"
 import { StructField } from "../field/struct"
+import { IfStructEnum } from "../types/enum"
 import { filterStructEnumICS } from "./enum"
 import { filterStructICS } from "./struct"
 
@@ -11,7 +12,7 @@ import { filterStructICS } from "./struct"
 // 目前ICS规则中Field类型中仅支持：
 // * NumericField
 // * StructField
-// * EnumField (choiceField不为InputLengthChoice)
+// * EnumField (structEnum不为IfStructEnum，且structEnum.choiceField不为InputLengthChoice)
 // * 且该Field不为某EnumField的choice所指向的Field
 // Tips：需要为支持的Field类型实现definitionRuleArg()和generateDetectCode()
 export function filterFieldsICS(oldFields: Field[]): Field[] {
@@ -26,6 +27,7 @@ export function filterFieldsICS(oldFields: Field[]): Field[] {
         .filter((field) => (field instanceof NumericField || field instanceof StructField || field instanceof EnumField))
         .filter((field) => !enumChoiceNames.includes(field.name)) // 去除enum choice指向的fields
         .filter((field) => !((field instanceof EnumField) && (field.structEnum.choiceField instanceof InputLengthChoice))) // 若有enum field的choiceField类型为InputLengthChoice，将其去除
+        .filter((field) => !((field instanceof EnumField) && (field.structEnum instanceof IfStructEnum)))
         .map((field) => {
             if (field instanceof StructField) {
                 const cleanStruct = filterStructICS(field.struct)

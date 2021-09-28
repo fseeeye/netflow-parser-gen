@@ -1,7 +1,7 @@
 import { BitsNumericField } from "../field/bit-field"
 import { FixSizedBytes } from "../field/fix-sized-bytes"
 import { NumericField } from "../field/numeric"
-import { BytesReferenceField } from "../field/ref"
+import { BytesReferenceField, StrReferenceField } from "../field/ref"
 import { BitVecField, VecField } from "../field/vec"
 import { CountVariable } from "../utils/variables"
 import { BuiltinNumericTypeName, getBuildinNumericTypeByTypeName } from "../types/numeric"
@@ -69,6 +69,10 @@ export function createBytesReferenceField({ name, countVar }: BytesReferenceFiel
 
 export function createBytesReferenceFieldSimple(name: string, countVar: CountVariable): BytesReferenceField {
     return createBytesReferenceField({ name, countVar })
+}
+
+export function createStrReferenceFieldSimple(name: string, countVar: CountVariable): StrReferenceField {
+    return new StrReferenceField(name, countVar)
 }
 
 export function createNumericVector(name: string, countVar: CountVariable, elementTypeName: BuiltinNumericTypeName): VecField {

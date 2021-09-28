@@ -5,13 +5,14 @@ import {
 } from "../../api/input"
 import { BasicEnumChoice, StructBitOperatorChoice, InputLengthChoice } from "../../field/choice"
 import { EnumField } from "../../field/enum"
-import { BerTLField, BlankStructField } from "../../field/ber-tl"
+import { BerTLField } from "../../field/ber-tl"
 import { StructField, StructMemberField } from "../../field/struct"
 import { LimitedVecLoopField } from "../../field/vec"
 import { AnonymousStructVariant, StructEnum, EmptyPayloadEnum } from "../../types/enum"
 import { Struct } from "../../types/struct"
 import { ProtocolInfo } from "../protocol-info"
 import { Protocol } from "../protocol"
+import { BlankStructField } from "../../field/special"
 
 const protocolName = 'Mms'
 const headerName = `${protocolName}Header`

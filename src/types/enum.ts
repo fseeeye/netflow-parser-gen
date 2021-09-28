@@ -3,8 +3,8 @@ import { snakeCase } from "snake-case"
 import { generateAttributesCode, generateSerdeAttributesCode, removeDuplicateByKey } from "../utils"
 import { VisibilityType } from "../utils/variables"
 import { Field } from "../field/base"
-import { EnumChoice } from "../field/choice"
-import { PayloadEnumParserGenerator, StructEnumParserGenerator, StructEnumVariantParserGenerator } from "../parser/enum"
+import { EnumChoice, EnumMultiChoice } from "../field/choice"
+import { IfStructEnumParserGenerator, PayloadEnumParserGenerator, StructEnumParserGenerator, StructEnumVariantParserGenerator } from "../parser/enum"
 import { Protocol } from "../protocols/protocol"
 import { Struct } from "./struct"
 import { FieldType } from "./base"
@@ -16,13 +16,13 @@ export interface EnumVariant {
     name: string
     hasParserImplementation: boolean
     choice: ChoiceType
-    definition(): string
-    definitionRuleArg?(): string
+    definition(): string // 输出作为enum定义中的某Variant
+    definitionRuleArg?(): string // [Rule]
     hasReference(): boolean
-    parserInvocation(): string
-    generateChoiceLiteral(): ChoiceType
-    parserImplementation?(enumName: string): string
-    detectorImplementation?(s: StructEnum, modName: string): string // 生成：check_arg()方法中该variant的match arm，内为比较代码
+    parserInvocation(enumName: string): string // 输出variant对应的match arm后variant解析函数调用代码 (variant.choiceLiteral => variant.parserInvocation,)
+    generateChoiceLiteral(): ChoiceType // 输出variant对应的match arm文本 (variant.choiceLiteral => variant.parserInvocation,)
+    parserImplementation?(enumName: string, includeSig?: boolean): string // 生成variant解析函数
+    detectorImplementation?(s: StructEnum, modName: string): string // [Rule]生成：check_arg()方法中该variant的match arm，内为比较代码
 }
 
 class BasicEnumVariant{
@@ -41,7 +41,6 @@ class BasicEnumVariant{
         return Math.ceil(len / 8) * 2
     }
 
-    // 输出variant对应的match arm选择文本
     generateChoiceLiteral() {
         if (typeof this.choice === 'number') {
             const hexLen = this.calculateNumberHexLength(this.choice)
@@ -82,26 +81,34 @@ export class EofVariant extends BasicEnumVariant implements EnumVariant {
         return false
     }
 
-    parserFunctionName(): string {
-        return `parse_${snakeCase(this.name)}`
+    parserFunctionName(enumName: string): string {
+        return `parse_${snakeCase(enumName)}_${snakeCase(this.name)}`
     }
 
-    parserInvocation(): string {
-        return `${this.parserFunctionName()}(input)`
+    parserInvocation(enumName: string): string {
+        return `${this.parserFunctionName(enumName)}(input)`
     }
 
-    parserImplementation(enumName: string): string {
+    parserImplementation(enumName: string, includeSig = true): string {
         const typeName = `${enumName}::${this.name}`
-        const functionSignature = endent`fn ${this.parserFunctionName()}(input: &[u8]) -> IResult<&[u8], ${enumName}>`
+        const functionSignature = endent`fn ${this.parserFunctionName(enumName)}(input: &[u8]) -> IResult<&[u8], ${enumName}>`
         // 调用nom::combinator::eof
-        const parserBlock = endent`{
+        const parserBlock = endent`
             let (input, _) = eof(input)?;
             Ok((
                 input,
                 ${typeName} {}
             ))
-        }`
-        return `${functionSignature} ${parserBlock}`
+        `
+        if (includeSig === false) {
+            return `${parserBlock}`
+        } else {
+            return endent`
+                ${functionSignature} {
+                    ${parserBlock}   
+                }
+            `
+        }
     }
 
     detectorImplementation(s: StructEnum, modName: string): string {
@@ -115,6 +122,35 @@ export class EofVariant extends BasicEnumVariant implements EnumVariant {
                 }
             }
         `
+    }
+}
+
+export class EmptyVariant extends EofVariant {
+    constructor(
+        readonly choice: ChoiceType,
+        readonly name: string
+    ) { super(choice, name) }
+
+    parserImplementation(enumName: string, includeSig = true): string {
+        const typeName = `${enumName}::${this.name}`
+        const functionSignature = endent`fn ${this.parserFunctionName(enumName)}(input: &[u8]) -> IResult<&[u8], ${enumName}>`
+        // 调用nom::combinator::eof
+        const parserBlock = endent`
+            Ok((
+                input,
+                ${typeName} {}
+            ))
+        `
+        if (includeSig === false) {
+            return `${parserBlock}`
+        } else {
+            return endent`
+                #[inline(always)]
+                ${functionSignature} {
+                    ${parserBlock}   
+                }
+            `
+        }
     }
 }
 
@@ -153,13 +189,21 @@ export class AnonymousStructVariant extends Struct implements EnumVariant {
         `
     }
 
-    parserInvocation(): string {
-        return `${this.parserFunctionName()}(input)`
+    parserFunctionNameOverwrite(enumName: string): string {
+        return `parse_${snakeCase(enumName)}_${snakeCase(this.name)}`
     }
 
-    parserImplementation(enumName: string): string {
+    parserInvocation(enumName: string): string {
+        return `${this.parserFunctionNameOverwrite(enumName)}(input)`
+    }
+
+    parserImplementation(enumName: string, includeSig = true): string {
         const gen = new StructEnumVariantParserGenerator(this, enumName)
-        return gen.generateParser(false)
+        if (includeSig === false) {
+            return gen.generateParserBlock()
+        } else {
+            return gen.generateParser(false)
+        }
     }
 
     // `generateChoiceLiteral()`辅助函数，计算choice转换为hex的长度/位数
@@ -487,6 +531,8 @@ export class StructEnum implements FieldType {
         readonly name: string,
         readonly variants: EnumVariant[],
         readonly choiceField: EnumChoice,
+        readonly withoutErrorArm = false,
+        readonly allInOne = false,
     ) { }
 
     typeName(): string {
@@ -503,7 +549,7 @@ export class StructEnum implements FieldType {
 
     parserFunctionDefinition(): string {
         const gen = new StructEnumParserGenerator(this)
-        return gen.generateParser()
+        return gen.generateParser(this.allInOne)
     }
 
     isRef(): boolean {
@@ -516,7 +562,7 @@ export class StructEnum implements FieldType {
 
     // setConstrain() {}
 
-    private generateVariants() {
+    protected generateVariants(): string {
         const uniqueVariants = removeDuplicateByKey(
             this.variants,
             (v) => v.name
@@ -526,11 +572,11 @@ export class StructEnum implements FieldType {
         }`
     }
 
-    private hasReference() {
+    protected hasReference(): boolean {
         return this.variants.filter((variant) => variant.hasReference()).length !== 0
     }
 
-    private lifetimeSpecifier() {
+    protected lifetimeSpecifier(): string {
         return this.hasReference() ? `<'a>` : ''
     }
 
@@ -544,7 +590,7 @@ export class StructEnum implements FieldType {
         return snakeCase(this.name)
     }
 
-    private generateRuleArgVariants() {
+    protected generateRuleArgVariants(): string {
         const uniqueVariants = removeDuplicateByKey(
             this.variants,
             (v) => v.name
@@ -597,5 +643,21 @@ export class StructEnum implements FieldType {
                 }
             }
         `
+    }
+}
+
+export class IfStructEnum extends StructEnum {
+    constructor(
+        readonly name: string,
+        readonly variants: EnumVariant[],
+        readonly choiceField: EnumMultiChoice,
+        readonly allInOne = false,
+    ) { 
+        super(name, variants, choiceField)
+    }
+
+    parserFunctionDefinition(): string {
+        const gen = new IfStructEnumParserGenerator(this)
+        return gen.generateParser(this.allInOne)
     }
 }

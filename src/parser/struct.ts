@@ -24,17 +24,17 @@ export class StructParserGenerator {
         return code
     }
 
-    protected generateParserBlock(): string {
+    generateParserBlock(): string {
         const fieldParsers = this.struct.fields.map((field) => {
             return field.generateParseStatement()
         })
 
         const resultSection = this.generateResultSection()
 
-        return endent`{
+        return endent`
             ${fieldParsers.join('\n')}
             ${resultSection}
-        }`
+        `
     }
 
     static generateParserName(struct: Struct): string {
@@ -65,13 +65,17 @@ export class StructParserGenerator {
 
         if (fieldFuction.length !== 0) {
             return endent`
-            ${functionSignature} ${parserBlock}
+            ${functionSignature} {
+                ${parserBlock}
+            }
 
             ${fieldFuction.join("\n")}
             `
         } else {
             return endent`
-            ${functionSignature} ${parserBlock}
+            ${functionSignature} {
+                ${parserBlock}
+            }
             `
         }
         
