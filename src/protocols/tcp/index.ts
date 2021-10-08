@@ -16,6 +16,7 @@ import { ModbusReq } from "../modbus-req"
 import { ModbusRsp } from "../modbus-rsp"
 import { FinsTcpReq } from "../fins-tcp-req"
 import { FinsTcpRsp } from "../fins-tcp-rsp"
+import { Bacnet } from "../bacnet"
 
 const protocolName = 'Tcp'
 const headerName = `${protocolName}Header`
@@ -62,9 +63,10 @@ const payload = new PayloadEnum(
     `${payloadName}`,
     info,
     [
+        new UndefPayloadEnumVariant(102, 'Iso'),
         new PayloadEnumVariant(502, ModbusRsp),
         new PayloadEnumVariant(9600, FinsTcpRsp),
-        new UndefPayloadEnumVariant(102, 'Iso'),
+        new PayloadEnumVariant(47808, Bacnet),
     ],
     new PayloadEnumChoice(
         new StructField(header),
@@ -74,9 +76,10 @@ const payload = new PayloadEnum(
         `${payloadName}`,
         info,
         [
+            new UndefPayloadEnumVariant(102, 'Iso'),
             new PayloadEnumVariant(502, ModbusReq), 
             new PayloadEnumVariant(9600, FinsTcpReq),
-            new UndefPayloadEnumVariant(102, 'Iso'),
+            new PayloadEnumVariant(47808, Bacnet),
         ],
         new PayloadEnumChoice(
             new StructField(header),

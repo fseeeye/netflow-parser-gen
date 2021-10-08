@@ -3,6 +3,7 @@ import { FieldType } from "./base"
 enum BuiltInSliceTypeName {
     u4_4 = '[u8; 4]',
     u4_6 = '[u8; 6]',
+    u8_2 = '[u8; 2]',
     u8_4 = '[u8; 4]',
     u8_5 = '[u8; 5]',
 }
@@ -10,6 +11,7 @@ enum BuiltInSliceTypeName {
 enum EngineSliceFunction {
     u4_4 = 'slice_u4_4',
     u4_6 = 'slice_u4_6',
+    u8_2 = 'slice_u8_2',
     u8_4 = 'slice_u8_4',
     u8_5 = 'slice_u8_5',
 }
@@ -39,11 +41,12 @@ export class SliceType implements FieldType {
     }
 }
 
-export type BuiltInSliceName = 'u4_4' | 'u4_6' | 'u8_4' | 'u8_5'
+export type BuiltInSliceName = 'u4_4' | 'u4_6' | 'u8_2' |'u8_4' | 'u8_5'
 
 const BuiltInSliceTypesMap: Map<BuiltInSliceName, SliceType> = new Map([
     ['u4_4', new SliceType(BuiltInSliceTypeName.u4_4, EngineSliceFunction.u4_4)],
     ['u4_6', new SliceType(BuiltInSliceTypeName.u4_6, EngineSliceFunction.u4_6)],
+    ['u8_2', new SliceType(BuiltInSliceTypeName.u8_2, EngineSliceFunction.u8_2)],
     ['u8_4', new SliceType(BuiltInSliceTypeName.u8_4, EngineSliceFunction.u8_4)],
     ['u8_5', new SliceType(BuiltInSliceTypeName.u8_5, EngineSliceFunction.u8_5)],    
 ])

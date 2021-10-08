@@ -37,6 +37,17 @@ export class StructParserGenerator {
         `
     }
 
+    generateFieldFunction(): string[] {
+        const fieldFuction: (string)[] = []
+        this.struct.fields.map((field) => {
+            if (field.generateFunction !== undefined) {
+                fieldFuction.push(field.generateFunction())
+            }
+        })
+
+        return fieldFuction
+    }
+
     static generateParserName(struct: Struct): string {
         return struct.parserFunctionName()
     }
@@ -56,20 +67,15 @@ export class StructParserGenerator {
         const functionSignature = `${visibilitySpecifier}${this.generateFunctionSignature()}`
         const parserBlock = this.generateParserBlock()
 
-        const fieldFuction: (string)[] = []
-        this.struct.fields.map((field) => {
-            if (field.generateFunction !== undefined) {
-                fieldFuction.push(field.generateFunction())
-            }
-        })
+        const fieldFuction: (string)[] = this.generateFieldFunction()
 
         if (fieldFuction.length !== 0) {
             return endent`
+            ${fieldFuction.join("\n")}
+
             ${functionSignature} {
                 ${parserBlock}
             }
-
-            ${fieldFuction.join("\n")}
             `
         } else {
             return endent`

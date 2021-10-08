@@ -21,7 +21,7 @@ export interface EnumVariant {
     hasReference(): boolean
     parserInvocation(enumName: string): string // 输出variant对应的match arm后variant解析函数调用代码 (variant.choiceLiteral => variant.parserInvocation,)
     generateChoiceLiteral(): ChoiceType // 输出variant对应的match arm文本 (variant.choiceLiteral => variant.parserInvocation,)
-    parserImplementation?(enumName: string, includeSig?: boolean): string // 生成variant解析函数
+    parserImplementation?(enumName: string, isIncludeSig?: boolean): string // 生成variant解析函数
     detectorImplementation?(s: StructEnum, modName: string): string // [Rule]生成：check_arg()方法中该variant的match arm，内为比较代码
 }
 
@@ -89,7 +89,7 @@ export class EofVariant extends BasicEnumVariant implements EnumVariant {
         return `${this.parserFunctionName(enumName)}(input)`
     }
 
-    parserImplementation(enumName: string, includeSig = true): string {
+    parserImplementation(enumName: string, isIncludeSig = true): string {
         const typeName = `${enumName}::${this.name}`
         const functionSignature = endent`fn ${this.parserFunctionName(enumName)}(input: &[u8]) -> IResult<&[u8], ${enumName}>`
         // 调用nom::combinator::eof
@@ -100,7 +100,7 @@ export class EofVariant extends BasicEnumVariant implements EnumVariant {
                 ${typeName} {}
             ))
         `
-        if (includeSig === false) {
+        if (isIncludeSig === false) {
             return `${parserBlock}`
         } else {
             return endent`
@@ -131,7 +131,7 @@ export class EmptyVariant extends EofVariant {
         readonly name: string
     ) { super(choice, name) }
 
-    parserImplementation(enumName: string, includeSig = true): string {
+    parserImplementation(enumName: string, isIncludeSig = true): string {
         const typeName = `${enumName}::${this.name}`
         const functionSignature = endent`fn ${this.parserFunctionName(enumName)}(input: &[u8]) -> IResult<&[u8], ${enumName}>`
         // 调用nom::combinator::eof
@@ -141,7 +141,7 @@ export class EmptyVariant extends EofVariant {
                 ${typeName} {}
             ))
         `
-        if (includeSig === false) {
+        if (isIncludeSig === false) {
             return `${parserBlock}`
         } else {
             return endent`
@@ -197,9 +197,9 @@ export class AnonymousStructVariant extends Struct implements EnumVariant {
         return `${this.parserFunctionNameOverwrite(enumName)}(input)`
     }
 
-    parserImplementation(enumName: string, includeSig = true): string {
+    parserImplementation(enumName: string, isIncludeSig = true): string {
         const gen = new StructEnumVariantParserGenerator(this, enumName)
-        if (includeSig === false) {
+        if (isIncludeSig === false) {
             return gen.generateParserBlock()
         } else {
             return gen.generateParser(false)

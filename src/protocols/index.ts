@@ -15,6 +15,7 @@ import endent from "endent"
 import path from "path"
 import { Mms } from "./mms"
 import { S7comm } from "./s7comm"
+import { Bacnet } from "./bacnet"
 
 export const BuiltinProtocols = [
     Ethernet,
@@ -30,6 +31,7 @@ export const BuiltinProtocols = [
 	FinsUdpRsp,
     Mms,
     S7comm,
+    Bacnet
 ]
 
 interface ProtocolParser {

@@ -4,7 +4,7 @@ import { BasicEnumChoice } from "../field/choice"
 import { NumericField } from "../field/numeric"
 import { BytesReferenceField } from "../field/ref"
 import { StructEnumParserGenerator } from "../parser/enum"
-import { AnonymousStructVariant, EnumVariant, StructEnum, NamedStructVariant, NamedEnumVariant, EofVariant } from "./enum"
+import { AnonymousStructVariant, EnumVariant, StructEnum, EofVariant, NamedEnumVariant, NamedStructVariant } from "./enum"
 import { BuiltInNumericType } from "./numeric"
 import { Struct } from "./struct"
 

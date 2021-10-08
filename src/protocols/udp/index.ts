@@ -8,6 +8,7 @@ import { StructEnum, PayloadEnum, PayloadEnumVariant } from "../../types/enum"
 import { StructField } from "../../field/struct"
 import { FinsUdpRsp } from "../fins-udp-rsp"
 import { FinsUdpReq } from "../fins-udp-req"
+import { Bacnet } from "../bacnet"
 
 const protocolName = 'Udp'
 const headerName = `${protocolName}Header`
@@ -30,6 +31,7 @@ const UdpPayload = new PayloadEnum(
     info,
     [
         new PayloadEnumVariant(9600, FinsUdpRsp),
+        new PayloadEnumVariant(47808, Bacnet),
     ],
     new PayloadEnumChoice(
         new StructField(header),
@@ -40,6 +42,7 @@ const UdpPayload = new PayloadEnum(
         info,
         [
             new PayloadEnumVariant(9600, FinsUdpReq),
+            new PayloadEnumVariant(47808, Bacnet),
         ],
         new PayloadEnumChoice(
             new StructField(header),

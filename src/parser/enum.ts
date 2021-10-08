@@ -56,7 +56,9 @@ export class StructEnumParserGenerator {
             if (choiceParameter.includes('&')) {
                 lifetimeSpecifier = `<'a>`
                 lifetimeRefSpecifier = `'a`
-                returnType = returnType.concat(`<'a>`)
+                if (!returnType.endsWith(`<'a>`)) {
+                    returnType = returnType.concat(`<'a>`)
+                }
             }
 
             return `pub fn parse_${structEnum.snakeCaseName()}${lifetimeSpecifier}(input: &${lifetimeRefSpecifier}[u8], ${choiceParameter}) -> IResult<&${lifetimeRefSpecifier}[u8], ${returnType}>`
@@ -128,18 +130,38 @@ export class StructEnumParserGenerator {
         // const variantsWithOwnParsers = this.structEnum.variants.filter(v => v.inlineParsable === false)
         // const variantNamesWithOwnParsers = variantsWithOwnParsers.map(v => v.name)
         // const uniqueVariantNamesWithOwnParsers = variantsWithOwnParsers.filter(({ name }, index) => variantNamesWithOwnParsers.includes(name, index + 1) === false)
-        const uniqueVariantNamesWithOwnParsers = removeDuplicateByKey(
+        const uniqueVariantWithOwnParsers = removeDuplicateByKey(
             this.structEnum.variants.filter(v => v.hasParserImplementation === true),
             (v) => v.name
         )
-        const parsers = uniqueVariantNamesWithOwnParsers.map((variant) => {
+        const parsers = uniqueVariantWithOwnParsers.map((variant) => {
             if (variant.parserImplementation === undefined) {
                 throw Error(`variant has no parser implementation!: ${variant.name}`)
             }
             return variant.parserImplementation(this.structEnum.name)
         })
 
-        return parsers.join(`\n\n`)
+        return parsers.join('\n\n')
+    }
+
+    generateVariantFieldParserFunctions(): string {
+        const uniqueVariantWithOwnParsers = removeDuplicateByKey(
+            this.structEnum.variants.filter(v => v.hasParserImplementation === true),
+            (v) => v.name
+        )
+        let fieldParsers: string[] = []
+        uniqueVariantWithOwnParsers.forEach(v => {
+            if (v instanceof AnonymousStructVariant) {
+                const gen = new StructEnumVariantParserGenerator(v, this.structEnum.name)
+                const currentFieldParsers = gen.generateFieldFunction()
+                fieldParsers = fieldParsers.concat(currentFieldParsers)
+            }
+        })
+        const uniqueFieldParsers = removeDuplicateByKey(
+            fieldParsers,
+            (string) => string,
+        )
+        return uniqueFieldParsers.join('\n\n')
     }
 
     private functionBody(allInOne = false) {
@@ -166,10 +188,11 @@ export class StructEnumParserGenerator {
         if (!allInOne) {
             const variantParsers = this.generateVariantParserFunctions()
             const enumParser = this.generateEnumParser()
-            return [variantParsers, enumParser].join(`\n\n`)
+            return [variantParsers, enumParser].join('\n\n')
         } else {
+            const variantFieldParsers = this.generateVariantFieldParserFunctions()
             const enumParser = this.generateEnumParser(allInOne)
-            return enumParser
+            return [variantFieldParsers, enumParser].join('\n\n')
         }
     }
 
@@ -327,7 +350,7 @@ export class IfStructEnumParserGenerator {
                 if (variant.parserImplementation === undefined) {
                     throw Error(`variant has no parser implementation!: ${variant.name}`)
                 }
-                const parserImpl = variant.parserImplementation(this.ifStructEnum.name)
+                const parserImpl = variant.parserImplementation(this.ifStructEnum.name, false)
                 return endent`
                     ${flag} {
                         ${parserImpl}
@@ -402,6 +425,27 @@ export class IfStructEnumParserGenerator {
         return parsers.join(`\n\n`)
     }
 
+    generateVariantFieldParserFunctions(): string {
+        const uniqueVariantWithOwnParsers = removeDuplicateByKey(
+            this.ifStructEnum.variants.filter(v => v.hasParserImplementation === true),
+            (v) => v.name
+        )
+        let fieldParsers: string[] = []
+        uniqueVariantWithOwnParsers.forEach(v => {
+            if (v instanceof AnonymousStructVariant) {
+                const gen = new StructEnumVariantParserGenerator(v, this.ifStructEnum.name)
+                const currentFieldParsers = gen.generateFieldFunction()
+                fieldParsers = fieldParsers.concat(currentFieldParsers)
+            }
+        })
+        const uniqueFieldParsers = removeDuplicateByKey(
+            fieldParsers,
+            (string) => string,
+        )
+        return uniqueFieldParsers.join('\n\n')
+    }
+
+
     generateEnumParser(allInOne: boolean): string {
         const signature = this.functionSignature()
         const parserBlock = endent`{
@@ -419,7 +463,9 @@ export class IfStructEnumParserGenerator {
             const enumParser = this.generateEnumParser(allInOne)
             return [variantParsers, enumParser].join(`\n\n`)
         } else {
-            return this.generateEnumParser(allInOne)
+            const variantFieldParsers = this.generateVariantFieldParserFunctions()
+            const enumParser = this.generateEnumParser(allInOne)
+            return [variantFieldParsers, enumParser].join('\n\n')
         }
     }
 }
