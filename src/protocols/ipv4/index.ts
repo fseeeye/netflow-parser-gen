@@ -1,4 +1,4 @@
-import { createBitNumericField as bitNumeric, createBytesReferenceFieldSimple, createCountVar } from "../../api/input"
+import { createBitsNumericField as bitNumeric, createBytesReferenceFieldSimple, createCountVar } from "../../api/input"
 import { numeric } from "../../api/index"
 import { Struct } from "../../types/struct"
 import { StructEnum, PayloadEnumVariant, PayloadEnum } from "../../types/enum"

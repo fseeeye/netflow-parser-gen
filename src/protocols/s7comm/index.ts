@@ -1,6 +1,6 @@
 // Tips: 目前还不能解绑Parameter和Data，根本原因是结构定义和解析顺序是一致的。
 import endent from "endent"
-import { bitNumeric, numeric, slice, strRef } from "../../api"
+import { bitsNumeric, numeric, slice, strRef } from "../../api"
 import {
     createBytesReferenceFieldSimple as bytesRef, createCountVar,
 } from "../../api/input"
@@ -397,8 +397,8 @@ const S7Parameter = new StructEnum(
             numeric('parameter_length', 'u8'),
             numeric('method', 'u8'), // request / response
             new BitNumericFieldGroup([
-                bitNumeric('parameter_type', 4, 'u8'),
-                bitNumeric('function_group', 4, 'u8'),
+                bitsNumeric('parameter_type', 4, 'u8'),
+                bitsNumeric('function_group', 4, 'u8'),
             ]),
             numeric('subfunction', 'u8'),
             numeric('sequence_number', 'u8'),

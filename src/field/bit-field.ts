@@ -1,9 +1,48 @@
 import endent from "endent"
 import { NomBitsFunction } from "../utils/nom"
-import { VisibilityType } from "../utils/variables"
+import { CountVariable, VisibilityType } from "../utils/variables"
 import { NumericType } from "../types/numeric"
 import { Field } from "./base"
 import { NumericField } from "./numeric"
+
+export class BitNumericField extends NumericField {
+    constructor(
+        readonly name: string,
+        readonly fieldType: NumericType,
+        readonly offset: number,
+        readonly count: CountVariable,
+    ) {
+        super(name, fieldType)
+    }
+
+    isRef(): boolean {
+        return false
+    }
+
+    isUserDefined(): boolean {
+        return false
+    }
+
+    typeName(): string {
+        return this.fieldType.typeName()
+    }
+
+    parserInvocation(): string {
+        return `${NomBitsFunction.take}::<_, _, _, nom::error::Error<(&[u8], usize)>>(${this.count.count()})`
+    }
+
+    generateParseStatement(): string {
+        return endent`
+            let (input, ${this.name}) = match ${this.parserInvocation()}((input, ${this.offset} as usize)) {
+                Ok(((input_remain, _offset), rst)) => (input_remain, rst),
+                Err(_e) => return Err(nom::Err::Error(nom::error::Error::new(
+                    input,
+                    nom::error::ErrorKind::Fail
+                )))
+            };
+        `
+    }
+}
 
 export class BitsNumericField extends NumericField {
     constructor(

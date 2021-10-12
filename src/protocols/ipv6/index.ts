@@ -1,4 +1,4 @@
-import { bitNumeric, bytesRef, numeric } from "../../api"
+import { bitsNumeric, bytesRef, numeric } from "../../api"
 import { createCountVar } from "../../api/input"
 import { BitNumericFieldGroup } from "../../field/bit-field"
 import { ConditionImpl, OptionField } from "../../field/option"
@@ -19,9 +19,9 @@ const payloadName = `${protocolName}Payload`
 
 const group = new BitNumericFieldGroup(
     [
-        bitNumeric('version', 4, 'u8'),
-        bitNumeric('traffic_class', 8, 'u8'),
-        bitNumeric('flow_label', 20, 'be_u32'),
+        bitsNumeric('version', 4, 'u8'),
+        bitsNumeric('traffic_class', 8, 'u8'),
+        bitsNumeric('flow_label', 20, 'be_u32'),
     ]
 )
 

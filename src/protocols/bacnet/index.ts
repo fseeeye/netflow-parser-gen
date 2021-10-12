@@ -1,6 +1,6 @@
 // Udp/Tcp based BACnet
 import endent from "endent"
-import { bitNumeric, bytesRef, numeric, slice } from "../../api"
+import { bitNumeric, bitsNumeric, bytesRef, numeric, slice } from "../../api"
 import { createCountVar } from "../../api/input"
 import { Ipv4Address, Ipv6Address, MacAddress } from "../../field/address"
 import { Field } from "../../field/base"
@@ -10,7 +10,7 @@ import { EnumField } from "../../field/enum"
 import { CodeField } from "../../field/special"
 import { StructField } from "../../field/struct"
 import { LimitedVecLoopField, UnlimitedVecLoopField, VecField } from "../../field/vec"
-import { AnonymousStructVariant, EmptyPayloadEnum, EmptyVariant, EofVariant, IfStructEnum, StructEnum } from "../../types/enum"
+import { AnonymousStructVariant, EmptyPayloadEnum, EmptyVariant, IfStructEnum, StructEnum } from "../../types/enum"
 import { getBuildinNumericTypeByTypeName } from "../../types/numeric"
 import { Struct } from "../../types/struct"
 import { Protocol } from "../protocol"
@@ -505,26 +505,33 @@ const SegmentedReqInfo = new StructEnum(
 )
 structs.push(SegmentedReqInfo)
 
-const BacnetObjectPropertyReferenceInfo = new StructEnum(
+const BacnetObjectPropertyReferenceInfo = new IfStructEnum(
     'BacnetObjectPropertyReferenceInfo',
     [
-        new AnonymousStructVariant(0, 'ObjectIdentifier', [
+        new AnonymousStructVariant('context_tag_number == 0', 'ObjectIdentifier', [
             // refs: https://gitlab.com/wireshark/wireshark/-/blob/master/epan/dissectors/packet-bacapp.c#L7727
             new BitNumericFieldGroup([
-                bitNumeric('object_type', 10, 'be_u16'),
-                bitNumeric('instance_number', 22, 'be_u24'),
+                bitsNumeric('object_type', 10, 'be_u16'),
+                bitsNumeric('instance_number', 22, 'be_u24'),
             ]),
         ]),
-        new AnonymousStructVariant(1, 'PropertyIdentifier', [
+        new AnonymousStructVariant('context_tag_number == 1', 'PropertyIdentifier', [
             // refs: https://gitlab.com/wireshark/wireshark/-/blob/master/epan/dissectors/packet-bacapp.c#L13996
-            // Warning: unimpl
-            numeric('property_identifier', 'u8'),
+            // refs: https://gitlab.com/wireshark/wireshark/-/blob/master/epan/dissectors/packet-bacapp.c#L8072
+            // Warning: it should be a enum depending on 'length_value_type'
+            bitNumeric('property_identifier', 'be_u32', 0, createCountVar('length_value_type', (str) => `${str} * 8`)),
         ]),
-        new AnonymousStructVariant(2, 'PropertyArrayIndex', []), // refs: https://gitlab.com/wireshark/wireshark/-/blob/master/epan/dissectors/packet-bacapp.c#L8109
+        new AnonymousStructVariant('context_tag_number == 2', 'PropertyArrayIndex', [
+            // refs: https://gitlab.com/wireshark/wireshark/-/blob/master/epan/dissectors/packet-bacapp.c#L8109
+            // Warning: it should be a enum depending on 'length_value_type'
+            bitNumeric('property_array_index', 'be_u32', 0, createCountVar('length_value_type', (str) => `${str} * 8`)),
+        ]),
     ],
-    new BasicEnumChoice(
-        numeric('context_tag_number', 'u8')
-    )
+    new EnumMultiChoice([
+        numeric('context_tag_number', 'u8'),
+        numeric('length_value_type', 'u8'),
+    ]),
+    true
 )
 structs.push(BacnetObjectPropertyReferenceInfo)
 
@@ -534,9 +541,9 @@ const BacnetObjectPropertyReferenceItem = new Struct(
     [
         // refs: https://gitlab.com/wireshark/wireshark/-/blob/master/epan/dissectors/packet-bacapp.c#L6843
         new BitNumericFieldGroup([ // Warning: this is simple impl.
-            bitNumeric('context_tag_number', 4, 'u8'),
-            bitNumeric('tag_class', 1, 'u8'),
-            bitNumeric('length_value_type', 3, 'u8'),
+            bitsNumeric('context_tag_number', 4, 'u8'),
+            bitsNumeric('tag_class', 1, 'u8'),
+            bitsNumeric('length_value_type', 3, 'u8'), // value的长度，决定它是u8/u16/u24/u32
         ]),
 
         new EnumField(BacnetObjectPropertyReferenceInfo),
@@ -562,7 +569,8 @@ const ConfirmedServiceRequest = new StructEnum(
         new AnonymousStructVariant(11, 'DeleteObject', []),
         // refs: https://gitlab.com/wireshark/wireshark/-/blob/master/epan/dissectors/packet-bacapp.c#L13863
         new AnonymousStructVariant(12, 'ReadProperty', [
-            new VecField('property_items', createCountVar('3'), BacnetObjectPropertyReferenceItem),
+            // new VecField('property_items', createCountVar('3'), BacnetObjectPropertyReferenceItem),
+            new UnlimitedVecLoopField('property_items', BacnetObjectPropertyReferenceItem),
         ]),
         new AnonymousStructVariant(13, 'ReadPropertyConditional', []),
         new AnonymousStructVariant(14, 'ReadPropertyMultiple', []),
@@ -594,6 +602,100 @@ const ConfirmedServiceRequest = new StructEnum(
 )
 structs.push(ConfirmedServiceRequest)
 
+// refs: https://gitlab.com/wireshark/wireshark/-/blob/master/epan/dissectors/packet-bacapp.c#L13869
+const BacnetObjectPropertyReferenceAckInfo = new IfStructEnum(
+    'BacnetObjectPropertyReferenceAckInfo',
+    [
+        new AnonymousStructVariant('context_tag_number == 0', 'ObjectIdentifier', [
+            // refs: https://gitlab.com/wireshark/wireshark/-/blob/master/epan/dissectors/packet-bacapp.c#L7727
+            new BitNumericFieldGroup([
+                bitsNumeric('object_type', 10, 'be_u16'),
+                bitsNumeric('instance_number', 22, 'be_u24'),
+            ]),
+        ]),
+        new AnonymousStructVariant('context_tag_number == 1', 'PropertyIdentifier', [
+            // refs: https://gitlab.com/wireshark/wireshark/-/blob/master/epan/dissectors/packet-bacapp.c#L13996
+            // refs: https://gitlab.com/wireshark/wireshark/-/blob/master/epan/dissectors/packet-bacapp.c#L8072
+            // Warning: it should be a enum depending on 'length_value_type'
+            bitNumeric('property_identifier', 'be_u32', 0, createCountVar('length_value_type', (str) => `${str} * 8`)),
+        ]),
+        new AnonymousStructVariant('context_tag_number == 2', 'PropertyArrayIndex', [
+            // refs: https://gitlab.com/wireshark/wireshark/-/blob/master/epan/dissectors/packet-bacapp.c#L8109
+            // Warning: it should be a enum depending on 'length_value_type'
+            bitNumeric('property_array_index', 'be_u32', 0, createCountVar('length_value_type', (str) => `${str} * 8`)),
+        ]),
+        new AnonymousStructVariant('context_tag_number == 3 && length_value_type == 6', 'PropertyValueOpen', [
+            // refs: https://gitlab.com/wireshark/wireshark/-/blob/master/epan/dissectors/packet-bacapp.c#L8678
+            new BitNumericFieldGroup([ 
+                bitsNumeric('app_context_tag_number', 4, 'u8'),
+                bitsNumeric('app_tag_class', 1, 'u8'),
+                bitsNumeric('app_length_value_type', 3, 'u8'),
+            ]),
+            // Error: there is a large enum depending on property_identifier!
+            new BitNumericFieldGroup([
+                bitsNumeric('object_type', 10, 'be_u16'),
+                bitsNumeric('instance_number', 22, 'be_u24'),
+            ]),
+        ]),
+        new EmptyVariant('context_tag_number == 3 && length_value_type == 7', 'PropertyValueClose'),
+    ],
+    new EnumMultiChoice([
+        numeric('context_tag_number', 'u8'),
+        // numeric('tag_class', 'u8'),
+        numeric('length_value_type', 'u8'),
+    ]),
+    true
+)
+structs.push(BacnetObjectPropertyReferenceAckInfo)
+
+// refs: https://gitlab.com/wireshark/wireshark/-/blob/master/epan/dissectors/packet-bacapp.c#L13869
+const BacnetObjectPropertyReferenceAckItem = new Struct(
+    'BacnetObjectPropertyReferenceAckItem',
+    [
+        // refs: https://gitlab.com/wireshark/wireshark/-/blob/master/epan/dissectors/packet-bacapp.c#L6843
+        new BitNumericFieldGroup([ // Warning: this is simple impl.
+            bitsNumeric('context_tag_number', 4, 'u8'),
+            bitsNumeric('tag_class', 1, 'u8'),
+            bitsNumeric('length_value_type', 3, 'u8'), // value的长度，决定它是u8/u16/u24/u32
+        ]),
+
+        new EnumField(BacnetObjectPropertyReferenceAckInfo),
+    ]
+)
+structs.push(BacnetObjectPropertyReferenceAckItem)
+
+// refs: https://gitlab.com/wireshark/wireshark/-/blob/master/epan/dissectors/packet-bacapp.c#L14924
+const ConfirmedServiceAck = new StructEnum(
+    'ConfirmedServiceAck',
+    [
+        new AnonymousStructVariant(3,  'ConfirmedEventNotificationAck', []),
+        new AnonymousStructVariant(4,  'GetEnrollmentSummaryAck', []),
+        new AnonymousStructVariant(6,  'AtomicReadFile', []),
+        new AnonymousStructVariant(7,  'AtomicReadFileAck', []),
+        new AnonymousStructVariant(10, 'CreateObject', []),
+        // refs: https://gitlab.com/wireshark/wireshark/-/blob/master/epan/dissectors/packet-bacapp.c#L13869
+        new AnonymousStructVariant(12, 'ReadPropertyAck', [
+            // new VecField('property_items', createCountVar('4'), BacnetObjectPropertyReferenceAckItem),
+            new UnlimitedVecLoopField('property_items', BacnetObjectPropertyReferenceAckItem),
+        ]),
+        new AnonymousStructVariant(13, 'ReadPropertyConditionalAck', []),
+        new AnonymousStructVariant(14, 'ReadPropertyMultipleAck', []),
+        new AnonymousStructVariant(18, 'ConfirmedPrivateTransferAck', []),
+        new AnonymousStructVariant(21, 'VtOpenAck', []),
+        new AnonymousStructVariant(23, 'VtDataAck', []),
+        new AnonymousStructVariant(24, 'AuthenticateAck', []),
+        new AnonymousStructVariant(26, 'ReadRangeAck', []),
+        new AnonymousStructVariant(29, 'GetEventInformationACK', []),
+        new AnonymousStructVariant(33, 'AuditLogQueryAck', []),
+    ],
+    new BasicEnumChoice(
+        numeric('service_choice', 'u8')
+    ),
+    false,
+    false
+)
+structs.push(ConfirmedServiceAck)
+
 // Warning: unimpl all variants
 const ApduInfo = new IfStructEnum(
     'ApduInfo',
@@ -602,18 +704,21 @@ const ApduInfo = new IfStructEnum(
         new AnonymousStructVariant('apdu_type == 0', 'ComfirmedServiceRequest', [
             // refs: https://gitlab.com/wireshark/wireshark/-/blob/master/epan/dissectors/packet-bacapp.c#L15109
             new BitNumericFieldGroup([
-                bitNumeric('unknow_bit', 1, 'u8'),
-                bitNumeric('response_segments', 3, 'u8'),
-                bitNumeric('max_adpu_size', 4, 'u8'),
+                bitsNumeric('unknow_bit', 1, 'u8'),
+                bitsNumeric('response_segments', 3, 'u8'),
+                bitsNumeric('max_adpu_size', 4, 'u8'),
             ]),
             numeric('invoke_id', 'u8'),
-            numeric('service_choice', 'u8'),
             new EnumField(SegmentedReqInfo),
+            numeric('service_choice', 'u8'),
             new EnumField(ConfirmedServiceRequest),
         ]),
         // refs: https://gitlab.com/wireshark/wireshark/-/blob/master/epan/dissectors/packet-bacapp.c#L15215
         new AnonymousStructVariant('apdu_type == 3', 'ComplexAckPdu', [
-            // 
+            numeric('invoke_id', 'u8'),
+            new EnumField(SegmentedReqInfo),
+            numeric('service_choice', 'u8'),
+            new EnumField(ConfirmedServiceAck),
         ])
     ],
     new EnumMultiChoice([
@@ -634,8 +739,8 @@ const ApduOption = new StructEnum(
         new AnonymousStructVariant(0x00, 'Apdu', [
             // refs: https://gitlab.com/wireshark/wireshark/-/blob/master/epan/dissectors/packet-bacapp.c#L15585
             new BitNumericFieldGroup([
-                bitNumeric('apdu_type', 4, 'u8'),
-                bitNumeric('pdu_flags', 4, 'u8'),
+                bitsNumeric('apdu_type', 4, 'u8'),
+                bitsNumeric('pdu_flags', 4, 'u8'),
             ]),
             new EnumField(ApduInfo),
         ])

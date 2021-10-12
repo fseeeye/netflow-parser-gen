@@ -1,4 +1,4 @@
-import { BitsNumericField } from "../field/bit-field"
+import { BitNumericField, BitsNumericField } from "../field/bit-field"
 import { FixSizedBytes } from "../field/fix-sized-bytes"
 import { NumericField } from "../field/numeric"
 import { BytesReferenceField, StrReferenceField } from "../field/ref"
@@ -23,6 +23,15 @@ export function createNumericField({ name, typeName }: NumericFieldConfig): Nume
 
 export function createNumericFieldSimple(name: string, typeName: BuiltinNumericTypeName): NumericField {
     return createNumericField({ name, typeName })
+}
+
+export function createBitNumericField(name: string, typeName: BuiltinNumericTypeName, offset: number, count: CountVariable): BitNumericField {
+    const numericType = getBuildinNumericTypeByTypeName(typeName)
+    if (numericType === undefined) {
+        throw Error(`bad typename for bitNumeric field!`)
+    }
+
+    return new BitNumericField(name, numericType, offset, count)
 }
 
 export function createSliceFieldSimple(name: string, typeName: BuiltInSliceName): SliceField {
@@ -91,8 +100,7 @@ export function createBitNumericVector(name: string, countVar: CountVariable, el
     return new BitVecField(name, countVar, elementType)
 }
 
-
-export function createBitNumericField(name: string, length: number, typeName: BuiltinNumericTypeName): BitsNumericField {
+export function createBitsNumericField(name: string, length: number, typeName: BuiltinNumericTypeName): BitsNumericField {
     const numericType = getBuildinNumericTypeByTypeName(typeName)
     if (numericType === undefined) {
         throw Error(`bad typename for numeric field!`)

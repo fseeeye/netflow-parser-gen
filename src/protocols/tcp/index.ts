@@ -1,6 +1,6 @@
 import { numeric } from "../../api"
 import {
-    createBitNumericField as bitNumeric,
+    createBitsNumericField as bitNumeric,
     createBytesReferenceFieldSimple as bytesRef,
     createCountVar
 } from "../../api/input"
