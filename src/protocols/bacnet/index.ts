@@ -9,7 +9,7 @@ import { BasicEnumChoice, EnumMultiChoice, StructChoice } from "../../field/choi
 import { EnumField } from "../../field/enum"
 import { CodeField } from "../../field/special"
 import { StructField } from "../../field/struct"
-import { LimitedVecLoopField, UnlimitedVecLoopField, VecField } from "../../field/vec"
+import { LimitedVecLoopField, UnlimitedVecLoopField } from "../../field/vec"
 import { AnonymousStructVariant, EmptyPayloadEnum, EmptyVariant, IfStructEnum, StructEnum } from "../../types/enum"
 import { getBuildinNumericTypeByTypeName } from "../../types/numeric"
 import { Struct } from "../../types/struct"
