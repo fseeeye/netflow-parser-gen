@@ -95,7 +95,9 @@ export class BitNumericFieldGroup implements Field {
     }
 
     parserInvocation(): string {
-        return `bits::<_, _, nom::error::Error<(&[u8], usize)>, _, _>`
+        return endent`bits::<_, _, nom::error::Error<(&[u8], usize)>, _, _>(
+            tuple(${this.fieldParsers()})
+        )`
     }
 
     fieldParsers(): string{
@@ -105,9 +107,7 @@ export class BitNumericFieldGroup implements Field {
 
     generateParseStatement(): string {
         const code = endent`
-        let (input, (${this.name})) = ${this.parserInvocation()}(
-            tuple(${this.fieldParsers()})
-        )(input)?;`
+        let (input, (${this.name})) = ${this.parserInvocation()}(input)?;`
         return code
     }
 

@@ -52,7 +52,20 @@ export class StructField extends BaseField {
     }
 
     generateParseStatement(): string {
-        return `let (input, ${this.name}) = ${this.parserInvocation()}(input)?;`
+        if (this.struct.isWithoutInputs()) {
+            return `let (input, ${this.name}) = ${this.parserInvocation()}(input)?;`
+        } else {
+            const extraParam = this.struct.extraInputs.map(
+                (field) => {
+                    if (field.isRef()) {
+                        return `&${field.name}`
+                    } else {
+                        return `${field.name}`
+                    }
+                }
+            ).join(', ')
+            return `let (input, ${this.name}) = ${this.parserInvocation()}(input, ${extraParam})?;`
+        }
     }
 
     generateDetectCode(parentType: "Struct" | "StructEnum", parentName: string): string {

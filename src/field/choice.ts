@@ -1,5 +1,6 @@
 import endent from "endent"
 import { PayloadEnum } from "../types/enum"
+import { NomCombinatorFunction } from "../utils/nom"
 import { Field } from "./base"
 import { EnumField } from "./enum"
 import { NumericField } from "./numeric"
@@ -148,11 +149,11 @@ export class InlineChoice extends BasicEnumChoice {
 	}
 
 	generateParseAheadStatement(): string {
-		return `let (input, ${this.matchFieldExpr()}) = peek(${this.field.parserInvocation()})(input)?;`
+		return `let (input, ${this.matchFieldExpr()}) = ${NomCombinatorFunction.peek}(${this.field.parserInvocation()})(input)?;`
 	}
 
 	generateParseAheadStatementWithPayloadErrorHandle(payloadEnum: PayloadEnum): string {
-		return endent`let (input, ${this.field.name}) = match peek::<_,_,nom::error::Error<&[u8]>,_>(${this.field.parserInvocation()})(input) {
+		return endent`let (input, ${this.field.name}) = match ${NomCombinatorFunction.peek}::<_,_,nom::error::Error<&[u8]>,_>(${this.field.parserInvocation()})(input) {
             Ok((input, ${this.field.name})) => (input, ${this.field.name}),
             _ => return Ok((input, ${payloadEnum.name}::Error(${payloadEnum.name}Error::NomPeek(input)))),
         };`

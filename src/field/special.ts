@@ -36,7 +36,7 @@ export class BlankStructField extends StructField {
     }
 }
 
-abstract class NestedField implements Field {
+export abstract class NestedField implements Field {
     constructor(
         readonly innerField: Field,
     ) { }
@@ -77,6 +77,10 @@ export class SkipField extends NestedField {
         return ``
     }
 
+    isRef(): boolean{
+        return false
+    }
+
     generateParseStatement(): string {
         return `let (input, _) = ${this.parserInvocation()}(input)?;`
     }
@@ -98,6 +102,23 @@ export class AssertField extends NestedField {
                 return Err(nom::Err::Error(nom::error::Error::new(input, nom::error::ErrorKind::Verify)))
             }
         `
+    }
+}
+
+// 该field仅生成结构体的参数，不生成结构体解析代码行
+export class CodeParamField extends NestedField {
+    constructor(
+        readonly inner_field: Field,
+    ) {
+        super(inner_field)
+    }
+
+    parserInvocation(): string {
+        return ``
+    }
+
+    generateParseStatement(): string {
+        return ``
     }
 }
 
@@ -129,5 +150,26 @@ export class CodeField implements Field {
 
     generateParseStatement(): string {
         return this.code
+    }
+}
+
+export class CRC16Field extends CodeField {
+    constructor(
+        readonly checksumName: string,
+        readonly checkBufferName: string,
+        readonly seed = 0
+    ) {
+        super(``)
+    }
+
+    generateParseStatement(): string {
+        return endent`
+            match crc16_0x3d65_check(${this.checksumName}, ${this.checkBufferName}, ${this.seed}) {
+                true => {},
+                false => {
+                    return Err(nom::Err::Error(nom::error::Error::new(input, nom::error::ErrorKind::Verify)))
+                }
+            };
+        `
     }
 }

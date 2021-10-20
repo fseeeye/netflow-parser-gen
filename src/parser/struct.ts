@@ -25,9 +25,11 @@ export class StructParserGenerator {
     }
 
     generateParserBlock(): string {
-        const fieldParsers = this.struct.fields.map((field) => {
-            return field.generateParseStatement()
-        })
+        const fieldParsers = this.struct.fields
+            .map((field) => {
+                return field.generateParseStatement()
+            })
+            .filter((field) => field !== ``)
 
         const resultSection = this.generateResultSection()
 
@@ -57,8 +59,31 @@ export class StructParserGenerator {
     // }
 
     protected generateFunctionSignature(): string {
-        const name = this.struct.parserFunctionName()
-        return `fn ${name}(input: &[u8]) -> IResult<&[u8], ${this.struct.name}>`
+        const funcName = this.struct.parserFunctionName()
+        if (this.struct.isWithoutInputs()) {
+            return `fn ${funcName}(input: &[u8]) -> IResult<&[u8], ${this.struct.name}>`
+        } else {
+            let refFlag = false
+            const extraParamClean = this.struct.extraInputs.map(
+                (field) => {
+                    const splitedFiledName = field.name.split('.')
+                    const fixedFiledName = splitedFiledName[splitedFiledName.length - 1]
+
+                    if (field.isRef() === false) {
+                        return `${fixedFiledName}: ${field.typeName()}`
+                    } else {
+                        refFlag = true
+                        return `${fixedFiledName}: &${field.typeName()}`
+                    }
+                }
+            ).join(', ')
+
+            const lifetimeSpecifier = refFlag ? `<'a>` : ''
+            const lifetimeRefSpecifier = refFlag ? `'a ` : ''
+            const returnType = (refFlag && this.struct.isRef()) ? `${this.struct.name}${lifetimeSpecifier}` : this.struct.name
+
+            return `fn ${funcName}${lifetimeSpecifier}(input: &${lifetimeRefSpecifier}[u8], ${extraParamClean}) -> IResult<&${lifetimeRefSpecifier}[u8], ${returnType}>`
+        }
     }
 
     // 生成struct的parser函数内容

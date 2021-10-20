@@ -23,62 +23,62 @@ const payloadName = `${protocolName}Payload`
 const structs: (Struct|StructEnum)[] = []
 
 /****** BACman Sec Part ******/
-const WrapperMsgAuth = new IfStructEnum(
-    'WrapperMsgAuth',
-    [
-        new EmptyVariant('(control & 0x10) == 0', 'EmptyAuthData'),
-        new AnonymousStructVariant('((control & 0x10) != 0) && (dlen == 0)', 'AddtionalAuthData', [
-            numeric('mech', 'u8'),
-            numeric('usr_id', 'be_u16'),
-            numeric('usr_role', 'u8'),
-        ]),
-        new AnonymousStructVariant('((control & 0x10) != 0) && (dlen > 0)', 'AddtionalAuthDataExtra', [
-            numeric('mech', 'u8'),
-            numeric('usr_id', 'be_u16'),
-            numeric('usr_role', 'u8'),
-            // if dlen > 0
-            numeric('auth_len', 'be_u16'),
-            bytesRef('auth_data', createCountVar('auth_len')),
-        ]),
-    ],
-    new EnumMultiChoice([
-        numeric('control', 'u8'),
-        numeric('dlen', 'u8'),
-    ]),
-    true
-)
+// const WrapperMsgAuth = new IfStructEnum(
+//     'WrapperMsgAuth',
+//     [
+//         new EmptyVariant('(control & 0x10) == 0', 'EmptyAuthData'),
+//         new AnonymousStructVariant('((control & 0x10) != 0) && (dlen == 0)', 'AddtionalAuthData', [
+//             numeric('mech', 'u8'),
+//             numeric('usr_id', 'be_u16'),
+//             numeric('usr_role', 'u8'),
+//         ]),
+//         new AnonymousStructVariant('((control & 0x10) != 0) && (dlen > 0)', 'AddtionalAuthDataExtra', [
+//             numeric('mech', 'u8'),
+//             numeric('usr_id', 'be_u16'),
+//             numeric('usr_role', 'u8'),
+//             // if dlen > 0
+//             numeric('auth_len', 'be_u16'),
+//             bytesRef('auth_data', createCountVar('auth_len')),
+//         ]),
+//     ],
+//     new EnumMultiChoice([
+//         numeric('control', 'u8'),
+//         numeric('dlen', 'u8'),
+//     ]),
+//     true
+// )
 
-const WrapperMsg = new StructEnum(
-    'WrapperMsg',
-    [
-        new AnonymousStructVariant(0x00, 'WrapperMsgEncrypted', [
-            numeric('dst_dev_instance', 'be_u24'),
-            numeric('dnet', 'be_u16'),
-            numeric('dlen', 'u8'),
-            bytesRef('dadr', createCountVar('dlen')),
-            numeric('snet', 'be_u16'),
-            numeric('slen', 'u8'),
-            bytesRef('sadr', createCountVar('slen')),
-            new EnumField(WrapperMsgAuth),
-        ]),
-        new EmptyVariant(0x00, 'WrapperMsgUnencrypted'),
-    ],
-    new BasicEnumChoice(
-        numeric('control', 'u8'),
-        (string) => `${string} & 0x40`
-    )
-)
+// const WrapperMsg = new StructEnum(
+//     'WrapperMsg',
+//     [
+//         new AnonymousStructVariant(0x00, 'WrapperMsgEncrypted', [
+//             numeric('dst_dev_instance', 'be_u24'),
+//             numeric('dnet', 'be_u16'),
+//             numeric('dlen', 'u8'),
+//             bytesRef('dadr', createCountVar('dlen')),
+//             numeric('snet', 'be_u16'),
+//             numeric('slen', 'u8'),
+//             bytesRef('sadr', createCountVar('slen')),
+//             new EnumField(WrapperMsgAuth),
+//         ]),
+//         new EmptyVariant(0x00, 'WrapperMsgUnencrypted'),
+//     ],
+//     new BasicEnumChoice(
+//         numeric('control', 'u8'),
+//         (string) => `${string} & 0x40`
+//     )
+// )
 
-// refs: https://gitlab.com/wireshark/wireshark/-/blob/master/epan/dissectors/packet-bacnet.c#L345
-const SecWrapper: Field[] = [
-    numeric('control', 'u8'),
-    numeric('key_revision', 'u8'),
-    numeric('key_identifier', 'be_u16'),
-    numeric('src_dev_instance', 'be_u24'),
-    numeric('message_id', 'be_u32'),
-    numeric('time_stamp', 'be_u32'),
-    new EnumField(WrapperMsg),
-]
+// // refs: https://gitlab.com/wireshark/wireshark/-/blob/master/epan/dissectors/packet-bacnet.c#L345
+// const SecWrapper: Field[] = [
+//     numeric('control', 'u8'),
+//     numeric('key_revision', 'u8'),
+//     numeric('key_identifier', 'be_u16'),
+//     numeric('src_dev_instance', 'be_u24'),
+//     numeric('message_id', 'be_u32'),
+//     numeric('time_stamp', 'be_u32'),
+//     new EnumField(WrapperMsg),
+// ]
 /****** BACman Sec End. ******/
 
 

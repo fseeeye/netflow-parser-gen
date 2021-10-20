@@ -123,9 +123,9 @@ export class LimitedVecLoopField extends VecLoopField {
         const elementTypeName = this.elementType.typeName()
         const name = this.name
 		const lengthNumParameter = this.asParameterLengthNum()
-
+        
 		const code = endent`
-        fn ${this.parserInvocation()}(input: &[u8], ${lengthNumParameter} : ${this.lengthNum.typeName()}) -> IResult<&[u8], Vec<${elementTypeName}>> {
+        fn ${this.parserInvocation()}(input: &[u8], ${lengthNumParameter}: ${this.lengthNum.typeName()}) -> IResult<&[u8], Vec<${elementTypeName}>> {
             let mut ${name} = Vec::new();
             let mut _${name}: ${elementTypeName};
             let mut input = input;

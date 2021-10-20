@@ -28,7 +28,9 @@ export enum NomNumberFunction {
 }
 
 export enum NomCombinatorFunction {
-	eof = 'eof'
+	eof = 'eof',
+	map = 'map',
+	peek = 'peek',
 }
 
 export function generateNomImport(): string {
@@ -59,6 +61,7 @@ export function generateNomImport(): string {
 		'crate::LayerType',
 		'crate::field_type::*',
 		'crate::layer_type::*',
+		'crate::utils::*'
 	]
 
 	const crate_imports_code = crate_imports.map(v => {

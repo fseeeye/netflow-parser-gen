@@ -12,6 +12,7 @@ export class Struct implements FieldType {
     constructor(
         readonly name: string,
         readonly fields: Field[],
+        readonly extraInputs: Field[] = [],
     ) {}
 
     typeName(): string {
@@ -24,6 +25,13 @@ export class Struct implements FieldType {
 
     isUserDefined(): boolean {
         return true
+    }
+
+    isWithoutInputs(): boolean {
+        if (this.extraInputs.length === 0) {
+            return true
+        }
+        return false
     }
 
     parserFunctionName(): string {

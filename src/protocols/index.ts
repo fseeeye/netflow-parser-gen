@@ -18,6 +18,7 @@ import { S7comm } from "./s7comm"
 import { Bacnet } from "./bacnet"
 import { removeDuplicateByKey } from "../utils"
 import { snakeCase } from "snake-case"
+import { Dnp3 } from "./dnp3"
 
 export const BuiltinProtocols = [
     Ethernet,
@@ -33,7 +34,8 @@ export const BuiltinProtocols = [
 	FinsUdpRsp,
     Mms,
     S7comm,
-    Bacnet
+    Bacnet,
+    Dnp3,
 ]
 
 interface ProtocolParser {
