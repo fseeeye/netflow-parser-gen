@@ -3,6 +3,7 @@ export {
     createStrReferenceFieldSimple as strRef,
     createNumericFieldSimple as numeric,
     createBitsNumericField as bitsNumeric,
+    createEmptyBitsNumericField as bitsEmptyNumeric,
     createBitNumericField as bitNumeric,
     createFixSizedBytesField as sizedBytes,
     createNumericVector as numVec,

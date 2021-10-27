@@ -14,6 +14,6 @@ export class PeekField extends NestedField {
     }
 
     generateParseStatement(): string {
-        return `let (input, (${this.innerField.name})) = ${this.parserInvocation()}(input)?;`
+        return `let (input, (${this.innerField.name})) = ${this.parserInvocation()}(${this.parserInvocationParam()})?;`
     }
 }

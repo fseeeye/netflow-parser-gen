@@ -3,7 +3,7 @@ import { snakeCase } from "snake-case"
 import { Field } from "../field/base"
 import { FieldType } from "./base"
 import { StructParserGenerator } from "../parser/struct"
-import { generateAttributesCode } from "../utils"
+import { generateAllowAttributesCode, generateAttributesCode } from "../utils"
 import { VisibilityType } from "../utils/variables"
 
 
@@ -71,9 +71,10 @@ export class Struct implements FieldType {
 
     definition(): string {
         const attributes = generateAttributesCode()
+        const allowAttributes = generateAllowAttributesCode()
         const lifetimeSpecifier = this.lifetimeSpecifier()
         const def = `pub struct ${this.name}${lifetimeSpecifier} ${this.generateFields()}`
-        return [attributes, def].join(`\n`)
+        return [allowAttributes, attributes, def].join(`\n`)
     }
 
     snakeCaseName(): string {

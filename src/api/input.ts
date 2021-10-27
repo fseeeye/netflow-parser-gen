@@ -1,4 +1,4 @@
-import { BitNumericField, BitsNumericField } from "../field/bit-field"
+import { BitNumericField, BitsNumericField, EmptyBitsNumericField } from "../field/bit-field"
 import { FixSizedBytes } from "../field/fix-sized-bytes"
 import { NumericField } from "../field/numeric"
 import { BytesReferenceField, StrReferenceField } from "../field/ref"
@@ -106,6 +106,14 @@ export function createBitsNumericField(name: string, length: number, typeName: B
         throw Error(`bad typename for numeric field!`)
     }
     return new BitsNumericField(name, length, numericType)
+}
+
+export function createEmptyBitsNumericField(length: number, typeName: BuiltinNumericTypeName): EmptyBitsNumericField {
+    const numericType = getBuildinNumericTypeByTypeName(typeName)
+    if (numericType === undefined) {
+        throw Error(`bad typename for numeric field!`)
+    }
+    return new EmptyBitsNumericField(length, numericType)
 }
 
 export function createFixSizedBytesField(name: string, length: number): FixSizedBytes {

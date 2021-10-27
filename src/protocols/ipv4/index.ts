@@ -1,5 +1,5 @@
-import { createBitsNumericField as bitNumeric, createBytesReferenceFieldSimple, createCountVar } from "../../api/input"
-import { numeric } from "../../api/index"
+import { createBytesReferenceFieldSimple, createCountVar } from "../../api/input"
+import { bitsNumeric, numeric } from "../../api/index"
 import { Struct } from "../../types/struct"
 import { StructEnum, PayloadEnumVariant, PayloadEnum } from "../../types/enum"
 import { ConditionImpl, OptionField } from "../../field/option"
@@ -20,17 +20,17 @@ const payloadName = `${protocolName}Payload`
 
 const group1 = new BitNumericFieldGroup(
     [
-        bitNumeric('version', 4, 'u8'),
-        bitNumeric('header_length', 4, 'u8'),
-        bitNumeric('diff_service', 6, 'u8'),
-        bitNumeric('ecn', 2, 'u8'),
+        bitsNumeric('version', 4, 'u8'),
+        bitsNumeric('header_length', 4, 'u8'),
+        bitsNumeric('diff_service', 6, 'u8'),
+        bitsNumeric('ecn', 2, 'u8'),
     ]
 )
 
 const group2 = new BitNumericFieldGroup(
     [
-        bitNumeric('flags', 3, 'u8'),
-        bitNumeric('fragment_offset', 13, 'be_u16'),
+        bitsNumeric('flags', 3, 'u8'),
+        bitsNumeric('fragment_offset', 13, 'be_u16'),
     ]
 )
 

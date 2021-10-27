@@ -1,6 +1,5 @@
-import { numeric } from "../../api"
+import { bitsNumeric, numeric } from "../../api"
 import {
-    createBitsNumericField as bitNumeric,
     createBytesReferenceFieldSimple as bytesRef,
     createCountVar
 } from "../../api/input"
@@ -18,6 +17,7 @@ import { FinsTcpReq } from "../fins-tcp-req"
 import { FinsTcpRsp } from "../fins-tcp-rsp"
 import { Bacnet } from "../bacnet"
 import { Dnp3 } from "../dnp3"
+import { Iec104 } from "../iec104"
 
 const protocolName = 'Tcp'
 const headerName = `${protocolName}Header`
@@ -38,9 +38,9 @@ const tcpOptions = new OptionField(
 )
 
 const group = new BitNumericFieldGroup([
-    bitNumeric('header_length', 4, 'u8'),
-    bitNumeric('reserved', 3, 'u8'),
-    bitNumeric('flags', 9, 'be_u16'),
+    bitsNumeric('header_length', 4, 'u8'),
+    bitsNumeric('reserved', 3, 'u8'),
+    bitsNumeric('flags', 9, 'be_u16'),
 ])
 
 const header = new Struct(
@@ -66,9 +66,10 @@ const payload = new PayloadEnum(
     [
         new UndefPayloadEnumVariant(102, 'Iso'),
         new PayloadEnumVariant(502, ModbusRsp),
+        new PayloadEnumVariant(2404, Iec104),
         new PayloadEnumVariant(9600, FinsTcpRsp),
-        new PayloadEnumVariant(47808, Bacnet),
         new PayloadEnumVariant(20000, Dnp3),
+        new PayloadEnumVariant(47808, Bacnet),
     ],
     new PayloadEnumChoice(
         new StructField(header),
@@ -80,9 +81,10 @@ const payload = new PayloadEnum(
         [
             new UndefPayloadEnumVariant(102, 'Iso'),
             new PayloadEnumVariant(502, ModbusReq), 
+            new PayloadEnumVariant(2404, Iec104),
             new PayloadEnumVariant(9600, FinsTcpReq),
-            new PayloadEnumVariant(47808, Bacnet),
             new PayloadEnumVariant(20000, Dnp3),
+            new PayloadEnumVariant(47808, Bacnet),
         ],
         new PayloadEnumChoice(
             new StructField(header),

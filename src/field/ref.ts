@@ -44,7 +44,7 @@ export class StrReferenceField extends BytesReferenceField {
 
     generateParseStatement(): string {
         return endent`
-            let (input, _${this.name}) = ${this.parserInvocation()}(input)?;
+            let (input, _${this.name}) = ${this.parserInvocation()}(${this.parserInvocationParam()})?;
             let ${this.name} = match std::str::from_utf8(_${this.name}) {
                 Ok(o) => o,
                 Err(_) => return Err(nom::Err::Error(nom::error::Error::new(input, nom::error::ErrorKind::Verify)))

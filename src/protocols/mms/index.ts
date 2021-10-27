@@ -7,7 +7,7 @@ import { BasicEnumChoice, StructBitOperatorChoice, InputLengthChoice } from "../
 import { EnumField } from "../../field/enum"
 import { BerTLField } from "../../field/ber-tl"
 import { StructField, StructMemberField } from "../../field/struct"
-import { LimitedVecLoopField } from "../../field/vec"
+import { LimitedLenVecLoopField } from "../../field/vec"
 import { AnonymousStructVariant, StructEnum, EmptyPayloadEnum } from "../../types/enum"
 import { Struct } from "../../types/struct"
 import { ProtocolInfo } from "../protocol-info"
@@ -403,7 +403,7 @@ const ListOfData = new Struct(
 		// numeric('tag', 'u8'),
 		// numeric('length', 'be_u16'),
 		new BlankStructField(new BerTLField('lod_tl')),
-		new LimitedVecLoopField('lod', SimpleItem, numeric('_lod_tl.length', 'be_u16'))
+		new LimitedLenVecLoopField('lod', createCountVar('_lod_tl.length'), new StructField(SimpleItem))
 	]
 )
 structs.push(ListOfData)
@@ -479,7 +479,7 @@ const ListOfVariableSpecification = new Struct(
 		// numeric('tag', 'u8'),
 		// numeric('length', 'be_u16'),
 		new BlankStructField(new BerTLField('lovs_tl')),
-		new LimitedVecLoopField('lovs', VariableSpecificationStruct, numeric('_lovs_tl.length', 'be_u16'))
+		new LimitedLenVecLoopField('lovs', createCountVar('_lovs_tl.length'), new StructField(VariableSpecificationStruct))
 	]
 )
 structs.push(ListOfVariableSpecification)
@@ -586,7 +586,7 @@ const ListOfAccessResult = new Struct(
 		// numeric('tag', 'u8'),
 		// numeric('length', 'be_u16'),
 		new BlankStructField(new BerTLField('loar_tl')),
-		new LimitedVecLoopField('loar', AccessResultStruct, numeric('_loar_tl.length', 'be_u16'))
+		new LimitedLenVecLoopField('loar', createCountVar('_loar_tl.length'), new StructField(AccessResultStruct))
 	]
 )
 structs.push(ListOfAccessResult)
@@ -597,7 +597,7 @@ const ListOfIdentifier = new Struct(
 		// numeric('tag', 'u8'),
 		// numeric('length', 'be_u16'),
 		new BlankStructField(new BerTLField('loar_tl')),
-		new LimitedVecLoopField('loar', Identifier, numeric('_loar_tl.length', 'be_u16'))
+		new LimitedLenVecLoopField('loar', createCountVar('_loar_tl.length'), new StructField(Identifier))
 	]
 )
 structs.push(ListOfIdentifier)

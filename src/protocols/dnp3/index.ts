@@ -5,7 +5,7 @@ import { BitNumericFieldGroup } from "../../field/bit-field"
 import { EnumMultiChoice } from "../../field/choice"
 import { EnumField } from "../../field/enum"
 import { PeekField } from "../../field/peek"
-import { CodeField, CodeParamField, CRC16Field, SkipField } from "../../field/special"
+import { CodeField, CodeVarField, CRC16Field, SkipField } from "../../field/special"
 import { StructField } from "../../field/struct"
 import { TagField } from "../../field/tag"
 import { VecField } from "../../field/vec"
@@ -86,7 +86,7 @@ const DataChunks = new IfStructEnum(
     'DataChunks',
     [
         new AnonymousStructVariant('dl_function != 0x09 && dl_function != 0x0B && dl_function != 0x00', 'WithData', [
-            new CodeParamField(new VecField('data_chunks', createCountVar('foo'), DataChunk)),
+            new CodeVarField(new VecField('data_chunks', createCountVar('foo'), DataChunk)),
             new CodeField(endent`
                 if !(length >= 5) {
                     return Err(nom::Err::Error(nom::error::Error::new(input, nom::error::ErrorKind::Verify)))

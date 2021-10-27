@@ -9,9 +9,8 @@ import { BasicEnumChoice, EnumMultiChoice, StructChoice } from "../../field/choi
 import { EnumField } from "../../field/enum"
 import { CodeField } from "../../field/special"
 import { StructField } from "../../field/struct"
-import { LimitedVecLoopField, UnlimitedVecLoopField } from "../../field/vec"
+import { LimitedLenVecLoopField, UnlimitedVecLoopField } from "../../field/vec"
 import { AnonymousStructVariant, EmptyPayloadEnum, EmptyVariant, IfStructEnum, StructEnum } from "../../types/enum"
-import { getBuildinNumericTypeByTypeName } from "../../types/numeric"
 import { Struct } from "../../types/struct"
 import { Protocol } from "../protocol"
 import { ProtocolInfo } from "../protocol-info"
@@ -112,11 +111,11 @@ const BvlcFunctionIpv4Info = new StructEnum(
             numeric('result_ipv4', 'be_u16'),
         ]),
         new AnonymousStructVariant(0x01, 'WriteBroadcastDistributionTable', [
-            new UnlimitedVecLoopField('bdt_table', Bdt),
+            new UnlimitedVecLoopField('bdt_table', new StructField(Bdt)),
         ]),
         new EmptyVariant(0x02, 'ReadBroadcastDistributionTable'),
         new AnonymousStructVariant(0x03, 'ReadBroadcastDistributionTableAck', [
-            new UnlimitedVecLoopField('bdt_table', Bdt),
+            new UnlimitedVecLoopField('bdt_table', new StructField(Bdt)),
         ]),
         new AnonymousStructVariant(0x04, 'ForwardedNpdu', [
             new Ipv4Address('fwd_ip'),
@@ -127,7 +126,7 @@ const BvlcFunctionIpv4Info = new StructEnum(
         ]),
         new EmptyVariant(0x06, 'ReadForeignDeviceTable'),
         new AnonymousStructVariant(0x07, 'ReadForeignDeviceTableAck', [
-            new UnlimitedVecLoopField('fdt_table', Fdt),
+            new UnlimitedVecLoopField('fdt_table', new StructField(Fdt)),
         ]),
         new AnonymousStructVariant(0x08, 'DeleteForeignDeviceTableEntry', [
             new Ipv4Address('fdt_ip'),
@@ -386,7 +385,7 @@ const BacControlSrc = new IfStructEnum(
 structs.push(BacControlSrc)
 
 // refs: https://gitlab.com/wireshark/wireshark/-/blob/master/epan/dissectors/packet-bacnet.c#L620
-const dnetVec: Field[] = [new UnlimitedVecLoopField('dnet_vec', getBuildinNumericTypeByTypeName('be_u16'))]
+const dnetVec: Field[] = [new UnlimitedVecLoopField('dnet_vec', numeric('_foo', 'be_u16'))]
 const RtabItem = new Struct(
     'RtabItem',
     [
@@ -399,7 +398,7 @@ const RtabItem = new Struct(
 structs.push(RtabItem)
 const InitRtab: Field[] = [
     numeric('ports_num', 'u8'),
-    new LimitedVecLoopField('rtab_items', RtabItem, numeric('ports_num', 'u8')),
+    new LimitedLenVecLoopField('rtab_items', createCountVar('ports_num'), new StructField(RtabItem)),
 ]
 
 const NsduInfo = new StructEnum(
@@ -570,7 +569,7 @@ const ConfirmedServiceRequest = new StructEnum(
         // refs: https://gitlab.com/wireshark/wireshark/-/blob/master/epan/dissectors/packet-bacapp.c#L13863
         new AnonymousStructVariant(12, 'ReadProperty', [
             // new VecField('property_items', createCountVar('3'), BacnetObjectPropertyReferenceItem),
-            new UnlimitedVecLoopField('property_items', BacnetObjectPropertyReferenceItem),
+            new UnlimitedVecLoopField('property_items', new StructField(BacnetObjectPropertyReferenceItem)),
         ]),
         new AnonymousStructVariant(13, 'ReadPropertyConditional', []),
         new AnonymousStructVariant(14, 'ReadPropertyMultiple', []),
@@ -676,7 +675,7 @@ const ConfirmedServiceAck = new StructEnum(
         // refs: https://gitlab.com/wireshark/wireshark/-/blob/master/epan/dissectors/packet-bacapp.c#L13869
         new AnonymousStructVariant(12, 'ReadPropertyAck', [
             // new VecField('property_items', createCountVar('4'), BacnetObjectPropertyReferenceAckItem),
-            new UnlimitedVecLoopField('property_items', BacnetObjectPropertyReferenceAckItem),
+            new UnlimitedVecLoopField('property_items', new StructField(BacnetObjectPropertyReferenceAckItem)),
         ]),
         new AnonymousStructVariant(13, 'ReadPropertyConditionalAck', []),
         new AnonymousStructVariant(14, 'ReadPropertyMultipleAck', []),

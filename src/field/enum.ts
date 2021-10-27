@@ -32,6 +32,15 @@ export class EnumField extends BaseField {
         return this.structEnum.parserFunctionName()
     }
 
+    parserInvocationParam(): string {
+        if (this.structEnum.choiceField.isWithoutInput()) {
+            return 'input'
+        } else {
+            const choiceParameter = this.structEnum.choiceField.asEnumParserInvocationArgument()
+            return `input, ${choiceParameter}`
+        }
+    }
+
     // definition() {
     //     return this.structEnum.definition()
     // }
@@ -50,15 +59,7 @@ export class EnumField extends BaseField {
     }
 
     generateParseStatement(): string {
-        // const choiceFieldName = this.structEnum.choiceField.name
-        // const passByRef = this.structEnum.choiceField.field.isUserDefined()
-        // const choiceParameter = passByRef ? `&${choiceFieldName}` : choiceFieldName
-        if (this.structEnum.choiceField.isWithoutInput()) {
-            return `let (input, ${this.name}) = ${this.parserInvocation()}(input)?;`
-        } else {
-            const choiceParameter = this.structEnum.choiceField.asEnumParserInvocationArgument()
-            return `let (input, ${this.name}) = ${this.parserInvocation()}(input, ${choiceParameter})?;`
-        }
+        return `let (input, ${this.name}) = ${this.parserInvocation()}(${this.parserInvocationParam()})?;`
     }
 
     generateDetectCode(parentType: "Struct" | "StructEnum", parentName: string): string {

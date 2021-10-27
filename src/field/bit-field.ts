@@ -31,9 +31,13 @@ export class BitNumericField extends NumericField {
         return `${NomBitsFunction.take}::<_, _, _, nom::error::Error<(&[u8], usize)>>(${this.count.count()})`
     }
 
+    parserInvocationParam(): string {
+        return `(input, ${this.offset} as usize)`
+    }
+
     generateParseStatement(): string {
         return endent`
-            let (input, ${this.name}) = match ${this.parserInvocation()}((input, ${this.offset} as usize)) {
+            let (input, ${this.name}) = match ${this.parserInvocation()}(${this.parserInvocationParam()}) {
                 Ok(((input_remain, _offset), rst)) => (input_remain, rst),
                 Err(_e) => return Err(nom::Err::Error(nom::error::Error::new(
                     input,
@@ -62,6 +66,15 @@ export class BitsNumericField extends NumericField {
 
 }
 
+export class EmptyBitsNumericField extends BitsNumericField {
+    constructor(
+        readonly length: number,
+        readonly fieldType: NumericType,
+    ) {
+        super('', length, fieldType)
+    }
+}
+
 export class BitNumericFieldGroup implements Field {
     readonly name: string
 
@@ -69,8 +82,10 @@ export class BitNumericFieldGroup implements Field {
         readonly fields: BitsNumericField[],
     ) {
         BitNumericFieldGroup.validateFields(fields)
-        const fieldNames = this.fields.map(f => f.name).join(`, `)
-        this.name = `${fieldNames}`
+        this.name = this.fields
+            .filter(f => !(f instanceof EmptyBitsNumericField))
+            .map(f => f.name)
+            .join(`, `)
     }
 
     private static validateFields(fields: BitsNumericField[]) {
@@ -81,7 +96,9 @@ export class BitNumericFieldGroup implements Field {
     }
 
     definition(visibility: VisibilityType): string {
-        const fieldDefs = this.fields.map(f => f.definition(visibility))
+        const fieldDefs = this.fields
+            .filter(f => !(f instanceof EmptyBitsNumericField))
+            .map(f => f.definition(visibility))
         return fieldDefs.join(`\n`)
     }
 
@@ -100,14 +117,31 @@ export class BitNumericFieldGroup implements Field {
         )`
     }
 
+    parserInvocationParam(): string {
+        return 'input'
+    }
+
     fieldParsers(): string{
         const parsers = this.fields.map(f => f.parserInvocation()).join(`, `)
         return `(${parsers})`
     }
 
     generateParseStatement(): string {
+        const resNames = this.fields
+            .map(f => {
+                if (f instanceof EmptyBitsNumericField) {
+                    return '_'
+                } else {
+                    return f.name
+                }
+            })
+            .join(', ')
+        const resTypes = this.fields
+            .map(f => f.fieldType.typeName())
+            .join(', ')
+        
         const code = endent`
-        let (input, (${this.name})) = ${this.parserInvocation()}(input)?;`
+        let (input, (${resNames})): (&[u8], (${resTypes}))  = ${this.parserInvocation()}(${this.parserInvocationParam()})?;`
         return code
     }
 

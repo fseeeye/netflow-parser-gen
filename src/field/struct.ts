@@ -46,14 +46,9 @@ export class StructField extends BaseField {
         return this.struct.parserFunctionName()
     }
 
-    parserImplementation(): string {
-        const gen = new StructParserGenerator(this.struct)
-        return gen.generateParser()
-    }
-
-    generateParseStatement(): string {
+    parserInvocationParam(): string {
         if (this.struct.isWithoutInputs()) {
-            return `let (input, ${this.name}) = ${this.parserInvocation()}(input)?;`
+            return 'input'
         } else {
             const extraParam = this.struct.extraInputs.map(
                 (field) => {
@@ -64,8 +59,17 @@ export class StructField extends BaseField {
                     }
                 }
             ).join(', ')
-            return `let (input, ${this.name}) = ${this.parserInvocation()}(input, ${extraParam})?;`
+            return `input, ${extraParam}`
         }
+    }
+
+    parserImplementation(): string {
+        const gen = new StructParserGenerator(this.struct)
+        return gen.generateParser()
+    }
+
+    generateParseStatement(): string {
+        return `let (input, ${this.name}) = ${this.parserInvocation()}(${this.parserInvocationParam()})?;`
     }
 
     generateDetectCode(parentType: "Struct" | "StructEnum", parentName: string): string {
@@ -119,10 +123,6 @@ export class StructMemberField extends BaseField {
 
 	parserInvocation(): string {
 		return this.struct.struct.parserFunctionName()
-	}
-
-	generateParseStatement(): string {
-		return `let (input, ${this.name}) = ${this.parserInvocation()}(input)?;`
 	}
 
 }

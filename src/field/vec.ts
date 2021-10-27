@@ -1,10 +1,8 @@
 import { FieldType } from "../types/base"
 import { NomMultiFunction } from "../utils/nom"
-import { BaseField } from "./base"
+import { BaseField, Field } from "./base"
 import { CountVariable } from "../utils/variables"
-import { NumericField } from "./numeric"
 import endent from "endent"
-import { snakeCase } from "snake-case"
 
 export class VecField extends BaseField {
     constructor(
@@ -72,24 +70,24 @@ export class BitVecField extends BaseField {
     }
 }
 
-// 用于解析未知长度的vec
+// 用于解析未知长度的vec或较为复杂的vec
 abstract class VecLoopField extends BaseField {
     constructor(
         readonly name: string,
-        readonly elementType: FieldType,
-    ){
+        readonly elementField: Field,
+    ) {
         super(name)
     }
 
     typeName(): string {
-        if (this.elementType.isRef()) {
-            return `Vec<${this.elementType.typeName()}<'a>>`
+        if (this.elementField.isRef()) {
+            return `Vec<${this.elementField.typeName()}<'a>>`
         }
-        return `Vec<${this.elementType.typeName()}>`
+        return `Vec<${this.elementField.typeName()}>`
     }
 
     isRef(): boolean {
-        return this.elementType.isRef()
+        return this.elementField.isRef()
     }
 
     isUserDefined(): boolean {
@@ -97,56 +95,47 @@ abstract class VecLoopField extends BaseField {
     }
 
     parserInvocation(): string {
-        return `get_${this.name}_with_${snakeCase(this.elementType.typeName())}`
+        // return `get_${this.name}_with_${snakeCase(this.elementField.typeName())}`
+        return this.elementField.parserInvocation()
     }
 
-    abstract generateFunction(): string
+    parserInvocationParam(): string {
+        return this.elementField.parserInvocationParam()
+    }
+
+    // abstract generateFunction(): string
     abstract generateParseStatement(): string
 }
 
 // 用于：有指导field来标明该vec应解析的范围，但不能计算出vec所包含的元素个数（即，元素长度可变）
-export class LimitedVecLoopField extends VecLoopField {
+export class LimitedLenVecLoopField extends VecLoopField {
     constructor(
         readonly name: string,
-        readonly elementType: FieldType,
-        readonly lengthNum: NumericField,
-    ){
-        super(name, elementType)
-    }
-
-	asParameterLengthNum(): string {
-		return `${this.lengthNum.name.replace('.', '_')}`
-	}
-
-    generateFunction(): string {
-        const elementParserFunc = this.elementType.parserFunctionName()
-        const elementTypeName = this.elementType.typeName()
-        const name = this.name
-		const lengthNumParameter = this.asParameterLengthNum()
-        
-		const code = endent`
-        fn ${this.parserInvocation()}(input: &[u8], ${lengthNumParameter}: ${this.lengthNum.typeName()}) -> IResult<&[u8], Vec<${elementTypeName}>> {
-            let mut ${name} = Vec::new();
-            let mut _${name}: ${elementTypeName};
-            let mut input = input;
-            let len_flag = input.len() - ${lengthNumParameter} as usize;
-
-            while input.len() > len_flag {
-                (input, _${name}) = ${elementParserFunc}(input)?;
-                ${name}.push(_${name});
-            }
-
-            Ok((
-                input,
-                ${name}
-            ))
-        }
-        `
-        return code
+        readonly lengthNum: CountVariable,
+        readonly elementField: Field,
+    ) {
+        super(name, elementField)
     }
 
     generateParseStatement(): string {
-        return `let (input, ${this.name}) = ${this.parserInvocation()}(input, ${this.lengthNum.name})?;`
+        // return `let (input, ${this.name}) = ${this.parserInvocation()}(input, ${this.lengthNum.name})?;`
+        const elementFieldName = this.elementField.typeName()
+        const name = this.name
+        const lengthNumParameter = this.lengthNum.count()
+
+        return endent`
+            /* LimitedLenVecLoopField Start */
+            let mut ${name} = Vec::new();
+            let mut _${name}: ${elementFieldName};
+            let mut input = input;
+            let len_flag = input.len() - ${lengthNumParameter};
+            while input.len() > len_flag {
+                (input, _${name}) = ${this.parserInvocation()}(${this.parserInvocationParam()})?;
+                ${name}.push(_${name});
+            }
+            let input = input;
+            /* LimitedLenVecLoopField End. */
+        `
     }
 }
 
@@ -154,37 +143,56 @@ export class LimitedVecLoopField extends VecLoopField {
 export class UnlimitedVecLoopField extends VecLoopField {
     constructor(
         readonly name: string,
-        readonly elementType: FieldType,
-    ){
-        super(name, elementType)
-    }
-
-    generateFunction(): string {
-        const elementParserFunc = this.elementType.parserFunctionName()
-        const elementTypeName = this.elementType.typeName()
-        const name = this.name
-
-        const code = endent`
-        fn ${this.parserInvocation()}(input: &[u8]) -> IResult<&[u8], Vec<${elementTypeName}>> {
-            let mut ${name} = Vec::new();
-            let mut _${name}: ${elementTypeName};
-            let mut input = input;
-
-            while input.len() > 0 {
-                (input, _${name}) = ${elementParserFunc}(input)?;
-                ${name}.push(_${name});
-            }
-
-            Ok((
-                input,
-                ${name}
-            ))
-        }
-        `
-        return code
+        readonly elementField: Field,
+    ) {
+        super(name, elementField)
     }
 
     generateParseStatement(): string {
-        return `let (input, ${this.name}) = ${this.parserInvocation()}(input)?;`
+        const elementFieldName = this.elementField.typeName()
+        const name = this.name
+
+        return endent`
+            /* UnlimitedVecLoopField Start */
+            let mut ${name} = Vec::new();
+            let mut _${name}: ${elementFieldName};
+            let mut input = input;
+            while input.len() > 0 {
+                (input, _${name}) = ${this.parserInvocation()}(${this.parserInvocationParam()})?;
+                ${name}.push(_${name});
+            }
+            let input = input;
+            /* UnlimitedVecLoopField End. */
+        `
+    }
+}
+
+// 用于：有指导field来标明元素个数，但是需要传入除input外的额外参数来解析vec元素，否则请使用VecField
+export class LimitedCountVecLoopField extends VecLoopField {
+    constructor(
+        readonly name: string,
+        readonly lengthCount: CountVariable,
+        readonly elementField: Field,
+    ) {
+        super(name, elementField)
+    }
+
+    generateParseStatement(): string {
+        const elementFieldName = this.elementField.typeName()
+        const name = this.name
+        const lengthCountParameter = this.lengthCount.count()
+
+        return endent`
+            /* LimitedCountVecLoopField Start */
+            let mut ${name} = Vec::new();
+            let mut _${name}: ${elementFieldName};
+            let mut input = input;
+            for _ in 0..(${lengthCountParameter}) {
+                (input, _${name}) = ${this.parserInvocation()}(${this.elementField.parserInvocationParam()})?;
+                ${name}.push(_${name});
+            }
+            let input = input;
+            /* LimitedCountVecLoopField End. */
+        `
     }
 }

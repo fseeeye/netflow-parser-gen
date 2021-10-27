@@ -19,6 +19,7 @@ import { Bacnet } from "./bacnet"
 import { removeDuplicateByKey } from "../utils"
 import { snakeCase } from "snake-case"
 import { Dnp3 } from "./dnp3"
+import { Iec104 } from "./iec104"
 
 export const BuiltinProtocols = [
     Ethernet,
@@ -36,6 +37,7 @@ export const BuiltinProtocols = [
     S7comm,
     Bacnet,
     Dnp3,
+    Iec104,
 ]
 
 interface ProtocolParser {

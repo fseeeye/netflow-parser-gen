@@ -1,6 +1,6 @@
 import endent from "endent"
 import { snakeCase } from "snake-case"
-import { generateAttributesCode, generateSerdeAttributesCode, removeDuplicateByKey } from "../utils"
+import { generateAllowAttributesCode, generateAttributesCode, generateSerdeAttributesCode, removeDuplicateByKey } from "../utils"
 import { VisibilityType } from "../utils/variables"
 import { Field } from "../field/base"
 import { EnumChoice, EnumMultiChoice } from "../field/choice"
@@ -582,8 +582,9 @@ export class StructEnum implements FieldType {
 
     definition(): string {
         const attributes = generateAttributesCode()
+        const allowAttributes = generateAllowAttributesCode()
         const definition = `pub enum ${this.name}${this.lifetimeSpecifier()} ${this.generateVariants()}`
-        return [attributes, definition].join(`\n`)
+        return [allowAttributes, attributes, definition].join(`\n`)
     }
 
     snakeCaseName(): string {

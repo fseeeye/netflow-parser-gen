@@ -9,7 +9,7 @@ import { BasicEnumChoice } from "../../field/choice"
 import { EnumField } from "../../field/enum"
 import { NumericField } from "../../field/numeric"
 import { StructField } from "../../field/struct"
-import { LimitedVecLoopField, VecField } from "../../field/vec"
+import { LimitedLenVecLoopField, VecField } from "../../field/vec"
 import { AnonymousStructVariant, EofVariant, StructEnum, EmptyPayloadEnum } from "../../types/enum"
 import { Struct } from "../../types/struct"
 import { Protocol } from "../protocol"
@@ -126,9 +126,7 @@ const Data = new StructEnum(
             'WriteFileRecord',
             [
                 byte_count,
-                new LimitedVecLoopField('sub_requests',
-                    WriteFileRecordSubRequest,
-                    byte_count),
+                new LimitedLenVecLoopField('sub_requests', createCountVar('byte_count'), new StructField(WriteFileRecordSubRequest)),
             ]
         ),
         new AnonymousStructVariant(

@@ -1,7 +1,7 @@
-import { StructField } from "./struct"
 import { Field } from "./base"
 import endent from "endent"
 import { VisibilityType } from "../utils/variables"
+import { StructField } from "./struct"
 
 export class BlankStructField extends StructField {
     constructor(
@@ -60,6 +60,10 @@ export abstract class NestedField implements Field {
         return this.innerField.parserInvocation()
     }
 
+    parserInvocationParam(): string {
+        return this.innerField.parserInvocationParam()
+    }
+
     definition(visibility: VisibilityType): string {
         return this.innerField.definition(visibility)
     }
@@ -82,7 +86,7 @@ export class SkipField extends NestedField {
     }
 
     generateParseStatement(): string {
-        return `let (input, _) = ${this.parserInvocation()}(input)?;`
+        return `let (input, _) = ${this.parserInvocation()}(${this.parserInvocationParam()})?;`
     }
 }
 
@@ -105,8 +109,29 @@ export class AssertField extends NestedField {
     }
 }
 
+export class CodeGenField extends NestedField {
+    constructor(
+        readonly innerField: Field,
+    ) {
+        super(innerField)
+    }
+    readonly name = ''
+
+    typeName(): string {
+		return ``
+	}
+
+    definition(): string {
+        return ``
+    }
+
+    generateParseStatement(): string {
+        return this.innerField.generateParseStatement()
+    }
+}
+
 // 该field仅生成结构体的参数，不生成结构体解析代码行
-export class CodeParamField extends NestedField {
+export class CodeVarField extends NestedField {
     constructor(
         readonly inner_field: Field,
     ) {
@@ -144,6 +169,10 @@ export class CodeField implements Field {
         return ``
     }
 
+    parserInvocationParam(): string {
+        return ``
+    }
+
     definition(): string {
         return ``
     }
@@ -160,6 +189,14 @@ export class CRC16Field extends CodeField {
         readonly seed = 0
     ) {
         super(``)
+    }
+
+    parserInvocation(): string {
+        return 'crc16_0x3d65_check'
+    }
+
+    parserInvocationParam(): string {
+        return `${this.checksumName}, ${this.checkBufferName}, ${this.seed}`
     }
 
     generateParseStatement(): string {

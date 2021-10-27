@@ -18,13 +18,18 @@ export enum NomMultiFunction {
 export enum NomNumberFunction {
 	u8 = 'u8',
 	be_u16 = 'be_u16',
+	be_u24 = 'be_u24',
 	be_u32 = 'be_u32',
 	be_u64 = 'be_u64',
+	be_f32 = 'be_f32',
+	be_f64 = 'be_f64',
 	le_u16 = 'le_u16',
+	le_u24 = 'le_u24',
 	le_u32 = 'le_u32',
 	le_u64 = 'le_u64',
-	be_u24 = 'be_u24',
-	usize = 'usize',
+	le_f32 = 'be_f32',
+	le_f64 = 'be_f64',
+	// usize = 'usize',
 }
 
 export enum NomCombinatorFunction {
@@ -73,7 +78,7 @@ export function generateNomImport(): string {
 		'std::ops::BitAnd',
 		'std::ops::BitOr',
 		'std::ops::BitXor',
-
+		'std::convert::TryInto'
 	]
 
 	const std_imports_code = std_imports.map(v => {

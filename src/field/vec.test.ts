@@ -146,7 +146,7 @@ test('test struct with vec loop (with lengthNum)', () => {
 
     const fields: Field[] = [   
         new NumericField('byte_count', BuiltInNumericType.u8),
-        new LimitedVecLoopField('sub_req', WriteFileRecordSubRequest, numeric('byte_count', 'u8')),
+        new LimitedVecLoopField('sub_req', createCountVar('byte_count'), WriteFileRecordSubRequest),
     ]
 
     const WriteFileRecord = new Struct('WriteFileRecord', fields)
