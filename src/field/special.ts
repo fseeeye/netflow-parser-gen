@@ -109,6 +109,7 @@ export class AssertField extends NestedField {
     }
 }
 
+// 该field仅生成解析代码行，不生成进父结构体的定义和函数返回值中
 export class CodeGenField extends NestedField {
     constructor(
         readonly innerField: Field,

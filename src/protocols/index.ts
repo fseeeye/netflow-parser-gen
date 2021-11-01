@@ -20,6 +20,7 @@ import { removeDuplicateByKey } from "../utils"
 import { snakeCase } from "snake-case"
 import { Dnp3 } from "./dnp3"
 import { Iec104 } from "./iec104"
+import { Opcua } from "./opcua"
 
 export const BuiltinProtocols = [
     Ethernet,
@@ -38,6 +39,7 @@ export const BuiltinProtocols = [
     Bacnet,
     Dnp3,
     Iec104,
+    Opcua,
 ]
 
 interface ProtocolParser {
