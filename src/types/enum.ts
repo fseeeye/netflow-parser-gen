@@ -257,7 +257,6 @@ export class NamedStructVariant extends BasicEnumVariant implements EnumVariant 
     hasParserImplementation = false
 
     constructor(
-        readonly enumName: string,
         readonly choice: ChoiceType,
         readonly name: string,
         readonly struct: Struct,
@@ -274,8 +273,8 @@ export class NamedStructVariant extends BasicEnumVariant implements EnumVariant 
         return `${this.name}(${this.name})`
     }
 
-    parserInvocation(): string {
-        const typeName = `${this.enumName}::${this.struct.name}`
+    parserInvocation(enumName: string): string {
+        const typeName = `${enumName}::${this.struct.name}`
         const parsed = this.struct.snakeCaseName()
         const parserBlock = endent`{
             let (input, ${parsed}) = ${this.struct.parserFunctionName()}(input)?;
@@ -289,7 +288,6 @@ export class NamedEnumVariant extends BasicEnumVariant implements EnumVariant {
     hasParserImplementation = false
 
     constructor(
-        readonly enumName: string,
         readonly choice: ChoiceType,
         readonly name: string,
         readonly struct: StructEnum,
@@ -306,8 +304,8 @@ export class NamedEnumVariant extends BasicEnumVariant implements EnumVariant {
         return `${this.name}(${this.name})`
     }
 
-    parserInvocation(): string {
-        const typeName = `${this.enumName}::${this.struct.name}`
+    parserInvocation(enumName: string): string {
+        const typeName = `${enumName}::${this.struct.name}`
         const parsed = this.struct.snakeCaseName()
         const parserBlock = endent`{
             let (input, ${parsed}) = ${this.struct.parserFunctionName()}(input, ${this.struct.choiceField.asEnumParserInvocationArgument()})?;
