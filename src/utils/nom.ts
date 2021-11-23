@@ -61,11 +61,10 @@ export function generateNomImport(): string {
 	const crate_imports = [
 		'crate::errors::ParseError',
 		'crate::layer::{ApplicationLayer, LinkLayer, NetworkLayer, TransportLayer}',
-		'crate::packet_level::{L1Packet, L2Packet, L3Packet, L4Packet, L5Packet}',
-		'crate::packet_quin::{QuinPacket, QuinPacketOptions}',
-		'crate::LayerType',
+		'crate::packet::{QuinPacket, QuinPacketOptions, L1Packet, L2Packet, L3Packet, L4Packet, L5Packet}',
+		'crate::ProtocolType',
 		'crate::field_type::*',
-		'crate::layer_type::*',
+		'crate::protocol::*',
 		'crate::utils::*'
 	]
 

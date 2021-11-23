@@ -86,13 +86,13 @@ export class Protocol {
                 ${this.definition.info.returnLevelPacket(true, true)}
             }
         };`
-        const optionsBlock = endent`if Some(current_layertype) == options.stop {
+        const optionsBlock = endent`if Some(current_prototype) == options.stop {
             ${layerStatement}
             ${this.definition.info.returnLevelPacket()}
         };`
 
-        return endent`pub(crate) fn parse_${snakeCase(this.getName())}_layer${this.definition.info.getLevelLifeTime()}${this.definition.info.getLevelLayerArgs()} -> QuinPacket${this.definition.info.getLevelLifeTime()} {
-            let current_layertype = ${this.definition.info.getLevelLayerTypeName()}(${this.definition.info.getLevelLayerTypeName(0)}::${protocolName});
+        return endent`pub fn parse_${snakeCase(this.getName())}_layer${this.definition.info.getLevelLifeTime()}${this.definition.info.getLevelLayerArgs()} -> QuinPacket${this.definition.info.getLevelLifeTime()} {
+            let current_prototype = ${this.definition.info.getLevelProtocolTypeName()}(${this.definition.info.getLevelProtocolTypeName(0)}::${protocolName});
 
             ${parseHeaderBlock}
 

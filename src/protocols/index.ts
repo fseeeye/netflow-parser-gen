@@ -65,26 +65,26 @@ export class ProtocolParserGenerator {
             .concat('IsoOnTcp')
             .sort()
 
-        code = code.concat('pub(crate) mod eof;\n')
+        code = code.concat('pub mod eof;\n')
         code = code.concat(
-            protocolNames.map((name) => `pub(crate) mod ${snakeCase(name)};`).join('\n')
+            protocolNames.map((name) => `pub mod ${snakeCase(name)};`).join('\n')
         ).concat('\n\n')
 
-        code = code.concat('pub(crate) use eof::*;\n')
+        code = code.concat('pub use eof::*;\n')
         code = code.concat(
-            protocolNames.map((name) => `pub(crate) use ${snakeCase(name)}::{parse_${snakeCase(name)}_layer, ${name}Header};`).join(`\n`)
+            protocolNames.map((name) => `pub use ${snakeCase(name)}::{parse_${snakeCase(name)}_layer, ${name}Header};`).join(`\n`)
         ).concat('\n')
 
         return code
     }
 
-    // 生成layer_type.rs文件内容，包含对LayerType enum的定义
-    private generateLayerTypeContent() {
-        const linkLayerType = this.protocols.filter(p => p.getLevel() === 'L2').map(p => `${p.getName()},`).join('\n')
-        const netLayerType = this.protocols.filter(p => p.getLevel() === 'L3').map(p => `${p.getName()},`).join('\n')
-        const transLayerType = this.protocols.filter(p => p.getLevel() === 'L4').map(p => `${p.getName()},`).join('\n')
-        const appLayerType = this.protocols.filter(p => p.getLevel() === 'L5').map(p => `${p.getName()},`).join('\n')
-        const appNaiveLayerType = removeDuplicateByKey(
+    // 生成layer_type.rs文件内容，包含对ProtocolType enum的定义
+    private generateProtocolContent() {
+        const linkProtocol = this.protocols.filter(p => p.getLevel() === 'L2').map(p => `${p.getName()},`).join('\n')
+        const netProtocol = this.protocols.filter(p => p.getLevel() === 'L3').map(p => `${p.getName()},`).join('\n')
+        const transProtocol = this.protocols.filter(p => p.getLevel() === 'L4').map(p => `${p.getName()},`).join('\n')
+        const appProtocol = this.protocols.filter(p => p.getLevel() === 'L5').map(p => `${p.getName()},`).join('\n')
+        const appNaiveProtocol = removeDuplicateByKey(
             this.protocols
                 .filter(p => p.getLevel() === 'L5')
                 .map(p => p.getName().replace(/(Req|Rsp)$/g, ''))
@@ -96,48 +96,48 @@ export class ProtocolParserGenerator {
         use crate::ParseError;
         use serde::{Serialize, Deserialize};
 
-        /// LayerType旨在用简单结构来表示协议类型
+        /// ProtocolType旨在用简单结构来表示协议类型
         /// * 协助判断解析出来的packet中各层是什么协议
         /// * 也用于options的stop字段说明该在哪一层停止
         #[repr(C)]
         #[derive(Debug, PartialEq, Clone, Copy, Eq, Hash)]
-        pub enum LayerType {
-            Link(LinkLayerType),
-            Network(NetworkLayerType),
-            Transport(TransportLayerType),
-            Application(ApplicationLayerType),
+        pub enum ProtocolType {
+            Link(LinkProtocol),
+            Network(NetworkProtocol),
+            Transport(TransportProtocol),
+            Application(ApplicationProtocol),
             Error(ParseError),
         }
         
         #[repr(C)]
         #[derive(Debug, PartialEq, Clone, Copy, Eq, Hash)]
-        pub enum LinkLayerType {
-            ${linkLayerType}
+        pub enum LinkProtocol {
+            ${linkProtocol}
         }
 
         #[repr(C)]
         #[derive(Debug, PartialEq, Clone, Copy, Eq, Hash)]
-        pub enum NetworkLayerType {
-            ${netLayerType}
+        pub enum NetworkProtocol {
+            ${netProtocol}
         }
 
         #[repr(C)]
         #[derive(Debug, PartialEq, Clone, Copy, Eq, Hash)]
-        pub enum TransportLayerType {
-            ${transLayerType}
+        pub enum TransportProtocol {
+            ${transProtocol}
         }
 
         #[repr(C)]
         #[derive(Debug, PartialEq, Clone, Copy, Eq, Hash)]
-        pub enum ApplicationLayerType {
-            ${appLayerType}
+        pub enum ApplicationProtocol {
+            ${appProtocol}
             IsoOnTcp,
         }
 
         #[repr(C)]
         #[derive(Debug, PartialEq, Clone, Copy, Eq, Hash, Serialize, Deserialize)]
-        pub enum ApplicationLayerNaiveType {
-            ${appNaiveLayerType}
+        pub enum ApplicationNaiveProtocol {
+            ${appNaiveProtocol}
             IsoOnTcp,
         }`
         return code.concat('\n')
@@ -147,14 +147,15 @@ export class ProtocolParserGenerator {
     private generateLayerContent() {
         let code = endent`
         /// Layer是包含协议解析结果的数据结构
-        use crate::LayerType;
-        use crate::layer_type::{ApplicationLayerType, LinkLayerType, NetworkLayerType, TransportLayerType};
-        use crate::parsers::*;\n\n
+        use crate::ProtocolType;
+        use crate::protocol::{ApplicationProtocol, LinkProtocol, NetworkProtocol, TransportProtocol};
+        use crate::parsers::*;
         `
+        code = code.concat('\n\n\n')
         const linkProtocols = this.protocols.filter(p => p.getLevel() === 'L2')
             .map(p => `${p.getName()}(${p.generateHeadername()}),`)
             .join('\n')
-        code = code.concat(endent`/// LinkLayer是表示link层各类协议信息的类型。
+        code = code.concat(endent`/// LinkLayer是表示link层内容的类型。
         #[derive(Debug, PartialEq, Clone)]
         pub enum LinkLayer {
             ${linkProtocols}
@@ -162,11 +163,12 @@ export class ProtocolParserGenerator {
         code = code.concat('\n\n')
 
         const linkProtocolsMatchArm = this.protocols.filter(p => p.getLevel() === 'L2')
-            .map(p => `LinkLayer::${p.getName()}(_) => LayerType::Link(LinkLayerType::${p.getName()}),`)
+            .map(p => `LinkLayer::${p.getName()}(_) => ProtocolType::Link(LinkProtocol::${p.getName()}),`)
             .join('\n')
         code = code.concat(endent`
-        impl Into<LayerType> for LinkLayer {
-            fn into(self) -> LayerType {
+        // 层 -> 协议类型
+        impl Into<ProtocolType> for LinkLayer {
+            fn into(self) -> ProtocolType {
                 match self {
                     ${linkProtocolsMatchArm}
                 }
@@ -177,7 +179,7 @@ export class ProtocolParserGenerator {
         const networkProtocols = this.protocols.filter(p => p.getLevel() === 'L3')
             .map(p => `${p.getName()}(${p.generateHeadername()}),`)
             .join('\n')
-        code = code.concat(endent`/// NetworkLayer是表示network层各类协议信息的类型。
+        code = code.concat(endent`/// NetworkLayer是表示network层内容的类型。
         #[derive(Debug, PartialEq, Clone)]
         pub enum NetworkLayer<'a> {
             ${networkProtocols}
@@ -185,11 +187,11 @@ export class ProtocolParserGenerator {
         code = code.concat('\n\n')
 
         const networkProtocolsMatchArm = this.protocols.filter(p => p.getLevel() === 'L3')
-            .map(p => `NetworkLayer::${p.getName()}(_) => LayerType::Network(NetworkLayerType::${p.getName()}),`)
+            .map(p => `NetworkLayer::${p.getName()}(_) => ProtocolType::Network(NetworkProtocol::${p.getName()}),`)
             .join('\n')
         code = code.concat(endent`
-        impl<'a> Into<LayerType> for NetworkLayer<'a> {
-            fn into(self) -> LayerType {
+        impl<'a> Into<ProtocolType> for NetworkLayer<'a> {
+            fn into(self) -> ProtocolType {
                 match self {
                     ${networkProtocolsMatchArm}
                 }
@@ -200,7 +202,7 @@ export class ProtocolParserGenerator {
         const transProtocols = this.protocols.filter(p => p.getLevel() === 'L4')
             .map(p => `${p.getName()}(${p.generateHeadername()}),`)
             .join('\n')
-        code = code.concat(endent`/// TransportLayer是表示transport层各类协议新的类型。
+        code = code.concat(endent`/// TransportLayer是表示transport层内容的类型。
         #[derive(Debug, PartialEq, Clone)]
         pub enum TransportLayer<'a> {
             ${transProtocols}
@@ -208,11 +210,11 @@ export class ProtocolParserGenerator {
         code = code.concat('\n\n')
 
         const transProtocolsMatchArm = this.protocols.filter(p => p.getLevel() === 'L4')
-            .map(p => `TransportLayer::${p.getName()}(_) => LayerType::Transport(TransportLayerType::${p.getName()}),`)
+            .map(p => `TransportLayer::${p.getName()}(_) => ProtocolType::Transport(TransportProtocol::${p.getName()}),`)
             .join('\n')
         code = code.concat(endent`
-        impl<'a> Into<LayerType> for TransportLayer<'a> {
-            fn into(self) -> LayerType {
+        impl<'a> Into<ProtocolType> for TransportLayer<'a> {
+            fn into(self) -> ProtocolType {
                 match self {
                     ${transProtocolsMatchArm}
                 }
@@ -223,7 +225,7 @@ export class ProtocolParserGenerator {
         const appProtocols = this.protocols.filter(p => p.getLevel() === 'L5')
             .map(p => `${p.getName()}(${p.generateHeadername()}),`)
             .join('\n')
-        code = code.concat(endent`/// ApplicationLayer是表示application层各类协议新的类型。
+        code = code.concat(endent`/// ApplicationLayer是表示application层内容的类型。
         #[derive(Debug, PartialEq, Clone)]
         pub enum ApplicationLayer<'a> {
             ${appProtocols}
@@ -232,14 +234,14 @@ export class ProtocolParserGenerator {
         code = code.concat('\n\n')
 
         const appProtocolsMatchArm = this.protocols.filter(p => p.getLevel() === 'L5')
-            .map(p => `ApplicationLayer::${p.getName()}(_) => LayerType::Application(ApplicationLayerType::${p.getName()}),`)
+            .map(p => `ApplicationLayer::${p.getName()}(_) => ProtocolType::Application(ApplicationProtocol::${p.getName()}),`)
             .join('\n')
         code = code.concat(endent`
-        impl<'a> Into<LayerType> for ApplicationLayer<'a> {
-            fn into(self) -> LayerType {
+        impl<'a> Into<ProtocolType> for ApplicationLayer<'a> {
+            fn into(self) -> ProtocolType {
                 match self {
                     ${appProtocolsMatchArm}
-                    ApplicationLayer::IsoOnTcp(_) => LayerType::Application(ApplicationLayerType::IsoOnTcp),
+                    ApplicationLayer::IsoOnTcp(_) => ProtocolType::Application(ApplicationProtocol::IsoOnTcp),
                 }
             }
         }`)
@@ -269,32 +271,32 @@ export class ProtocolParserGenerator {
 
     generate(directory: string): void {
         this.protocols.forEach(p => {
-            const { filename, content } = this.generateProtocolParser(directory.concat(`/parsers_ts`), p)
+            const { filename, content } = this.generateProtocolParser(path.join(directory, `/crates/parsing_parser/src/parsers`), p)
             this.writeFile(filename, content)
-            const { ICSRuleArgFilename, ICSRuleArgContent } = this.generateProtocolICSRulearg(directory.concat(`/ics_rule/rule_arg_ts`), p)
+            const { ICSRuleArgFilename, ICSRuleArgContent } = this.generateProtocolICSRulearg(path.join(directory, `/crates/parsing_icsrule/src/rule_arg`), p)
             this.writeFile(ICSRuleArgFilename, ICSRuleArgContent)
         })
         const modIndex = this.generateModIndexContent()
-        this.writeFile(path.join(directory, `parsers.rs`), modIndex)
-        const layerType = this.generateLayerTypeContent()
-        this.writeFile(path.join(directory, `layer_type.rs`), layerType)
+        this.writeFile(path.join(directory, `/crates/parsing_parser/src/parsers/mod.rs`), modIndex)
+        const protocol = this.generateProtocolContent()
+        this.writeFile(path.join(directory, `/crates/parsing_parser/src/protocol.rs`), protocol)
         const layer = this.generateLayerContent()
-        this.writeFile(path.join(directory, `layer.rs`), layer)
+        this.writeFile(path.join(directory, `/crates/parsing_parser/src/layer.rs`), layer)
     }
 
     debug(directory: string, protocolName: string): void {
         this.protocols.forEach(p => {
             if (p.getName() === protocolName) {
-                const { filename, content } = this.generateProtocolParser(directory.concat(`/parsers`), p)
+                const { filename, content } = this.generateProtocolParser(path.join(directory, `/crates/parsing_parser/src/parsers`), p)
                 this.writeFile(filename, content)
             }
         })
         const modIndex = this.generateModIndexContent()
-        this.writeFile(path.join(directory.concat(`/parsers`), `mod.rs`), modIndex)
-        const layerType = this.generateLayerTypeContent()
-        this.writeFile(path.join(directory, `layer_type.rs`), layerType)
+        this.writeFile(path.join(directory, `/crates/parsing_parser/src/parsers/mod.rs`), modIndex)
+        const protocol = this.generateProtocolContent()
+        this.writeFile(path.join(directory, `/crates/parsing_parser/src/protocol.rs`), protocol)
         const layer = this.generateLayerContent()
-        this.writeFile(path.join(directory, `layer.rs`), layer)
+        this.writeFile(path.join(directory, `/crates/parsing_parser/src/layer.rs`), layer)
     }
 
 }

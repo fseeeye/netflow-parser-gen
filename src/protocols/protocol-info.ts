@@ -22,13 +22,13 @@ export class ProtocolInfo {
         }
     }
 
-    getLevelLayerTypeName(flag: 0 | 1 = 1): string {
+    getLevelProtocolTypeName(flag: 0 | 1 = 1): string {
         switch(this.level) {
             case 'L1': throw Error(`L1 dont have layer type name`)
-            case 'L2': return flag ? 'LayerType::Link' : 'LinkLayerType'
-            case 'L3': return flag ? 'LayerType::Network' : 'NetworkLayerType'
-            case 'L4': return flag ? 'LayerType::Transport' : 'TransportLayerType'
-            case 'L5': return flag ? 'LayerType::Application' : 'ApplicationLayerType'
+            case 'L2': return flag ? 'ProtocolType::Link' : 'LinkProtocol'
+            case 'L3': return flag ? 'ProtocolType::Network' : 'NetworkProtocol'
+            case 'L4': return flag ? 'ProtocolType::Transport' : 'TransportProtocol'
+            case 'L5': return flag ? 'ProtocolType::Application' : 'ApplicationProtocol'
         }
     }
 
