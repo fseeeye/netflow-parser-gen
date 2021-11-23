@@ -1,3 +1,24 @@
+# [0.7.0](https://github.com/metachris/typescript-boilerplate/compare/v0.6.1...v0.7.0) (2021-11-23)
+
+
+### Bug Fixes
+
+* **parser:** update ProtocolParserGenerator ([e116ba2](https://github.com/metachris/typescript-boilerplate/commit/e116ba23eff91f3f148074d2ba8cc4ef99cb016d))
+* **protocol:** improve BACnet protocol ([549e498](https://github.com/metachris/typescript-boilerplate/commit/549e4988783166d6e31d824b7b8bcd1bead96b39))
+
+
+### Features
+
+* adapt to parsing-rs v0.5.0 🎉 ([df8c408](https://github.com/metachris/typescript-boilerplate/commit/df8c408cfaaddaed9f2c74167c55e888b08bab9b))
+* **protocol:** add DNP3 ([be71c6e](https://github.com/metachris/typescript-boilerplate/commit/be71c6e96c067dbd270c637c5e43b60c94583bea))
+* **protocol:** add IEC60870-104 (with IEC60870-ASDU) ([24cd6b7](https://github.com/metachris/typescript-boilerplate/commit/24cd6b7a154a0603fa192eec3b55e8c8f5194f05))
+* **protocol:** add Opcua protocol ([9806acf](https://github.com/metachris/typescript-boilerplate/commit/9806acfb44c51cb20bc151a26aea0d14e8c887c8))
+* **protocol:** init BACnet protocol ([6afa9fb](https://github.com/metachris/typescript-boilerplate/commit/6afa9fb26ae80520386727361f18bed0305c3e0d))
+* **protocol:** initially complete "S7comm" ([b97015f](https://github.com/metachris/typescript-boilerplate/commit/b97015f5c9e3fee3f24bb3fb18ed4c8d2cc39fdd))
+* split ISO-on-TCP & add slice type ([5e6c57c](https://github.com/metachris/typescript-boilerplate/commit/5e6c57c63f5a6d43ae820f56daca8fa44fd80996))
+
+
+
 ## [0.6.1](https://github.com/metachris/typescript-boilerplate/compare/v0.6.0...v0.6.1) (2021-09-23)
 
 
@@ -34,11 +55,11 @@
 
 ### Features
 
-* adapt to new packet struct ([f55c88c](https://github.com/metachris/typescript-boilerplate/commit/f55c88cdd6996f99ebc13815320da777a65a4c8d))
 * **field:** add LoopField ([ab97b31](https://github.com/metachris/typescript-boilerplate/commit/ab97b31fe356d6e072aa55ebae32606f3d797a43))
 * **field:** make var bind to input.len() ([782aedc](https://github.com/metachris/typescript-boilerplate/commit/782aedc0b4902ee05eb15c905fcaa00537e292d5))
 * **protocols:** add fins ([6686b46](https://github.com/metachris/typescript-boilerplate/commit/6686b467a210a3a3e9cfcd6a37d7f7562d2fa75e))
 * **protocols:** add fins and test.ts ([8c731e5](https://github.com/metachris/typescript-boilerplate/commit/8c731e52a07e102f49a4b8491a1856ce2cda190c))
+* adapt to new packet struct ([f55c88c](https://github.com/metachris/typescript-boilerplate/commit/f55c88cdd6996f99ebc13815320da777a65a4c8d))
 * **vec&nom:** add "bitNumVec" and handle unused nom import ([0329cf2](https://github.com/metachris/typescript-boilerplate/commit/0329cf22fe44bc16b7f03fd4a0f876ec6ac770ba))
 
 
