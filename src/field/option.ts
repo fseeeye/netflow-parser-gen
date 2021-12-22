@@ -26,8 +26,8 @@ export class OptionField extends BaseField {
         super(name)
     }
 
-    typeName(): string {
-        return `Option<${this.field.typeName()}>`
+    typeName(withLifetime = true): string {
+        return `Option<${this.field.typeName(withLifetime)}>`
     }
 
     isRef(): boolean {

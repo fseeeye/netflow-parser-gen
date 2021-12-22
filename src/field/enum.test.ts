@@ -1,6 +1,6 @@
 import endent from "endent"
 import { StructParserGenerator } from "../parser/struct"
-import { EmptyVariant, StructEnum, AnonymousStructVariant } from "../types/enum"
+import { EmptyVariant, StructEnum, AnonymousStructVariant, EofVariant } from "../types/enum"
 import { getRequestDataEnum, getRequestDataWithRefEnum, SimpleReadRequestFields } from "../types/enum.test"
 import { BuiltInNumericType } from "../types/numeric"
 import { Struct } from "../types/struct"
@@ -20,42 +20,9 @@ test('test struct with enum field', () => {
             new EnumField(requestDataEnum)
         ]
     )
-    // console.log(request.definitionWithFields())
-    // expect(request.definitionWithFields()).toEqual(endent`
-    // #[derive(Debug, PartialEq, Eq, Clone)]
-    // pub enum RequestData {
-    //     ReadCoils {
-    //          start_address: u16,
-    //          count: u16,
-    //     },
-    //     ReadDiscreteInputs {
-    //          start_address: u16,
-    //          count: u16,
-    //     },
-    //     ReadHoldingRegisters {
-    //          start_address: u16,
-    //          count: u16,
-    //     },
-    //     ReadInputRegisters {
-    //          start_address: u16,
-    //          count: u16,
-    //     },
-    //     WriteSingleCoil {
-    //          output_address: u16,
-    //          output_value: u16,
-    //     }
-    // }
-
-    // #[derive(Debug, PartialEq, Eq, Clone)]
-    // pub struct Request {
-    //     pub function_code: u8,
-    //     pub request_data: RequestData,
-    // }
-    // `)
     const gen = new StructParserGenerator(request)
-    // console.log(gen.generateParserWithUserDefinedFields())
     expect(gen.generateParserWithUserDefinedFields()).toEqual(endent`
-    fn parse_read_coils(input: &[u8]) -> IResult<&[u8], RequestData> {
+    fn parse_request_data_read_coils(input: &[u8]) -> IResult<&[u8], RequestData> {
         let (input, start_address) = be_u16(input)?;
         let (input, count) = be_u16(input)?;
         Ok((
@@ -67,7 +34,7 @@ test('test struct with enum field', () => {
         ))
     }
     
-    fn parse_read_discrete_inputs(input: &[u8]) -> IResult<&[u8], RequestData> {
+    fn parse_request_data_read_discrete_inputs(input: &[u8]) -> IResult<&[u8], RequestData> {
         let (input, start_address) = be_u16(input)?;
         let (input, count) = be_u16(input)?;
         Ok((
@@ -79,7 +46,7 @@ test('test struct with enum field', () => {
         ))
     }
     
-    fn parse_read_holding_registers(input: &[u8]) -> IResult<&[u8], RequestData> {
+    fn parse_request_data_read_holding_registers(input: &[u8]) -> IResult<&[u8], RequestData> {
         let (input, start_address) = be_u16(input)?;
         let (input, count) = be_u16(input)?;
         Ok((
@@ -91,7 +58,7 @@ test('test struct with enum field', () => {
         ))
     }
     
-    fn parse_read_input_registers(input: &[u8]) -> IResult<&[u8], RequestData> {
+    fn parse_request_data_read_input_registers(input: &[u8]) -> IResult<&[u8], RequestData> {
         let (input, start_address) = be_u16(input)?;
         let (input, count) = be_u16(input)?;
         Ok((
@@ -103,7 +70,7 @@ test('test struct with enum field', () => {
         ))
     }
     
-    fn parse_write_single_coil(input: &[u8]) -> IResult<&[u8], RequestData> {
+    fn parse_request_data_write_single_coil(input: &[u8]) -> IResult<&[u8], RequestData> {
         let (input, output_address) = be_u16(input)?;
         let (input, output_value) = be_u16(input)?;
         Ok((
@@ -117,11 +84,11 @@ test('test struct with enum field', () => {
     
     pub fn parse_request_data(input: &[u8], function_code: u8) -> IResult<&[u8], RequestData> {
         let (input, request_data) = match function_code {
-            0x01 => parse_read_coils(input),
-            0x02 => parse_read_discrete_inputs(input),
-            0x03 => parse_read_holding_registers(input),
-            0x04 => parse_read_input_registers(input),
-            0x05 => parse_write_single_coil(input),
+            0x01 => parse_request_data_read_coils(input),
+            0x02 => parse_request_data_read_discrete_inputs(input),
+            0x03 => parse_request_data_read_holding_registers(input),
+            0x04 => parse_request_data_read_input_registers(input),
+            0x05 => parse_request_data_write_single_coil(input),
             _ =>  Err(nom::Err::Error(nom::error::Error::new(input, nom::error::ErrorKind::Verify))),
         }?;
         Ok((input, request_data))
@@ -151,33 +118,9 @@ test('test struct with enum field with lifetime', () => {
             new EnumField(structEnum)
         ]
     )
-    // console.log(request.definitionWithFields())
-    // expect(request.definitionWithFields()).toEqual(endent`
-    // #[derive(Debug, PartialEq, Eq, Clone)]
-    // pub enum RequestData<'a> {
-    //     WriteFileRecordSubRequest {
-    //          ref_type: u8,
-    //          file_number: u16,
-    //          record_number: u16,
-    //          record_len: u16,
-    //          record_data: &'a [u8],
-    //     },
-    //     WriteSingleRegister {
-    //          register_address: u16,
-    //          register_value: u16,
-    //     }
-    // }
-
-    // #[derive(Debug, PartialEq, Eq, Clone)]
-    // pub struct Request<'a> {
-    //     pub function_code: u8,
-    //     pub request_data: RequestData<'a>,
-    // }
-    // `)
     const gen = new StructParserGenerator(request)
-    // console.log(gen.generateParserWithUserDefinedFields())
     expect(gen.generateParserWithUserDefinedFields()).toEqual(endent`
-    fn parse_write_file_record_sub_request(input: &[u8]) -> IResult<&[u8], RequestData> {
+    fn parse_request_data_write_file_record_sub_request(input: &[u8]) -> IResult<&[u8], RequestData> {
         let (input, ref_type) = u8(input)?;
         let (input, file_number) = be_u16(input)?;
         let (input, record_number) = be_u16(input)?;
@@ -195,7 +138,7 @@ test('test struct with enum field with lifetime', () => {
         ))
     }
     
-    fn parse_write_single_register(input: &[u8]) -> IResult<&[u8], RequestData> {
+    fn parse_request_data_write_single_register(input: &[u8]) -> IResult<&[u8], RequestData> {
         let (input, register_address) = be_u16(input)?;
         let (input, register_value) = be_u16(input)?;
         Ok((
@@ -209,8 +152,8 @@ test('test struct with enum field with lifetime', () => {
     
     pub fn parse_request_data(input: &[u8], function_code: u8) -> IResult<&[u8], RequestData> {
         let (input, request_data) = match function_code {
-            0x17 => parse_write_file_record_sub_request(input),
-            0x06 => parse_write_single_register(input),
+            0x17 => parse_request_data_write_file_record_sub_request(input),
+            0x06 => parse_request_data_write_single_register(input),
             _ =>  Err(nom::Err::Error(nom::error::Error::new(input, nom::error::ErrorKind::Verify))),
         }?;
         Ok((input, request_data))
@@ -266,7 +209,7 @@ function getRequestDataEnumWithEmptyVariant() {
                 new NumericField('output_value', BuiltInNumericType.be_u16),
             ],
         ),
-        new EmptyVariant(0x07, 'ReadExceptionStatus'),
+        new EofVariant(0x07, 'ReadExceptionStatus'),
         new EmptyVariant(0x0B, 'GetCommEventCounter'),
     ]
     const structEnum = new StructEnum(enumName, variants, new BasicEnumChoice(functionCodeField))
@@ -282,43 +225,9 @@ test('test struct with empty variant', () => {
             new EnumField(structEnum)
         ]
     )
-    // console.log(request.definitionWithFields())
-    // expect(request.definitionWithFields()).toEqual(endent`
-    // #[derive(Debug, PartialEq, Eq, Clone)]
-    // pub enum RequestData {
-    //     ReadCoils {
-    //          start_address: u16,
-    //          count: u16,
-    //     },
-    //     ReadDiscreteInputs {
-    //          start_address: u16,
-    //          count: u16,
-    //     },
-    //     ReadHoldingRegisters {
-    //          start_address: u16,
-    //          count: u16,
-    //     },
-    //     ReadInputRegisters {
-    //          start_address: u16,
-    //          count: u16,
-    //     },
-    //     WriteSingleCoil {
-    //          output_address: u16,
-    //          output_value: u16,
-    //     },
-    //     Eof {}
-    // }
-
-    // #[derive(Debug, PartialEq, Eq, Clone)]
-    // pub struct Request {
-    //     pub function_code: u8,
-    //     pub request_data: RequestData,
-    // }    
-    // `)
     const gen = new StructParserGenerator(request)
-    // console.log(gen.generateParserWithUserDefinedFields())
     expect(gen.generateParserWithUserDefinedFields()).toEqual(endent`
-    fn parse_read_coils(input: &[u8]) -> IResult<&[u8], RequestData> {
+    fn parse_request_data_read_coils(input: &[u8]) -> IResult<&[u8], RequestData> {
         let (input, start_address) = be_u16(input)?;
         let (input, count) = be_u16(input)?;
         Ok((
@@ -330,7 +239,7 @@ test('test struct with empty variant', () => {
         ))
     }
     
-    fn parse_read_discrete_inputs(input: &[u8]) -> IResult<&[u8], RequestData> {
+    fn parse_request_data_read_discrete_inputs(input: &[u8]) -> IResult<&[u8], RequestData> {
         let (input, start_address) = be_u16(input)?;
         let (input, count) = be_u16(input)?;
         Ok((
@@ -342,7 +251,7 @@ test('test struct with empty variant', () => {
         ))
     }
     
-    fn parse_read_holding_registers(input: &[u8]) -> IResult<&[u8], RequestData> {
+    fn parse_request_data_read_holding_registers(input: &[u8]) -> IResult<&[u8], RequestData> {
         let (input, start_address) = be_u16(input)?;
         let (input, count) = be_u16(input)?;
         Ok((
@@ -354,7 +263,7 @@ test('test struct with empty variant', () => {
         ))
     }
     
-    fn parse_read_input_registers(input: &[u8]) -> IResult<&[u8], RequestData> {
+    fn parse_request_data_read_input_registers(input: &[u8]) -> IResult<&[u8], RequestData> {
         let (input, start_address) = be_u16(input)?;
         let (input, count) = be_u16(input)?;
         Ok((
@@ -366,7 +275,7 @@ test('test struct with empty variant', () => {
         ))
     }
     
-    fn parse_write_single_coil(input: &[u8]) -> IResult<&[u8], RequestData> {
+    fn parse_request_data_write_single_coil(input: &[u8]) -> IResult<&[u8], RequestData> {
         let (input, output_address) = be_u16(input)?;
         let (input, output_value) = be_u16(input)?;
         Ok((
@@ -378,7 +287,8 @@ test('test struct with empty variant', () => {
         ))
     }
     
-    fn parse_read_exception_status(input: &[u8]) -> IResult<&[u8], RequestData> {
+    #[inline(always)]
+    fn parse_request_data_read_exception_status(input: &[u8]) -> IResult<&[u8], RequestData> {
         let (input, _) = eof(input)?;
         Ok((
             input,
@@ -386,8 +296,8 @@ test('test struct with empty variant', () => {
         ))
     }
 
-    fn parse_get_comm_event_counter(input: &[u8]) -> IResult<&[u8], RequestData> {
-        let (input, _) = eof(input)?;
+    #[inline(always)]
+    fn parse_request_data_get_comm_event_counter(input: &[u8]) -> IResult<&[u8], RequestData> {
         Ok((
             input,
             RequestData::GetCommEventCounter {}
@@ -396,13 +306,13 @@ test('test struct with empty variant', () => {
     
     pub fn parse_request_data(input: &[u8], function_code: u8) -> IResult<&[u8], RequestData> {
         let (input, request_data) = match function_code {
-            0x01 => parse_read_coils(input),
-            0x02 => parse_read_discrete_inputs(input),
-            0x03 => parse_read_holding_registers(input),
-            0x04 => parse_read_input_registers(input),
-            0x05 => parse_write_single_coil(input),
-            0x07 => parse_read_exception_status(input),
-            0x0b => parse_get_comm_event_counter(input),
+            0x01 => parse_request_data_read_coils(input),
+            0x02 => parse_request_data_read_discrete_inputs(input),
+            0x03 => parse_request_data_read_holding_registers(input),
+            0x04 => parse_request_data_read_input_registers(input),
+            0x05 => parse_request_data_write_single_coil(input),
+            0x07 => parse_request_data_read_exception_status(input),
+            0x0b => parse_request_data_get_comm_event_counter(input),
             _ =>  Err(nom::Err::Error(nom::error::Error::new(input, nom::error::ErrorKind::Verify))),
         }?;
         Ok((input, request_data))

@@ -267,7 +267,7 @@ export class ProtocolParserGenerator {
         this.protocols.forEach(p => {
             const { filename, content } = this.generateProtocolParser(path.join(directory, `/crates/parsing_parser/src/parsers`), p)
             this.writeFile(filename, content)
-            const { ICSRuleArgFilename, ICSRuleArgContent } = this.generateProtocolICSRulearg(path.join(directory, `/crates/parsing_icsrule/src/rule_arg`), p)
+            const { ICSRuleArgFilename, ICSRuleArgContent } = this.generateProtocolICSRulearg(path.join(directory, `/crates/parsing_icsrule/src/icsrule_arg`), p)
             this.writeFile(ICSRuleArgFilename, ICSRuleArgContent)
         })
         const modIndex = this.generateModIndexContent()

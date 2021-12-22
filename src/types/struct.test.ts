@@ -18,6 +18,7 @@ test('test struct with reference', () => {
 
     const writeFileRecordSubRequest = new Struct('WriteFileRecordSubRequest', fields)
     expect(writeFileRecordSubRequest.definition()).toEqual(endent`
+    #[allow(non_camel_case_types)]
     #[derive(Debug, PartialEq, Eq, Clone)]
     pub struct WriteFileRecordSubRequest<'a> {
         pub ref_type: u8,
@@ -58,6 +59,7 @@ test('test struct with numeric types only', () => {
     const header = new Struct('MBAPHeader', fields)
 
     expect(header.definition()).toEqual(endent`
+    #[allow(non_camel_case_types)]
     #[derive(Debug, PartialEq, Eq, Clone)]
     pub struct MBAPHeader {
         pub transaction_id: u8,

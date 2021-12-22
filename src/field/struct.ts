@@ -35,8 +35,8 @@ export class StructField extends BaseField {
         `
     }
 
-    typeName(): string {
-        if (this.isRef()) {
+    typeName(withLifetime = true): string {
+        if (withLifetime && this.isRef()) {
             return `${this.struct.name}<'a>`
         }
         return this.struct.name

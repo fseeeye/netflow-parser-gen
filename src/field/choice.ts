@@ -56,7 +56,7 @@ export class BasicEnumChoice implements EnumChoice {
     }
 
     asEnumParserFunctionParameterSignature(): string {
-        return `${this.fixFiledName()}: ${this.field.typeName()}`
+        return `${this.fixFiledName()}: ${this.field.typeName(true)}`
     }
 
     asEnumParserInvocationArgument(): string {
@@ -272,7 +272,7 @@ export class StructBitOperatorChoice extends BasicEnumChoice {
 	}
 
 	matchFieldTypeName(): string {
-		return this.field.matchFieldName.typeName()
+		return this.field.matchFieldName.typeName(true)
 	}
 
 	protected matchFieldExprParameter(): string {
@@ -350,7 +350,7 @@ export class EnumMultiChoice implements EnumChoice {
 				if ((field instanceof StructField) || (field instanceof EnumField)) {
 					return `${fixedFiledName}: &${field.typeName()}`
 				} else {
-					return `${fixedFiledName}: ${field.typeName()}`
+					return `${fixedFiledName}: ${field.typeName(true)}`
 				}
 			})
 			.join(', ')

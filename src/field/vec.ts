@@ -13,8 +13,8 @@ export class VecField extends BaseField {
         super(name)
     }
 
-    typeName(): string {
-        if (this.elementType.isRef()) {
+    typeName(withLifetime = true): string {
+        if (withLifetime && this.elementType.isRef()) {
             return `Vec<${this.elementType.typeName()}<'a>>`
         }
         return `Vec<${this.elementType.typeName()}>`
@@ -44,8 +44,8 @@ export class BitVecField extends BaseField {
         super(name)
     }
 
-    typeName(): string {
-        if (this.elementType.isRef()) {
+    typeName(withLifetime = true): string {
+        if (withLifetime && this.elementType.isRef()) {
             return `Vec<${this.elementType.typeName()}<'a>>`
         }
         return `Vec<${this.elementType.typeName()}>`
@@ -79,11 +79,11 @@ abstract class VecLoopField extends BaseField {
         super(name)
     }
 
-    typeName(): string {
-        if (this.elementField.isRef()) {
-            return `Vec<${this.elementField.typeName()}<'a>>`
+    typeName(withLifetime: boolean): string {
+        if (withLifetime && this.elementField.isRef()) {
+            return `Vec<${this.elementField.typeName(false)}<'a>>`
         }
-        return `Vec<${this.elementField.typeName()}>`
+        return `Vec<${this.elementField.typeName(false)}>`
     }
 
     isRef(): boolean {
@@ -119,7 +119,7 @@ export class LimitedLenVecLoopField extends VecLoopField {
 
     generateParseStatement(): string {
         // return `let (input, ${this.name}) = ${this.parserInvocation()}(input, ${this.lengthNum.name})?;`
-        const elementFieldName = this.elementField.typeName()
+        const elementFieldName = this.elementField.typeName(false)
         const name = this.name
         const lengthNumParameter = this.lengthNum.count()
 
@@ -149,7 +149,7 @@ export class UnlimitedVecLoopField extends VecLoopField {
     }
 
     generateParseStatement(): string {
-        const elementFieldName = this.elementField.typeName()
+        const elementFieldName = this.elementField.typeName(false)
         const name = this.name
 
         return endent`
@@ -178,7 +178,7 @@ export class LimitedCountVecLoopField extends VecLoopField {
     }
 
     generateParseStatement(): string {
-        const elementFieldName = this.elementField.typeName()
+        const elementFieldName = this.elementField.typeName(false)
         const name = this.name
         const lengthCountParameter = this.lengthCount.count()
 

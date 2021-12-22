@@ -52,8 +52,8 @@ export abstract class NestedField implements Field {
         return this.innerField.isUserDefined()
     }
 
-    typeName(): string {
-        return this.innerField.typeName()
+    typeName(withLifetime = true): string {
+        return this.innerField.typeName(withLifetime)
     }
 
     parserInvocation(): string {

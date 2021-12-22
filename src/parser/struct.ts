@@ -70,10 +70,10 @@ export class StructParserGenerator {
                     const fixedFiledName = splitedFiledName[splitedFiledName.length - 1]
 
                     if (field.isRef() === false) {
-                        return `${fixedFiledName}: ${field.typeName()}`
+                        return `${fixedFiledName}: ${field.typeName(true)}`
                     } else {
                         refFlag = true
-                        return `${fixedFiledName}: &${field.typeName()}`
+                        return `${fixedFiledName}: &${field.typeName(true)}`
                     }
                 }
             ).join(', ')

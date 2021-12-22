@@ -6,7 +6,7 @@ export interface Field {
     isUserDefined(): boolean
     definition(visibility: VisibilityType): string // 生成其在结构体中的定义
     definitionRuleArg?(): string // 生成其在rule_arg中的定义
-    typeName(): string // 该feild的Rust类型名称 <u8, u16, ...>
+    typeName(withLifetime: boolean): string // 该feild的Rust类型名称 <u8, u16, ...>
     parserInvocation(): string // 生成解析field所使用的函数名 <u8, be_u16, ...> 
     parserInvocationParam(): string // 生成field被
     parserImplementation?(): string // 该feild用户实现的解析函数
@@ -22,11 +22,11 @@ export abstract class BaseField implements Field {
 
     abstract isRef(): boolean
     abstract isUserDefined(): boolean
-    abstract typeName(): string
+    abstract typeName(withLifetime: boolean): string
     abstract parserInvocation(): string
 
     definition(visibility: VisibilityType): string {
-        return `${visibility} ${this.name}: ${this.typeName()},`
+        return `${visibility} ${this.name}: ${this.typeName(true)},`
     }
 
     parserInvocationParam(): string {

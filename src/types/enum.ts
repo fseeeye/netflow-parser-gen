@@ -104,8 +104,9 @@ export class EofVariant extends BasicEnumVariant implements EnumVariant {
             return `${parserBlock}`
         } else {
             return endent`
+                #[inline(always)]
                 ${functionSignature} {
-                    ${parserBlock}   
+                    ${parserBlock}
                 }
             `
         }
@@ -147,7 +148,7 @@ export class EmptyVariant extends EofVariant {
             return endent`
                 #[inline(always)]
                 ${functionSignature} {
-                    ${parserBlock}   
+                    ${parserBlock}
                 }
             `
         }

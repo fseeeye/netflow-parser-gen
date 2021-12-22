@@ -57,6 +57,7 @@ export function getRequestDataEnum(): StructEnum {
 test('test enum definition without reference', () => {
     const structEnum = getRequestDataEnum()
     expect(structEnum.definition()).toEqual(endent`
+    #[allow(non_camel_case_types)]
     #[derive(Debug, PartialEq, Eq, Clone)]
     pub enum RequestData {
         ReadCoils {
@@ -83,7 +84,7 @@ test('test enum definition without reference', () => {
     const gen = new StructEnumParserGenerator(structEnum)
     // console.log(gen.compile())
     expect(gen.generateParser()).toEqual(endent`
-    fn parse_read_coils(input: &[u8]) -> IResult<&[u8], RequestData> {
+    fn parse_request_data_read_coils(input: &[u8]) -> IResult<&[u8], RequestData> {
         let (input, start_address) = be_u16(input)?;
         let (input, count) = be_u16(input)?;
         Ok((
@@ -95,7 +96,7 @@ test('test enum definition without reference', () => {
         ))
     }
     
-    fn parse_read_discrete_inputs(input: &[u8]) -> IResult<&[u8], RequestData> {
+    fn parse_request_data_read_discrete_inputs(input: &[u8]) -> IResult<&[u8], RequestData> {
         let (input, start_address) = be_u16(input)?;
         let (input, count) = be_u16(input)?;
         Ok((
@@ -107,7 +108,7 @@ test('test enum definition without reference', () => {
         ))
     }
     
-    fn parse_read_holding_registers(input: &[u8]) -> IResult<&[u8], RequestData> {
+    fn parse_request_data_read_holding_registers(input: &[u8]) -> IResult<&[u8], RequestData> {
         let (input, start_address) = be_u16(input)?;
         let (input, count) = be_u16(input)?;
         Ok((
@@ -119,7 +120,7 @@ test('test enum definition without reference', () => {
         ))
     }
     
-    fn parse_read_input_registers(input: &[u8]) -> IResult<&[u8], RequestData> {
+    fn parse_request_data_read_input_registers(input: &[u8]) -> IResult<&[u8], RequestData> {
         let (input, start_address) = be_u16(input)?;
         let (input, count) = be_u16(input)?;
         Ok((
@@ -131,7 +132,7 @@ test('test enum definition without reference', () => {
         ))
     }
     
-    fn parse_write_single_coil(input: &[u8]) -> IResult<&[u8], RequestData> {
+    fn parse_request_data_write_single_coil(input: &[u8]) -> IResult<&[u8], RequestData> {
         let (input, output_address) = be_u16(input)?;
         let (input, output_value) = be_u16(input)?;
         Ok((
@@ -145,11 +146,11 @@ test('test enum definition without reference', () => {
     
     pub fn parse_request_data(input: &[u8], function_code: u8) -> IResult<&[u8], RequestData> {
         let (input, request_data) = match function_code {
-            0x01 => parse_read_coils(input),
-            0x02 => parse_read_discrete_inputs(input),
-            0x03 => parse_read_holding_registers(input),
-            0x04 => parse_read_input_registers(input),
-            0x05 => parse_write_single_coil(input),
+            0x01 => parse_request_data_read_coils(input),
+            0x02 => parse_request_data_read_discrete_inputs(input),
+            0x03 => parse_request_data_read_holding_registers(input),
+            0x04 => parse_request_data_read_input_registers(input),
+            0x05 => parse_request_data_write_single_coil(input),
             _ =>  Err(nom::Err::Error(nom::error::Error::new(input, nom::error::ErrorKind::Verify))),
         }?;
         Ok((input, request_data))
@@ -187,6 +188,7 @@ export function getRequestDataWithRefEnum(): StructEnum {
 test('enum definition with reference', () => {
     const structEnum = getRequestDataWithRefEnum()
     expect(structEnum.definition()).toEqual(endent`
+    #[allow(non_camel_case_types)]
     #[derive(Debug, PartialEq, Eq, Clone)]
     pub enum RequestData<'a> {
         WriteFileRecordSubRequest {
@@ -204,7 +206,7 @@ test('enum definition with reference', () => {
     const gen = new StructEnumParserGenerator(structEnum)
     // console.log(gen.compile())
     expect(gen.generateParser()).toEqual(endent`
-    fn parse_write_file_record_sub_request(input: &[u8]) -> IResult<&[u8], RequestData> {
+    fn parse_request_data_write_file_record_sub_request(input: &[u8]) -> IResult<&[u8], RequestData> {
         let (input, ref_type) = u8(input)?;
         let (input, file_number) = be_u16(input)?;
         let (input, record_number) = be_u16(input)?;
@@ -222,7 +224,7 @@ test('enum definition with reference', () => {
         ))
     }
     
-    fn parse_write_single_register(input: &[u8]) -> IResult<&[u8], RequestData> {
+    fn parse_request_data_write_single_register(input: &[u8]) -> IResult<&[u8], RequestData> {
         let (input, register_address) = be_u16(input)?;
         let (input, register_value) = be_u16(input)?;
         Ok((
@@ -236,8 +238,8 @@ test('enum definition with reference', () => {
     
     pub fn parse_request_data(input: &[u8], function_code: u8) -> IResult<&[u8], RequestData> {
         let (input, request_data) = match function_code {
-            0x17 => parse_write_file_record_sub_request(input),
-            0x06 => parse_write_single_register(input),
+            0x17 => parse_request_data_write_file_record_sub_request(input),
+            0x06 => parse_request_data_write_single_register(input),
             _ =>  Err(nom::Err::Error(nom::error::Error::new(input, nom::error::ErrorKind::Verify))),
         }?;
         Ok((input, request_data))
@@ -275,13 +277,14 @@ test('enum with user defined variants', () => {
     const payload = new StructEnum(
         'Payload',
         [
-            new NamedEnumVariant('Payload', 0x00, 'RequestData', request),
-            new NamedStructVariant('Payload', 0x01, 'Exception', exception)
+            new NamedEnumVariant(0x00, 'RequestData', request),
+            new NamedStructVariant(0x01, 'Exception', exception)
         ],
         new BasicEnumChoice(createNumericField({ name: 'function_code', typeName: 'u8' }), (field) => { return `${field} & 0b10000000` }),
     )
     // console.log(payload.definition())
     expect(payload.definition()).toEqual(endent`
+    #[allow(non_camel_case_types)]
     #[derive(Debug, PartialEq, Eq, Clone)]
     pub enum Payload {
         RequestData(RequestData),
@@ -327,7 +330,7 @@ test('enum with user defined variants with reference', () => {
     const payload = new StructEnum(
         'Payload',
         [
-            new NamedEnumVariant('Payload', 0x00, 'RequestData', request),
+            new NamedEnumVariant(0x00, 'RequestData', request),
             new AnonymousStructVariant(0x02, 'WriteMultipleRegisters', [
                 createNumericField({ name: 'write_start_address', typeName: 'be_u16' }),
                 createNumericField({ name: 'write_count', typeName: 'be_u16' }),
@@ -338,6 +341,7 @@ test('enum with user defined variants with reference', () => {
     )
     // console.log(payload.definition())
     expect(payload.definition()).toEqual(endent`
+    #[allow(non_camel_case_types)]
     #[derive(Debug, PartialEq, Eq, Clone)]
     pub enum Payload<'a> {
         RequestData(RequestData<'a>),
@@ -351,7 +355,7 @@ test('enum with user defined variants with reference', () => {
     const gen = new StructEnumParserGenerator(payload)
     // console.log(gen.generateParser())
     expect(gen.generateParser()).toEqual(endent`
-    fn parse_write_multiple_registers(input: &[u8]) -> IResult<&[u8], Payload> {
+    fn parse_payload_write_multiple_registers(input: &[u8]) -> IResult<&[u8], Payload> {
         let (input, write_start_address) = be_u16(input)?;
         let (input, write_count) = be_u16(input)?;
         let (input, write_register_values) = take(write_count as usize)(input)?;
@@ -371,7 +375,7 @@ test('enum with user defined variants with reference', () => {
                 let (input, request_data) = parse_request_data(input, function_code)?;
                 Ok((input, Payload::RequestData(request_data)))
             },
-            0x02 => parse_write_multiple_registers(input),
+            0x02 => parse_payload_write_multiple_registers(input),
             _ =>  Err(nom::Err::Error(nom::error::Error::new(input, nom::error::ErrorKind::Verify))),
         }?;
         Ok((input, payload))
