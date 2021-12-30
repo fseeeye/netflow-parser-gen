@@ -5,6 +5,7 @@ import { Ipv6 } from "../protocols/ipv6"
 // import { StructEnumWithInlineChoiceParserGenerator } from "./enum"
 import { InlineChoice } from "../field/choice"
 import { StructEnumParserGenerator } from "./enum"
+import endent from "endent"
 
 test('test struct enum with inline choice', () => {
     const ip = new StructEnum(
@@ -18,7 +19,33 @@ test('test struct enum with inline choice', () => {
             (version) => `${version} >> 4`,
         ),
     )
-    console.log(ip.definition())
+    
+    expect(ip.definition()).toEqual(endent`
+        #[allow(non_camel_case_types)]
+        #[derive(Debug, PartialEq, Eq, Clone)]
+        pub enum L3<'a> {
+            Ipv4(Ipv4<'a>),
+            Ipv6(Ipv6<'a>)
+        }
+    `)
     const gen = new StructEnumParserGenerator(ip)
-    console.log(gen.generateParser())
+
+    expect(gen.generateParser()).toEqual(`
+
+pub fn parse_l3(input: &[u8]) -> IResult<&[u8], L3> {
+    let (input, version) = peek(u8)(input)?;
+    let (input, l3) = match version >> 4 {
+        0x04 => {
+            let (input, ipv4_header) = parse_ipv4_header(input)?;
+            Ok((input, L3::Ipv4Header(ipv4_header)))
+        },
+        0x06 => {
+            let (input, ipv6_header) = parse_ipv6_header(input)?;
+            Ok((input, L3::Ipv6Header(ipv6_header)))
+        },
+        _ =>  Err(nom::Err::Error(nom::error::Error::new(input, nom::error::ErrorKind::Verify))),
+    }?;
+    Ok((input, l3))
+}`)
+    
 })

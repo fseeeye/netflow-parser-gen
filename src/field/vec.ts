@@ -39,7 +39,7 @@ export class BitVecField extends BaseField {
         readonly name: string,
         readonly lengthVariable: CountVariable,
         readonly elementType: FieldType,
-        readonly elementBitLong?: number
+        readonly elementBitLen?: number
     ) {
         super(name)
     }
@@ -61,8 +61,8 @@ export class BitVecField extends BaseField {
 
     parserInvocation(): string {
         let elementBitLong = 1
-        if (this.elementBitLong !== undefined) {
-            elementBitLong = this.elementBitLong
+        if (this.elementBitLen !== undefined) {
+            elementBitLong = this.elementBitLen
         }
         const elementTypeName = this.elementType.typeName()
         // e.g. `bits::<_, _, Error<(&[u8], usize)>, Error<&[u8]>, _>(count::<_, u8, _, _>(take_bits(1usize), byte_count as usize * 8usize))(input)?`

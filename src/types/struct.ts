@@ -51,7 +51,7 @@ export class Struct implements FieldType {
     protected generateFields(): string {
         const fieldLines = this.fields.map((field) => {
                 // return `${this.visibilitySpecifier()} ${field.name}: ${field.typeName()},`
-                const fieldDef = field.definition(this.visibilitySpecifier())
+                const fieldDef = field.definition(this.visibilitySpecifier()).trim()
                 return `${fieldDef}`
             })
             .filter((fieldDef) => fieldDef !== '')
@@ -92,7 +92,7 @@ export class Struct implements FieldType {
             })
             .filter((str) => str.length != 0) // 去掉定义内容为空的string
 
-        return endent`${pub ? fieldLines.join('\n') : fieldLines.map(s => s.replace(/^pub /g, '')).join('\n')}`
+        return endent`${pub ? fieldLines.join('\n') : fieldLines.map(s => s.replace(/^pub\s/g, '')).join('\n')}`
     }
 
     detectorDefinition(rename: string | undefined = undefined): string {

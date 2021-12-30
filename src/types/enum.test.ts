@@ -1,10 +1,11 @@
 import endent from "endent"
+import { numeric } from "../api"
 import { createBytesReferenceField, createCountVar, createNumericField } from "../api/input"
-import { BasicEnumChoice } from "../field/choice"
+import { BasicEnumChoice, EnumMultiChoice } from "../field/choice"
 import { NumericField } from "../field/numeric"
 import { BytesReferenceField } from "../field/ref"
-import { StructEnumParserGenerator } from "../parser/enum"
-import { AnonymousStructVariant, EnumVariant, StructEnum, EofVariant, NamedEnumVariant, NamedStructVariant } from "./enum"
+import { IfStructEnumParserGenerator, StructEnumParserGenerator } from "../parser/enum"
+import { AnonymousStructVariant, EnumVariant, StructEnum, EofVariant, NamedEnumVariant, NamedStructVariant, IfStructEnum, EmptyVariant } from "./enum"
 import { BuiltInNumericType } from "./numeric"
 import { Struct } from "./struct"
 
@@ -61,24 +62,24 @@ test('test enum definition without reference', () => {
     #[derive(Debug, PartialEq, Eq, Clone)]
     pub enum RequestData {
         ReadCoils {
-             start_address: u16,
-             count: u16,
+            start_address: u16,
+            count: u16,
         },
         ReadDiscreteInputs {
-             start_address: u16,
-             count: u16,
+            start_address: u16,
+            count: u16,
         },
         ReadHoldingRegisters {
-             start_address: u16,
-             count: u16,
+            start_address: u16,
+            count: u16,
         },
         ReadInputRegisters {
-             start_address: u16,
-             count: u16,
+            start_address: u16,
+            count: u16,
         },
         WriteSingleCoil {
-             output_address: u16,
-             output_value: u16,
+            output_address: u16,
+            output_value: u16,
         }
     }`)
     const gen = new StructEnumParserGenerator(structEnum)
@@ -192,15 +193,15 @@ test('enum definition with reference', () => {
     #[derive(Debug, PartialEq, Eq, Clone)]
     pub enum RequestData<'a> {
         WriteFileRecordSubRequest {
-             ref_type: u8,
-             file_number: u16,
-             record_number: u16,
-             record_len: u16,
-             record_data: &'a [u8],
+            ref_type: u8,
+            file_number: u16,
+            record_number: u16,
+            record_len: u16,
+            record_data: &'a [u8],
         },
         WriteSingleRegister {
-             register_address: u16,
-             register_value: u16,
+            register_address: u16,
+            register_value: u16,
         }
     }`)
     const gen = new StructEnumParserGenerator(structEnum)
@@ -346,9 +347,9 @@ test('enum with user defined variants with reference', () => {
     pub enum Payload<'a> {
         RequestData(RequestData<'a>),
         WriteMultipleRegisters {
-             write_start_address: u16,
-             write_count: u16,
-             write_register_values: &'a [u8],
+            write_start_address: u16,
+            write_count: u16,
+            write_register_values: &'a [u8],
         }
     }
     `)
@@ -380,5 +381,63 @@ test('enum with user defined variants with reference', () => {
         }?;
         Ok((input, payload))
     }
+    `)
+})
+
+test('test if enum', () => {
+    const ifStructEnum = new IfStructEnum(
+        'IfStructEnumTest',
+        [
+            new AnonymousStructVariant('input_choice & 0x20 == 0x20', 'AnonyVariant', [
+                numeric('num1', 'u8'),
+            ]),
+            new EmptyVariant('_', 'EmptyVariant'),
+        ],
+        new EnumMultiChoice([
+            numeric('input_choice', 'u8')
+        ]),
+        true
+    )
+    
+    expect(ifStructEnum.definition()).toEqual(endent`
+        #[allow(non_camel_case_types)]
+        #[derive(Debug, PartialEq, Eq, Clone)]
+        pub enum IfStructEnumTest {
+            AnonyVariant {
+                num1: u8,
+            },
+            EmptyVariant {}
+        }
+    `)
+
+    const gen = new IfStructEnumParserGenerator(ifStructEnum)
+    // console.log(gen.compile())
+    expect(gen.generateParser()).toEqual(endent`
+        fn parse_if_struct_enum_test_anony_variant(input: &[u8]) -> IResult<&[u8], IfStructEnumTest> {
+            let (input, num1) = u8(input)?;
+            Ok((
+                input,
+                IfStructEnumTest::AnonyVariant {
+                    num1
+                }
+            ))
+        }
+        
+        #[inline(always)]
+        fn parse_if_struct_enum_test_empty_variant(input: &[u8]) -> IResult<&[u8], IfStructEnumTest> {
+            Ok((
+                input,
+                IfStructEnumTest::EmptyVariant {}
+            ))
+        }
+
+        pub fn parse_if_struct_enum_test(input: &[u8], input_choice: u8) -> IResult<&[u8], IfStructEnumTest> {
+            if input_choice & 0x20 == 0x20 {
+                parse_if_struct_enum_test_anony_variant(input)
+            }
+            else {
+                parse_if_struct_enum_test_empty_variant(input)
+            }
+        }
     `)
 })

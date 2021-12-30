@@ -1,3 +1,4 @@
+// ref: https://jestjs.io/docs/configuration
 module.exports = {
   roots: ['<rootDir>/src'],
   testMatch: [
