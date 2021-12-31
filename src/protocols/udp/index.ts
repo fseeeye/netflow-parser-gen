@@ -1,5 +1,5 @@
 import { Struct } from "../../types/struct"
-import { numeric } from "../../api/index"
+import { bytesRef, numeric } from "../../api/index"
 import { Protocol } from "../protocol"
 import { ProtocolInfo } from "../protocol-info"
 // import { PayloadField } from "../../field/payload"
@@ -9,6 +9,8 @@ import { StructField } from "../../field/struct"
 import { FinsUdpRsp } from "../fins-udp-rsp"
 import { FinsUdpReq } from "../fins-udp-req"
 import { Bacnet } from "../bacnet"
+import { CodeField, CodeVarField } from "../../field/special"
+import { createCountVar } from "../../api/input"
 
 const protocolName = 'Udp'
 const headerName = `${protocolName}Header`
@@ -21,6 +23,8 @@ const header = new Struct(
         numeric('dst_port', 'be_u16'),
         numeric('length', 'be_u16'),
         numeric('checksum', 'be_u16'),
+        new CodeVarField(bytesRef('payload', createCountVar('_'))),
+        new CodeField('let payload = input;')
     ]
 )
 

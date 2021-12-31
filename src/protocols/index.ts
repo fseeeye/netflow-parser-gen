@@ -87,19 +87,24 @@ export class ProtocolParserGenerator {
         const appNaiveProtocol = removeDuplicateByKey(
             this.protocols
                 .filter(p => p.getLevel() === 'L5')
-                .map(p => p.getName().replace(/(Req|Rsp)$/g, ''))
-                .map(pName => pName.replace(/(Tcp|Udp)$/g, '')),
+                .map(p => p.getName().replace(/(Req|Rsp)$/g, '').replace(/(Tcp|Udp)$/g, '')),
             (key: string) => key
         ).join(',\n').concat(',')
+        const attributeStr = "#[derive(Serialize, Deserialize, Debug, PartialEq, Clone, Copy, Eq, Hash)]"
 
-        const code = endent`
-        use crate::ParseError;
-        use serde::{Serialize, Deserialize};
+        const appProtocolsMatchArm = this.protocols
+            .filter(p => p.getLevel() === 'L5')
+            .map(p => `ApplicationProtocol::${p.getName()} => ApplicationNaiveProtocol::${p.getName().replace(/(Req|Rsp)$/g, '').replace(/(Tcp|Udp)$/g, '')},`)
+            .join('\n')
+
+        let code = endent`
+        use crate::{ApplicationLayer, LinkLayer, NetworkLayer, ParseError, TransportLayer};
+        use serde::{Deserialize, Serialize};
 
         /// ProtocolType旨在用简单结构来表示协议类型
         /// * 协助判断解析出来的packet中各层是什么协议
         /// * 也用于options的stop字段说明该在哪一层停止
-        #[derive(Debug, PartialEq, Clone, Copy, Eq, Hash)]
+        #[derive(Serialize, Deserialize, Debug, Clone, Copy, Hash)]
         pub enum ProtocolType {
             Link(LinkProtocol),
             Network(NetworkProtocol),
@@ -107,45 +112,178 @@ export class ProtocolParserGenerator {
             Application(ApplicationProtocol),
             Error(ParseError),
         }
+
+        impl PartialEq for ProtocolType {
+            fn eq(&self, other: &Self) -> bool {
+                match self {
+                    Self::Link(p) => match other {
+                        Self::Link(op) => return *p == *op,
+                        _ => return false,
+                    },
+                    Self::Network(p) => match other {
+                        Self::Network(op) => return *p == *op,
+                        _ => return false,
+                    },
+                    Self::Transport(p) => match other {
+                        Self::Transport(op) => return *p == *op,
+                        _ => return false,
+                    },
+                    Self::Application(p) => match other {
+                        Self::Application(op) => {
+                            let p: ApplicationNaiveProtocol = p.into();
+                            let op = op.into();
+                            return p == op;
+                        }
+                        _ => return false,
+                    },
+                    Self::Error(_) => return false,
+                }
+            }
+        }
         
-        #[derive(Debug, PartialEq, Clone, Copy, Eq, Hash)]
+        ${attributeStr}
         pub enum LinkProtocol {
             ${linkProtocol}
         }
 
-        #[derive(Debug, PartialEq, Clone, Copy, Eq, Hash)]
+        ${attributeStr}
         pub enum NetworkProtocol {
             ${netProtocol}
         }
 
-        #[derive(Debug, PartialEq, Clone, Copy, Eq, Hash)]
+        ${attributeStr}
         pub enum TransportProtocol {
             ${transProtocol}
         }
 
-        #[derive(Debug, PartialEq, Clone, Copy, Eq, Hash)]
+        ${attributeStr}
         pub enum ApplicationProtocol {
             ${appProtocol}
             IsoOnTcp,
         }
 
-        #[derive(Debug, PartialEq, Clone, Copy, Eq, Hash, Serialize, Deserialize)]
+        ${attributeStr}
         pub enum ApplicationNaiveProtocol {
             ${appNaiveProtocol}
             IsoOnTcp,
+        }
+        
+        impl From<ApplicationProtocol> for ApplicationNaiveProtocol {
+            fn from(p: ApplicationProtocol) -> Self {
+                match p {
+                    ${appProtocolsMatchArm}
+                    ApplicationProtocol::IsoOnTcp => ApplicationNaiveProtocol::IsoOnTcp,
+                }
+            }
+        }
+
+        impl From<&ApplicationProtocol> for ApplicationNaiveProtocol {
+            fn from(p: &ApplicationProtocol) -> Self {
+                match p {
+                    ${appProtocolsMatchArm}
+                    ApplicationProtocol::IsoOnTcp => ApplicationNaiveProtocol::IsoOnTcp,
+                }
+            }
         }`
+        code = code.concat('\n\n')
+
+        const linkProtocolsMatchArm = this.protocols.filter(p => p.getLevel() === 'L2')
+            .map(p => `LinkLayer::${p.getName()}(_) => LinkProtocol::${p.getName()},`)
+            .join('\n')
+        code = code.concat(endent`
+        // 层 -> 协议类型
+        impl From<LinkLayer> for LinkProtocol {
+            #[inline]
+            fn from(link_layer: LinkLayer) -> Self {
+                match link_layer {
+                    ${linkProtocolsMatchArm}
+                }
+            }
+        }
+        
+        impl From<LinkLayer> for ProtocolType {
+            #[inline(always)]
+            fn from(link_layer: LinkLayer) -> Self {
+                ProtocolType::Link(link_layer.into())
+            }
+        }`)
+        code = code.concat('\n\n')
+
+        const networkProtocolsMatchArm = this.protocols.filter(p => p.getLevel() === 'L3')
+            .map(p => `NetworkLayer::${p.getName()}(_) => NetworkProtocol::${p.getName()},`)
+            .join('\n')
+        code = code.concat(endent`
+        impl<'a> From<NetworkLayer<'a>> for NetworkProtocol {
+            #[inline]
+            fn from(net_layer: NetworkLayer<'a>) -> Self {
+                match net_layer {
+                    ${networkProtocolsMatchArm}
+                }
+            }
+        }
+        
+        impl<'a> From<NetworkLayer<'a>> for ProtocolType {
+            #[inline(always)]
+            fn from(net_layer: NetworkLayer<'a>) -> Self {
+                ProtocolType::Network(net_layer.into())
+            }
+        }`)
+        code = code.concat('\n\n')
+
+        const transProtocolsMatchArm = this.protocols.filter(p => p.getLevel() === 'L4')
+            .map(p => `TransportLayer::${p.getName()}(_) => TransportProtocol::${p.getName()},`)
+            .join('\n')
+        code = code.concat(endent`
+        impl<'a> From<TransportLayer<'a>> for TransportProtocol {
+            #[inline]
+            fn from(trans_layer: TransportLayer<'a>) -> Self {
+                match trans_layer {
+                    ${transProtocolsMatchArm}
+                }
+            }
+        }
+        
+        impl<'a> From<TransportLayer<'a>> for ProtocolType {
+            #[inline(always)]
+            fn from(trans_layer: TransportLayer<'a>) -> Self {
+                ProtocolType::Transport(trans_layer.into())
+            }
+        }`)
+        code = code.concat('\n\n')
+
+        const appLayerMatchArm = this.protocols.filter(p => p.getLevel() === 'L5')
+            .map(p => `ApplicationLayer::${p.getName()}(_) => ApplicationProtocol::${p.getName()},`)
+            .join('\n')
+        code = code.concat(endent`
+        impl<'a> From<ApplicationLayer<'a>> for ApplicationProtocol {
+            #[inline]
+            fn from(app_layer: ApplicationLayer<'a>) -> Self {
+                match app_layer {
+                    ${appLayerMatchArm}
+                    ApplicationLayer::IsoOnTcp(_) => ApplicationProtocol::IsoOnTcp,
+                }
+            }
+        }
+        
+        impl<'a> From<ApplicationLayer<'a>> for ProtocolType {
+            #[inline(always)]
+            fn from(app_layer: ApplicationLayer<'a>) -> Self {
+                ProtocolType::Application(app_layer.into())
+            }
+        }`)
+
         return code.concat('\n')
     }
 
     // 生成layer.rs文件内容，包含对各层级Layer的定义
     private generateLayerContent() {
         let code = endent`
-        /// Layer是包含协议解析结果的数据结构
-        use crate::ProtocolType;
-        use crate::protocol::{ApplicationProtocol, LinkProtocol, NetworkProtocol, TransportProtocol};
-        use crate::parsers::*;
+        //! Layer是包含协议解析结果的数据结构
+        use std::net::IpAddr;
+
+        use crate::{field_type::MacAddress, parsers::*};
         `
-        code = code.concat('\n\n\n')
+        code = code.concat('\n\n')
         const linkProtocols = this.protocols.filter(p => p.getLevel() === 'L2')
             .map(p => `${p.getName()}(${p.generateHeadername()}),`)
             .join('\n')
@@ -153,18 +291,20 @@ export class ProtocolParserGenerator {
         #[derive(Debug, PartialEq, Clone)]
         pub enum LinkLayer {
             ${linkProtocols}
-        }`)
-        code = code.concat('\n\n')
-
-        const linkProtocolsMatchArm = this.protocols.filter(p => p.getLevel() === 'L2')
-            .map(p => `LinkLayer::${p.getName()}(_) => ProtocolType::Link(LinkProtocol::${p.getName()}),`)
-            .join('\n')
-        code = code.concat(endent`
-        // 层 -> 协议类型
-        impl Into<ProtocolType> for LinkLayer {
-            fn into(self) -> ProtocolType {
-                match self {
-                    ${linkProtocolsMatchArm}
+        }
+        
+        impl LinkLayer {
+            #[inline]
+            pub fn get_dst_mac(&self) -> &MacAddress {
+                match &self {
+                    LinkLayer::Ethernet(eth) => &eth.dst_mac,
+                }
+            }
+        
+            #[inline]
+            pub fn get_src_mac(&self) -> &MacAddress {
+                match &self {
+                    LinkLayer::Ethernet(eth) => &eth.src_mac,
                 }
             }
         }`)
@@ -177,17 +317,22 @@ export class ProtocolParserGenerator {
         #[derive(Debug, PartialEq, Clone)]
         pub enum NetworkLayer<'a> {
             ${networkProtocols}
-        }`)
-        code = code.concat('\n\n')
-
-        const networkProtocolsMatchArm = this.protocols.filter(p => p.getLevel() === 'L3')
-            .map(p => `NetworkLayer::${p.getName()}(_) => ProtocolType::Network(NetworkProtocol::${p.getName()}),`)
-            .join('\n')
-        code = code.concat(endent`
-        impl<'a> Into<ProtocolType> for NetworkLayer<'a> {
-            fn into(self) -> ProtocolType {
+        }
+        
+        impl<'a> NetworkLayer<'a> {
+            #[inline]
+            pub fn get_dst_ip(&self) -> IpAddr {
                 match self {
-                    ${networkProtocolsMatchArm}
+                    NetworkLayer::Ipv4(ipv4) => IpAddr::V4(ipv4.dst_ip),
+                    NetworkLayer::Ipv6(ipv6) => IpAddr::V6(ipv6.dst_ip),
+                }
+            }
+        
+            #[inline]
+            pub fn get_src_ip(&self) -> IpAddr {
+                match self {
+                    NetworkLayer::Ipv4(ipv4) => IpAddr::V4(ipv4.src_ip),
+                    NetworkLayer::Ipv6(ipv6) => IpAddr::V6(ipv6.src_ip),
                 }
             }
         }`)
@@ -200,17 +345,22 @@ export class ProtocolParserGenerator {
         #[derive(Debug, PartialEq, Clone)]
         pub enum TransportLayer<'a> {
             ${transProtocols}
-        }`)
-        code = code.concat('\n\n')
-
-        const transProtocolsMatchArm = this.protocols.filter(p => p.getLevel() === 'L4')
-            .map(p => `TransportLayer::${p.getName()}(_) => ProtocolType::Transport(TransportProtocol::${p.getName()}),`)
-            .join('\n')
-        code = code.concat(endent`
-        impl<'a> Into<ProtocolType> for TransportLayer<'a> {
-            fn into(self) -> ProtocolType {
+        }
+        
+        impl<'a> TransportLayer<'a> {
+            #[inline]
+            pub fn get_dst_port(&self) -> u16 {
                 match self {
-                    ${transProtocolsMatchArm}
+                    TransportLayer::Tcp(tcp) => tcp.dst_port,
+                    TransportLayer::Udp(udp) => udp.dst_port,
+                }
+            }
+        
+            #[inline]
+            pub fn get_src_port(&self) -> u16 {
+                match self {
+                    TransportLayer::Tcp(tcp) => tcp.src_port,
+                    TransportLayer::Udp(udp) => udp.src_port,
                 }
             }
         }`)
@@ -224,20 +374,6 @@ export class ProtocolParserGenerator {
         pub enum ApplicationLayer<'a> {
             ${appProtocols}
             IsoOnTcp(IsoOnTcpHeader),
-        }`)
-        code = code.concat('\n\n')
-
-        const appProtocolsMatchArm = this.protocols.filter(p => p.getLevel() === 'L5')
-            .map(p => `ApplicationLayer::${p.getName()}(_) => ProtocolType::Application(ApplicationProtocol::${p.getName()}),`)
-            .join('\n')
-        code = code.concat(endent`
-        impl<'a> Into<ProtocolType> for ApplicationLayer<'a> {
-            fn into(self) -> ProtocolType {
-                match self {
-                    ${appProtocolsMatchArm}
-                    ApplicationLayer::IsoOnTcp(_) => ProtocolType::Application(ApplicationProtocol::IsoOnTcp),
-                }
-            }
         }`)
         code = code.concat('\n')
 

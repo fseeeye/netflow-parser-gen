@@ -18,6 +18,7 @@ import { FinsTcpRsp } from "../fins-tcp-rsp"
 import { Bacnet } from "../bacnet"
 import { Dnp3 } from "../dnp3"
 import { Iec104 } from "../iec104"
+import { CodeField, CodeVarField } from "../../field/special"
 
 const protocolName = 'Tcp'
 const headerName = `${protocolName}Header`
@@ -55,6 +56,8 @@ const header = new Struct(
         numeric('checksum', 'be_u16'),
         numeric('urgent_pointer', 'be_u16'),
         tcpOptions,
+        new CodeVarField(bytesRef('payload', createCountVar('_'))),
+        new CodeField('let payload = input;')
     ]
 )
 
