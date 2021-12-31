@@ -23,8 +23,6 @@ const structs: (Struct | StructEnum)[] = []
 const SimpleItem = new Struct(
 	'SimpleItem',
 	[
-		// numeric('tag', 'u8'),
-		// numeric('length', 'be_u16'),
 		new BlankStructField(new BerTLField('simple_item_tl')),
 		bytesRef('data', createCountVar('_simple_item_tl.length'))
 	]
@@ -34,8 +32,6 @@ structs.push(SimpleItem)
 const SimpleU8Data = new Struct(
 	'SimpleU8Data',
 	[
-		// numeric('tag', 'u8'),
-		// numeric('length', 'be_u16'),
 		new BlankStructField(new BerTLField('simple_u8_item_tl')),
 		numeric('data', 'u8')
 	]
@@ -113,12 +109,8 @@ structs.push(OsiSesConnectRequest)
 const OsiPresUserData = new Struct(
 	'OsiPresUserData',
 	[
-		// numeric('fully_encode_data_tag','u8'),
-		// numeric('fully_encode_data_length','be_u16'),
 		new BlankStructField(new BerTLField('fullt_encode_data_tl')),
 		new StructField(SimpleU8Data, 'presentation_context_indentifier'),
-		// numeric('presentation_context_values_tag','u8'),
-		// numeric('presentation_context_values_length', 'be_u16'),
 		new BlankStructField(new BerTLField('presentation_context_values_tl')),
 	]
 )
@@ -400,8 +392,6 @@ structs.push(BoolResult)
 const ListOfData = new Struct(
 	'ListOfData',
 	[
-		// numeric('tag', 'u8'),
-		// numeric('length', 'be_u16'),
 		new BlankStructField(new BerTLField('lod_tl')),
 		new LimitedLenVecLoopField('lod', createCountVar('_lod_tl.length'), new StructField(SimpleItem))
 	]
@@ -535,8 +525,6 @@ structs.push(DataAccessError)
 const DataAccessErrorConstruct = new Struct(
 	'DataAccessErrorConstruct',
 	[
-		// numeric('data_access_error_tag', 'u8'),
-		// numeric('data_access_error_length', 'be_u16'),
 		new BlankStructField(new BerTLField('data_access_error_tl')),
 		new EnumField(DataAccessError, 'data_access_error')
 	]
@@ -572,8 +560,6 @@ structs.push(AccessResult)
 const AccessResultStruct = new Struct(
 	'AccessResultStruct',
 	[
-		// numeric('access_result_tag', 'u8'),
-		// numeric('access_result_length', 'be_u16'),
 		new BlankStructField(new BerTLField('access_result_tl')),
 		new EnumField(AccessResult, 'access_result')
 	]
@@ -583,8 +569,6 @@ structs.push(AccessResultStruct)
 const ListOfAccessResult = new Struct(
 	'ListOfAccessResult',
 	[
-		// numeric('tag', 'u8'),
-		// numeric('length', 'be_u16'),
 		new BlankStructField(new BerTLField('loar_tl')),
 		new LimitedLenVecLoopField('loar', createCountVar('_loar_tl.length'), new StructField(AccessResultStruct))
 	]
@@ -594,8 +578,6 @@ structs.push(ListOfAccessResult)
 const ListOfIdentifier = new Struct(
 	'ListOfIdentifier',
 	[
-		// numeric('tag', 'u8'),
-		// numeric('length', 'be_u16'),
 		new BlankStructField(new BerTLField('loar_tl')),
 		new LimitedLenVecLoopField('loar', createCountVar('_loar_tl.length'), new StructField(Identifier))
 	]
@@ -651,8 +633,6 @@ structs.push(VariableAccessSpecificationChoice)
 const VariableAccessSpecificationChoiceStruct = new Struct(
 	'VariableAccessSpecificationChoiceStruct',
 	[
-		// numeric('variable_access_specification_choice_tag', 'u8'),
-		// numeric('variable_access_specification_choice_length', 'be_u16'),
 		new BlankStructField(new BerTLField('variable_access_specification_choice_tl')),
 		new EnumField(VariableAccessSpecificationChoice, 'variable_access_specification_choice')
 	]
@@ -667,8 +647,6 @@ const ReadRequestChoice = new StructEnum(
 		]),
 		new AnonymousStructVariant(0x80, 'ReadRequestChoiceOtherwise', [
 			new StructField(BoolResult, 'specification_with_result'),
-			// numeric('variable_access_specification_choice_struct_tag', 'u8'),
-			// numeric('variable_access_specification_choice_struct_length', 'be_u16'),
 			new BlankStructField(new BerTLField('variable_access_specification_choice_struct_tl')),
 			new StructField(VariableAccessSpecificationChoiceStruct, 'res')
 		]),
@@ -689,12 +667,8 @@ structs.push(ReadRequestChoice)
 const WriteRequestChoiceConstruct = new Struct(
 	'WriteRequestChoiceConstruct',
 	[
-		// numeric('variable_access_specification_choice_tag', 'u8'),
-		// numeric('variable_access_specification_choice_length', 'be_u16'),
 		new BlankStructField(new BerTLField('variable_access_specification_choice_tl')),
 		new EnumField(VariableAccessSpecificationChoice, 'variable_access_specification_choice'),
-		// numeric('list_of_data_tag', 'u8'),
-		// numeric('list_of_data_length', 'be_u16'),
 		new BlankStructField(new BerTLField('list_of_data_tl')),
 		new StructField(ListOfData, 'list_of_data')
 	],
@@ -704,8 +678,6 @@ structs.push(WriteRequestChoiceConstruct)
 const GetNamedVariableListAttributesRequestChoiceConstruct = new Struct(
 	'GetNamedVariableListAttributesRequestChoiceConstruct',
 	[
-		// numeric('object_name_tag', 'u8'),
-		// numeric('object_name_length', 'be_u16'),
 		new BlankStructField(new BerTLField('object_name_tl')),
 		new EnumField(ObjectName, 'object_name')
 	]
@@ -715,12 +687,8 @@ structs.push(GetNamedVariableListAttributesRequestChoiceConstruct)
 const GetNameListRequestChoiceConstruct = new Struct(
 	'GetNameListRequestChoiceConstruct',
 	[
-		// numeric('object_class_tag', 'u8'),
-		// numeric('object_class_length', 'be_u16'),
 		new BlankStructField(new BerTLField('object_class_tl')),
 		new EnumField(ObjectClass, 'object_class'),
-		// numeric('object_scope_tag', 'u8'),
-		// numeric('object_scope_length', 'be_u16'),
 		new BlankStructField(new BerTLField('object_scope_tl')),
 		new EnumField(ObjectScope, 'object_scope'),
 	]
@@ -730,12 +698,8 @@ structs.push(GetNameListRequestChoiceConstruct)
 const GetNameListResponseChoiceConstruct = new Struct(
 	'GetNameListResponseChoiceConstruct',
 	[
-		// numeric('list_of_identifier_tag', 'u8'),
-		// numeric('list_of_identifier_length', 'be_u16'),
 		new BlankStructField(new BerTLField('list_of_identifier_tl')),
 		new StructField(ListOfIdentifier, 'list_of_identifier'),
-		// numeric('more_follows_tag', 'u8'),
-		// numeric('more_follows_length', 'be_u16'),
 		new BlankStructField(new BerTLField('more_follows_tl')),
 		new StructField(BoolResult, 'more_follows'),
 	]
@@ -753,16 +717,10 @@ structs.push(IdentifyRequestChoiceConstruct)
 const IdentifyResponseChoiceConstruct = new Struct(
 	'IdentifyResponseChoiceConstruct',
 	[
-		// numeric('vendor_name_tag', 'u8'),
-		// numeric('vendor_name_length', 'be_u16'),
 		new BlankStructField(new BerTLField('vendor_name_tl')),
 		new StructField(SimpleItem, 'vendor_name'),
-		// numeric('model_name_tag', 'u8'),
-		// numeric('model_name_length', 'be_u16'),
 		new BlankStructField(new BerTLField('model_name_tl')),
 		new StructField(SimpleItem, 'model_name'),
-		// numeric('revision_tag', 'u8'),
-		// numeric('revision_length', 'be_u16'),
 		new BlankStructField(new BerTLField('revision_tl')),
 		new StructField(SimpleItem, 'revision'),
 	]
@@ -775,8 +733,6 @@ const ReadResponseChoice = new StructEnum(
 		new AnonymousStructVariant(0x00, 'ReadResponseChoiceNone', [
 		]),
 		new AnonymousStructVariant('_', 'ReadResponseChoiceWithData', [
-			// numeric('list_of_access_result_tag', 'u8'),
-			// numeric('list_of_access_result_length', 'be_u16'),
 			new BlankStructField(new BerTLField('list_of_access_result_tl')),
 			new StructField(ListOfAccessResult, 'list_of_access_result')
 		]),
@@ -806,8 +762,6 @@ structs.push(WriteResponseChoice)
 const ReadResponseChoiceConstruct = new Struct(
 	'ReadResponseChoiceConstruct',
 	[
-		// numeric('read_response_choice_tag', 'u8'),
-		// numeric('read_response_choice_length', 'be_u16'),
 		new BlankStructField(new BerTLField('read_response_choice_tl')),
 		new EnumField(ReadResponseChoice, 'read_response_choice')
 	]
@@ -817,8 +771,6 @@ structs.push(ReadResponseChoiceConstruct)
 const WriteResponseChoiceConstruct = new Struct(
 	'WriteResponseChoiceConstruct',
 	[
-		// numeric('write_response_choice_tag', 'u8'),
-		// numeric('write_response_choice_length', 'be_u16'),
 		new BlankStructField(new BerTLField('write_response_choice_tl')),
 		new EnumField(WriteResponseChoice, 'write_response_choice')
 	]
@@ -828,12 +780,8 @@ structs.push(WriteResponseChoiceConstruct)
 const GetNamedVariableListAttributesResponseChoice = new Struct(
 	'GetNamedVariableListAttributesResponseChoice',
 	[
-		// numeric('mms_deleteable_tag', 'u8'),
-		// numeric('mms_deleteable_length', 'be_u16'),
 		new BlankStructField(new BerTLField('mms_deleteable_tl')),
 		new StructField(BoolResult, 'mms_deleteable'),
-		// numeric('list_of_variable_specification_tag', 'u8'),
-		// numeric('list_of_variable_specification_length', 'be_u16'),
 		new BlankStructField(new BerTLField('list_of_variable_specification_tl')),
 		new StructField(ListOfVariableSpecification, 'list_of_variable_specification'),
 	],
@@ -843,12 +791,8 @@ structs.push(GetNamedVariableListAttributesResponseChoice)
 const InformationReportChoice = new Struct(
 	'InformationReportChoice',
 	[
-		// numeric('variable_access_specification_choice_tag', 'u8'),
-		// numeric('variable_access_specification_choice_length', 'be_u16'),
 		new BlankStructField(new BerTLField('variable_access_specification_choice_tl')),
 		new EnumField(VariableAccessSpecificationChoice, 'variable_access_specification_choice'),
-		// numeric('list_of_access_result_tag', 'u8'),
-		// numeric('list_of_access_result_length', 'be_u16'),
 		new BlankStructField(new BerTLField('list_of_access_result_tl')),
 		new StructField(ListOfAccessResult, 'list_of_access_result'),
 	]
@@ -858,8 +802,6 @@ structs.push(InformationReportChoice)
 const ReadRequestChoiceConstruct = new Struct(
 	'ReadRequestChoiceStruct',
 	[
-		// numeric('read_request_choice_tag', 'u8'),
-		// numeric('read_request_choice_length', 'be_u16'),
 		new BlankStructField(new BerTLField('read_request_choice_tl')),
 		new EnumField(ReadRequestChoice, 'read_request_choice')
 	]
@@ -927,8 +869,6 @@ const ConfirmedServiceResponseStruct = new StructEnum(
 		new AnonymousStructVariant(0x00, 'ConfirmedServiceResponseStructNone', [
 		]),
 		new AnonymousStructVariant('_', 'ConfirmedServiceResponseStructWithData', [
-			// numeric('service_tag','u8'),
-			// numeric('service_length', 'u8'),
 			new BlankStructField(new BerTLField('service_tl')),
 			new EnumField(ConfirmedServiceResponseChoice, 'service')
 		]),
@@ -955,12 +895,8 @@ structs.push(UnConfirmedChoice)
 const ConfirmedRequestPDU = new Struct(
 	'ConfirmedRequestPDU',
 	[
-		// numeric('invoke_id_tag', 'u8'),
-		// numeric('invoke_id_length', 'be_u16'),
 		new BlankStructField(new BerTLField('invoke_id_tl')),
 		new StructField(InvokeId, 'invoke_id'),
-		// numeric('service_tag', 'u8'),
-		// numeric('service_length', 'be_u16'),
 		new BlankStructField(new BerTLField('service_tl')),
 		new EnumField(ConfirmedServiceRequestChoice, 'service'),
 	]
@@ -970,8 +906,6 @@ structs.push(ConfirmedRequestPDU)
 const ConfirmedResponsePDU = new Struct(
 	'ConfirmedResponsePDU',
 	[
-		// numeric('invoke_id_tag', 'u8'),
-		// numeric('invoke_id_length', 'be_u16'),
 		new BlankStructField(new BerTLField('invoke_id_tl')),
 		new StructField(InvokeId, 'invoke_id'),
 		new EnumField(ConfirmedServiceResponseStruct, 'service'),
@@ -982,8 +916,6 @@ structs.push(ConfirmedResponsePDU)
 const UnConfirmedPDU = new Struct(
 	'UnConfirmedPDU',
 	[
-		// numeric('service_tag', 'u8'),
-		// numeric('service_length', 'be_u16'),
 		new BlankStructField(new BerTLField('service_tl')),
 		new EnumField(UnConfirmedChoice, 'service'),
 	]
@@ -997,8 +929,6 @@ const InitiateRequestPDU = new Struct(
 		new StructField(SimpleItem, 'proposed_max_serv_outstanding_calling'),
 		new StructField(SimpleItem, 'proposed_max_serv_outstanding_called'),
 		new StructField(SimpleItem, 'proposed_data_structure_nesting_level'),
-		// numeric('init_request_detail_tag', 'u8'),
-		// numeric('init_request_detail_length', 'be_u16'),
 		new BlankStructField(new BerTLField('init_request_detail_tl')),
 		new StructField(InitDetailRequest, 'init_request_detail'),
 	]
@@ -1012,8 +942,6 @@ const InitiateResponsePDU = new Struct(
 		new StructField(SimpleItem, 'proposed_max_serv_outstanding_calling'),
 		new StructField(SimpleItem, 'proposed_max_serv_outstanding_called'),
 		new StructField(SimpleItem, 'proposed_data_structure_nesting_level'),
-		// numeric('init_response_detail_tag', 'u8'),
-		// numeric('init_response_detail_length', 'be_u16'),
 		new BlankStructField(new BerTLField('init_response_detail_tl')),
 		new StructField(InitDetailResponse, 'init_response_detail'),
 	]
@@ -1050,8 +978,6 @@ structs.push(MmsPduChoice)
 const PDU = new Struct(
 	'MmsPdu',
 	[
-		// numeric('mms_pdu_choice_tag', 'u8'),
-		// numeric('mms_pdu_choice_length', 'be_u16'),
 		new BlankStructField(new BerTLField('mms_pdu_choice_tl')),
 		new EnumField(MmsPduChoice, 'mms_pdu_choice')
 	]
