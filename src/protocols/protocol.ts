@@ -77,12 +77,18 @@ export class Protocol {
     generateLayerParser(): string {
         const headerSnakeName = this.getHeader().snakeCaseName()
         const protocolName = this.getName()
+        const protocolLowcaseName = snakeCase(this.getName());
         const layerLevelName = this.definition.info.getLevelLayerName()
         const layerStatement = `let ${snakeCase(layerLevelName)} = ${layerLevelName}::${protocolName}(${headerSnakeName});`
+        const layerPaseFuncName = `parse_${protocolLowcaseName}_layer`;
 
         const parseHeaderBlock = endent`let (input, ${headerSnakeName}) = match ${this.getHeader().parserFunctionName()}(input) {
             Ok(o) => o,
-            Err(_e) => {
+            Err(e) => {
+                error!(
+                    target: "PARSER(${protocolLowcaseName}::${layerPaseFuncName})",
+                    error = ?e
+                );
                 ${this.definition.info.returnLevelPacket(true, true)}
             }
         };`

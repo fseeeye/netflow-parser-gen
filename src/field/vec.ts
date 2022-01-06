@@ -81,7 +81,7 @@ abstract class VecLoopField extends BaseField {
 
     typeName(withLifetime: boolean): string {
         if (withLifetime && this.elementField.isRef()) {
-            return `Vec<${this.elementField.typeName(false)}<'a>>`
+            return `Vec<${this.elementField.typeName(true)}>`
         }
         return `Vec<${this.elementField.typeName(false)}>`
     }

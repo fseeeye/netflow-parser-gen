@@ -3,16 +3,18 @@ import {
 	createBytesReferenceFieldSimple as bytesRef,
 	createCountVar,
 } from "../../api/input"
-import { BasicEnumChoice, StructBitOperatorChoice, InputLengthChoice } from "../../field/choice"
+import { BasicEnumChoice, StructBitOperatorChoice, InputLengthChoice, InlineChoice, StructChoice } from "../../field/choice"
 import { EnumField } from "../../field/enum"
 import { BerTLField } from "../../field/ber-tl"
 import { StructField, StructMemberField } from "../../field/struct"
 import { LimitedLenVecLoopField } from "../../field/vec"
-import { AnonymousStructVariant, StructEnum, EmptyPayloadEnum } from "../../types/enum"
+import { AnonymousStructVariant, StructEnum, EmptyPayloadEnum, EofVariant, EmptyVariant } from "../../types/enum"
 import { Struct } from "../../types/struct"
 import { ProtocolInfo } from "../protocol-info"
 import { Protocol } from "../protocol"
-import { BlankStructField } from "../../field/special"
+import { BlankStructField, CodeField } from "../../field/special"
+import endent from "endent"
+import { Field } from "../../field/base"
 
 const protocolName = 'Mms'
 const headerName = `${protocolName}Header`
@@ -180,10 +182,8 @@ const OsiPresPduNormalModeParametersCpChoice = new StructEnum(
 			]
 		)
 	],
-	new StructBitOperatorChoice(
-		new StructMemberField(new BlankStructField(new BerTLField('normal_mode_parameters_tl')), numeric('tag', 'u8')),
-		'and',
-		'0xff'
+	new InlineChoice(
+		numeric('_tag', 'u8')
 	)
 )
 structs.push(OsiPresPduNormalModeParametersCpChoice)
@@ -201,10 +201,8 @@ const OsiPresPduNormalModeParametersCpaChoice = new StructEnum(
 				new StructField(OsiPresPduNormalModeParametersCpa)
 			])
 	],
-	new StructBitOperatorChoice(
-		new StructMemberField(new BlankStructField(new BerTLField('normal_mode_parameters_tl')), numeric('tag', 'u8')),
-		'and',
-		'0xff'
+	new InlineChoice(
+		numeric('_tag', 'u8')
 	)
 )
 structs.push(OsiPresPduNormalModeParametersCpaChoice)
@@ -241,6 +239,15 @@ const OsiAcseAarq = new Struct(
 		new StructField(SimpleItem, 'aso_context_name'),
 		new StructField(SimpleItem, 'called_ap_title'),
 		new StructField(SimpleItem, 'called_ae_qualifier'),
+		new CodeField(endent`
+			let (_, _tag) = peek(u8)(input)?;
+			let mut input = input;
+			if _tag.bitand(0xf0) == 0xa0 {
+				// parse calling ap title / calling ae qulifier
+				(input, ..) = parse_simple_item(input)?;
+				(input, ..) = parse_simple_item(input)?;
+			}
+		`),
 		new BlankStructField(new BerTLField('user_information_tl')),
 		new BlankStructField(new BerTLField('association_data_tl')),
 		new StructField(SimpleItem, 'direct_ref'),
@@ -351,26 +358,18 @@ const ObjectClass = new StructEnum(
 )
 structs.push(ObjectClass)
 
-const Identifier = new Struct(
-	'Identifier',
-	[
-		bytesRef('value', createCountVar('input.len()'))
-	]
-)
-structs.push(Identifier)
-
 const ObjectScope = new StructEnum(
 	'ObjectScope',
 	[
 		new AnonymousStructVariant(0x00, 'ObjectScopeVmd', [
-			new StructField(Identifier, 'object_scope_vmd'),
+			bytesRef('object_scope_vmd', createCountVar('input.len()'))
 		]),
 		new AnonymousStructVariant(0x01, 'ObjectScopeDomain', [
-			new StructField(Identifier, 'object_scope_domain_id'),
-			new StructField(Identifier, 'object_scope_item_id'),
+			bytesRef('object_scope_domain_id', createCountVar('input.len()')),
+			bytesRef('object_scope_item_id', createCountVar('input.len()'))
 		]),
 		new AnonymousStructVariant(0x02, 'ObjectScopeAaSpecific', [
-			new StructField(Identifier, 'object_scope_aa_specific')
+			bytesRef('object_scope_aa_specific', createCountVar('input.len()'))
 		]),
 	],
 	new StructBitOperatorChoice(
@@ -381,35 +380,18 @@ const ObjectScope = new StructEnum(
 )
 structs.push(ObjectScope)
 
-const BoolResult = new Struct(
-	'BoolResult',
-	[
-		numeric('result', 'u8')
-	]
-)
-structs.push(BoolResult)
-
-const ListOfData = new Struct(
-	'ListOfData',
-	[
-		new BlankStructField(new BerTLField('lod_tl')),
-		new LimitedLenVecLoopField('lod', createCountVar('_lod_tl.length'), new StructField(SimpleItem))
-	]
-)
-structs.push(ListOfData)
-
 const ObjectName = new StructEnum(
 	'ObjectName',
 	[
 		new AnonymousStructVariant(0x00, 'ObjectNameVmd', [
-			new StructField(Identifier, 'object_name_vmd'),
+			bytesRef('object_name_vmd', createCountVar('input.len()'))
 		]),
 		new AnonymousStructVariant(0x01, 'ObjectNameDomain', [
-			new StructField(Identifier, 'object_name_domain_id'),
-			new StructField(Identifier, 'object_name_item_id'),
+			bytesRef('object_name_domain_id', createCountVar('input.len()')),
+			bytesRef('object_name_item_id', createCountVar('input.len()'))
 		]),
 		new AnonymousStructVariant(0x02, 'ObjectNameAaSpecific', [
-			new StructField(Identifier, 'object_name_aa_specific')
+			bytesRef('object_name_aa_specific', createCountVar('input.len()'))
 		]),
 	],
 	new StructBitOperatorChoice(
@@ -420,23 +402,18 @@ const ObjectName = new StructEnum(
 )
 structs.push(ObjectName)
 
-const ObjectNameStruct = new Struct(
-	'ObjectNameStruct',
+const ObjectNameStruct = 
 	[
 		// numeric('object_name_tag', 'u8'),
 		// numeric('object_name_length', 'be_u16'),
 		new BlankStructField(new BerTLField('object_name_tl')),
 		new EnumField(ObjectName, 'object_name')
 	]
-)
-structs.push(ObjectNameStruct)
 
 const VariableSpecification = new StructEnum(
 	'VariableSpecification',
 	[
-		new AnonymousStructVariant(0x00, 'Name', [
-			new StructField(ObjectNameStruct, 'res')
-		]),
+		new AnonymousStructVariant(0x00, 'Name', ObjectNameStruct),
 		new AnonymousStructVariant(0x01, 'Others', [
 			// numeric('tag', 'u8'),
 			// numeric('length', 'be_u16'),
@@ -522,31 +499,18 @@ const DataAccessError = new StructEnum(
 )
 structs.push(DataAccessError)
 
-const DataAccessErrorConstruct = new Struct(
-	'DataAccessErrorConstruct',
+const DataAccessErrorConstruct = 
 	[
 		new BlankStructField(new BerTLField('data_access_error_tl')),
 		new EnumField(DataAccessError, 'data_access_error')
 	]
-)
-structs.push(DataAccessErrorConstruct)
-
-const Data = new Struct(
-	'Data',
-	[
-		new StructField(SimpleItem, 'data')
-	],
-)
-structs.push(Data)
 
 const AccessResult = new StructEnum(
 	'AccessResult',
 	[
-		new AnonymousStructVariant(0x00, 'AccessResultFailure', [
-			new StructField(DataAccessErrorConstruct, 'failure'),
-		]),
+		new AnonymousStructVariant(0x00, 'AccessResultFailure', DataAccessErrorConstruct),
 		new AnonymousStructVariant(0x01, 'AccessResultSuccess', [
-			new StructField(Data, 'success'),
+			new StructField(SimpleItem, 'data')
 		]),
 	],
 	new StructBitOperatorChoice(
@@ -579,7 +543,7 @@ const ListOfIdentifier = new Struct(
 	'ListOfIdentifier',
 	[
 		new BlankStructField(new BerTLField('loar_tl')),
-		new LimitedLenVecLoopField('loar', createCountVar('_loar_tl.length'), new StructField(Identifier))
+		new LimitedLenVecLoopField('loar', createCountVar('_loar_tl.length'), bytesRef('indentifier', createCountVar('input.len()')))
 	]
 )
 structs.push(ListOfIdentifier)
@@ -618,114 +582,42 @@ const VariableAccessSpecificationChoice = new StructEnum(
 		new AnonymousStructVariant(0x00, 'ListOfVariable', [
 			new StructField(ListOfVariableSpecification, 'res')
 		]),
-		new AnonymousStructVariant(0x01, 'VaribaleListName', [
-			new StructField(ObjectNameStruct, 'res')
-		]),
+		new AnonymousStructVariant(0x01, 'VaribaleListName', ObjectNameStruct),
 	],
 	new StructBitOperatorChoice(
 		new StructMemberField(new BlankStructField(new BerTLField('variable_access_specification_choice_tl')), numeric('tag', 'u8')),
 		'and',
 		'0x1f'
 	)
-)
-structs.push(VariableAccessSpecificationChoice)
-
-const VariableAccessSpecificationChoiceStruct = new Struct(
-	'VariableAccessSpecificationChoiceStruct',
-	[
-		new BlankStructField(new BerTLField('variable_access_specification_choice_tl')),
-		new EnumField(VariableAccessSpecificationChoice, 'variable_access_specification_choice')
-	]
-)
-structs.push(VariableAccessSpecificationChoiceStruct)
-
-const ReadRequestChoice = new StructEnum(
-	'ReadRequestChoice',
-	[
-		new AnonymousStructVariant(0x81, 'ReadRequestChoiceDefault', [
-			new StructField(VariableAccessSpecificationChoiceStruct, 'res')
-		]),
-		new AnonymousStructVariant(0x80, 'ReadRequestChoiceOtherwise', [
-			new StructField(BoolResult, 'specification_with_result'),
-			new BlankStructField(new BerTLField('variable_access_specification_choice_struct_tl')),
-			new StructField(VariableAccessSpecificationChoiceStruct, 'res')
-		]),
-	],
-	new StructBitOperatorChoice(
-		new StructMemberField(new BlankStructField(new BerTLField('read_request_choice_tl')), numeric('tag', 'u8')),
-		'and',
-		'0x1f'
-	)
 	// new NumericBitOperatorChoice(
-	// 	numeric('read_request_choice_tl.tag', 'u8'),
+	// 	numeric('variable_access_specification_choice_tl.tag', 'u8'),
 	// 	'and',
 	// 	'0x1f'
 	// )
 )
-structs.push(ReadRequestChoice)
+structs.push(VariableAccessSpecificationChoice)
 
-const WriteRequestChoiceConstruct = new Struct(
-	'WriteRequestChoiceConstruct',
+const VariableAccessSpecificationChoiceFields = 
 	[
 		new BlankStructField(new BerTLField('variable_access_specification_choice_tl')),
-		new EnumField(VariableAccessSpecificationChoice, 'variable_access_specification_choice'),
-		new BlankStructField(new BerTLField('list_of_data_tl')),
-		new StructField(ListOfData, 'list_of_data')
+		new EnumField(VariableAccessSpecificationChoice, 'variable_access_specification_choice')
+	]
+
+const ReadRequestChoice = new StructEnum(
+	'ReadRequestChoice',
+	[
+		new AnonymousStructVariant(0x81, 'ReadRequestChoiceDefault', VariableAccessSpecificationChoiceFields),
+		new AnonymousStructVariant(0x80, 'ReadRequestChoiceOtherwise', (<Field[]>[
+			numeric('specification_with_result', 'u8'),
+			new BlankStructField(new BerTLField('variable_access_specification_choice_struct_tl')),
+		]).concat(VariableAccessSpecificationChoiceFields)),
 	],
+	new StructChoice(
+		new BlankStructField(new BerTLField('read_request_choice_tl')), 
+		'tag'
+	)
 )
-structs.push(WriteRequestChoiceConstruct)
-
-const GetNamedVariableListAttributesRequestChoiceConstruct = new Struct(
-	'GetNamedVariableListAttributesRequestChoiceConstruct',
-	[
-		new BlankStructField(new BerTLField('object_name_tl')),
-		new EnumField(ObjectName, 'object_name')
-	]
-)
-structs.push(GetNamedVariableListAttributesRequestChoiceConstruct)
-
-const GetNameListRequestChoiceConstruct = new Struct(
-	'GetNameListRequestChoiceConstruct',
-	[
-		new BlankStructField(new BerTLField('object_class_tl')),
-		new EnumField(ObjectClass, 'object_class'),
-		new BlankStructField(new BerTLField('object_scope_tl')),
-		new EnumField(ObjectScope, 'object_scope'),
-	]
-)
-structs.push(GetNameListRequestChoiceConstruct)
-
-const GetNameListResponseChoiceConstruct = new Struct(
-	'GetNameListResponseChoiceConstruct',
-	[
-		new BlankStructField(new BerTLField('list_of_identifier_tl')),
-		new StructField(ListOfIdentifier, 'list_of_identifier'),
-		new BlankStructField(new BerTLField('more_follows_tl')),
-		new StructField(BoolResult, 'more_follows'),
-	]
-)
-structs.push(GetNameListResponseChoiceConstruct)
-
-const IdentifyRequestChoiceConstruct = new Struct(
-	'IdentifyRequestChoiceConstruct',
-	[
-		// IdentifyRequest is NULL
-	]
-)
-structs.push(IdentifyRequestChoiceConstruct)
-
-const IdentifyResponseChoiceConstruct = new Struct(
-	'IdentifyResponseChoiceConstruct',
-	[
-		new BlankStructField(new BerTLField('vendor_name_tl')),
-		new StructField(SimpleItem, 'vendor_name'),
-		new BlankStructField(new BerTLField('model_name_tl')),
-		new StructField(SimpleItem, 'model_name'),
-		new BlankStructField(new BerTLField('revision_tl')),
-		new StructField(SimpleItem, 'revision'),
-	]
-)
-structs.push(IdentifyResponseChoiceConstruct)
+structs.push(ReadRequestChoice)
 
 const ReadResponseChoice = new StructEnum(
 	'ReadResponseChoice',
@@ -744,12 +636,8 @@ structs.push(ReadResponseChoice)
 const WriteResponseChoice = new StructEnum(
 	'WriteResponseChoice',
 	[
-		new AnonymousStructVariant(0x00, 'WriteResponseChoiceFailure', [
-			new StructField(DataAccessErrorConstruct, 'failure')
-		]),
-		new AnonymousStructVariant(0x01, 'WriteResponseChoiceSuccess', [
-			// Success is NULL
-		]),
+		new AnonymousStructVariant(0x00, 'WriteResponseChoiceFailure', DataAccessErrorConstruct),
+		new EmptyVariant(0x01, 'WriteResponseChoiceSuccess'),
 	],
 	new StructBitOperatorChoice(
 		new StructMemberField(new BlankStructField(new BerTLField('write_response_choice_tl')), numeric('tag', 'u8')),
@@ -759,72 +647,30 @@ const WriteResponseChoice = new StructEnum(
 )
 structs.push(WriteResponseChoice)
 
-const ReadResponseChoiceConstruct = new Struct(
-	'ReadResponseChoiceConstruct',
-	[
-		new BlankStructField(new BerTLField('read_response_choice_tl')),
-		new EnumField(ReadResponseChoice, 'read_response_choice')
-	]
-)
-structs.push(ReadResponseChoiceConstruct)
-
-const WriteResponseChoiceConstruct = new Struct(
-	'WriteResponseChoiceConstruct',
-	[
-		new BlankStructField(new BerTLField('write_response_choice_tl')),
-		new EnumField(WriteResponseChoice, 'write_response_choice')
-	]
-)
-structs.push(WriteResponseChoiceConstruct)
-
-const GetNamedVariableListAttributesResponseChoice = new Struct(
-	'GetNamedVariableListAttributesResponseChoice',
-	[
-		new BlankStructField(new BerTLField('mms_deleteable_tl')),
-		new StructField(BoolResult, 'mms_deleteable'),
-		new BlankStructField(new BerTLField('list_of_variable_specification_tl')),
-		new StructField(ListOfVariableSpecification, 'list_of_variable_specification'),
-	],
-)
-structs.push(GetNamedVariableListAttributesResponseChoice)
-
-const InformationReportChoice = new Struct(
-	'InformationReportChoice',
-	[
-		new BlankStructField(new BerTLField('variable_access_specification_choice_tl')),
-		new EnumField(VariableAccessSpecificationChoice, 'variable_access_specification_choice'),
-		new BlankStructField(new BerTLField('list_of_access_result_tl')),
-		new StructField(ListOfAccessResult, 'list_of_access_result'),
-	]
-)
-structs.push(InformationReportChoice)
-
-const ReadRequestChoiceConstruct = new Struct(
-	'ReadRequestChoiceStruct',
-	[
-		new BlankStructField(new BerTLField('read_request_choice_tl')),
-		new EnumField(ReadRequestChoice, 'read_request_choice')
-	]
-)
-structs.push(ReadRequestChoiceConstruct)
-
 const ConfirmedServiceRequestChoice = new StructEnum(
 	'ConfirmedServiceRequestChoice',
 	[
 		new AnonymousStructVariant(0x00, 'GetNameListRequest', [
-			new StructField(GetNameListRequestChoiceConstruct, 'res')
+			new BlankStructField(new BerTLField('object_class_tl')),
+			new EnumField(ObjectClass, 'object_class'),
+			new BlankStructField(new BerTLField('object_scope_tl')),
+			new EnumField(ObjectScope, 'object_scope'),
 		]),
-		new AnonymousStructVariant(0x02, 'IdentifyRequest', [
-			new StructField(IdentifyRequestChoiceConstruct, 'res')
-		]),
+		new EmptyVariant(0x02, 'IdentifyRequest'),
 		new AnonymousStructVariant(0x04, 'ReadRequest', [
-			new StructField(ReadRequestChoiceConstruct, 'res')
+			new BlankStructField(new BerTLField('read_request_choice_tl')),
+			new EnumField(ReadRequestChoice, 'read_request_choice')
 		]),
 		new AnonymousStructVariant(0x05, 'WriteRequest', [
-			new StructField(WriteRequestChoiceConstruct, 'res')
+			new BlankStructField(new BerTLField('variable_access_specification_choice_tl')),
+			new EnumField(VariableAccessSpecificationChoice, 'variable_access_specification_choice'),
+			new BlankStructField(new BerTLField('list_of_data_tl')),
+			new BlankStructField(new BerTLField('lod_tl')),
+			new LimitedLenVecLoopField('lod', createCountVar('_lod_tl.length'), new StructField(SimpleItem))
 		]),
 		new AnonymousStructVariant(0x0c, 'GetNamedVariableListAttributesRequest', [
-			new StructField(GetNamedVariableListAttributesRequestChoiceConstruct, 'res')
+			new BlankStructField(new BerTLField('object_name_tl')),
+			new EnumField(ObjectName, 'object_name')
 		]),
 	],
 	new StructBitOperatorChoice(
@@ -840,19 +686,32 @@ const ConfirmedServiceResponseChoice = new StructEnum(
 	'ConfirmedServiceResponseChoice',
 	[
 		new AnonymousStructVariant(0x00, 'GetNameListResponse', [
-			new StructField(GetNameListResponseChoiceConstruct, 'res')
+			new BlankStructField(new BerTLField('list_of_identifier_tl')),
+			new StructField(ListOfIdentifier, 'list_of_identifier'),
+			new BlankStructField(new BerTLField('more_follows_tl')),
+			numeric('more_follows', 'u8'),
 		]),
 		new AnonymousStructVariant(0x02, 'IdentifyResponse', [
-			new StructField(IdentifyResponseChoiceConstruct, 'res')
+			new BlankStructField(new BerTLField('vendor_name_tl')),
+			new StructField(SimpleItem, 'vendor_name'),
+			new BlankStructField(new BerTLField('model_name_tl')),
+			new StructField(SimpleItem, 'model_name'),
+			new BlankStructField(new BerTLField('revision_tl')),
+			new StructField(SimpleItem, 'revision'),
 		]),
 		new AnonymousStructVariant(0x04, 'ReadResponse', [
-			new StructField(ReadResponseChoiceConstruct, 'res')
+			new BlankStructField(new BerTLField('read_response_choice_tl')),
+			new EnumField(ReadResponseChoice, 'read_response_choice')
 		]),
 		new AnonymousStructVariant(0x05, 'WriteResponse', [
-			new StructField(WriteResponseChoiceConstruct, 'res')
+			new BlankStructField(new BerTLField('write_response_choice_tl')),
+			new EnumField(WriteResponseChoice, 'write_response_choice')
 		]),
 		new AnonymousStructVariant(0x0c, 'GetNamedVariableListAttributesResponse', [
-			new StructField(GetNamedVariableListAttributesResponseChoice, 'res')
+			new BlankStructField(new BerTLField('mms_deleteable_tl')),
+			numeric('mms_deleteable', 'u8'),
+			new BlankStructField(new BerTLField('list_of_variable_specification_tl')),
+			new StructField(ListOfVariableSpecification, 'list_of_variable_specification')
 		]),
 	],
 	new StructBitOperatorChoice(
@@ -881,7 +740,10 @@ const UnConfirmedChoice = new StructEnum(
 	'UnConfirmedChoice',
 	[
 		new AnonymousStructVariant(0x00, 'InformationReport', [
-			new StructField(InformationReportChoice, 'res')
+			new BlankStructField(new BerTLField('variable_access_specification_choice_tl')),
+			new EnumField(VariableAccessSpecificationChoice, 'variable_access_specification_choice'),
+			new BlankStructField(new BerTLField('list_of_access_result_tl')),
+			new StructField(ListOfAccessResult, 'list_of_access_result'),
 		]),
 	],
 	new StructBitOperatorChoice(
@@ -892,38 +754,28 @@ const UnConfirmedChoice = new StructEnum(
 )
 structs.push(UnConfirmedChoice)
 
-const ConfirmedRequestPDU = new Struct(
-	'ConfirmedRequestPDU',
+const ConfirmedRequestPDU = 
 	[
 		new BlankStructField(new BerTLField('invoke_id_tl')),
 		new StructField(InvokeId, 'invoke_id'),
 		new BlankStructField(new BerTLField('service_tl')),
 		new EnumField(ConfirmedServiceRequestChoice, 'service'),
 	]
-)
-structs.push(ConfirmedRequestPDU)
 
-const ConfirmedResponsePDU = new Struct(
-	'ConfirmedResponsePDU',
+const ConfirmedResponsePDU = 
 	[
 		new BlankStructField(new BerTLField('invoke_id_tl')),
 		new StructField(InvokeId, 'invoke_id'),
 		new EnumField(ConfirmedServiceResponseStruct, 'service'),
 	]
-)
-structs.push(ConfirmedResponsePDU)
 
-const UnConfirmedPDU = new Struct(
-	'UnConfirmedPDU',
+const UnConfirmedPDU = 
 	[
 		new BlankStructField(new BerTLField('service_tl')),
 		new EnumField(UnConfirmedChoice, 'service'),
 	]
-)
-structs.push(UnConfirmedPDU)
 
-const InitiateRequestPDU = new Struct(
-	'InitiateRequestPDU',
+const InitiateRequestPDU = 
 	[
 		new StructField(SimpleItem, 'local_detail_calling'),
 		new StructField(SimpleItem, 'proposed_max_serv_outstanding_calling'),
@@ -932,11 +784,8 @@ const InitiateRequestPDU = new Struct(
 		new BlankStructField(new BerTLField('init_request_detail_tl')),
 		new StructField(InitDetailRequest, 'init_request_detail'),
 	]
-)
-structs.push(InitiateRequestPDU)
 
-const InitiateResponsePDU = new Struct(
-	'InitiateResponsePDU',
+const InitiateResponsePDU = 
 	[
 		new StructField(SimpleItem, 'local_detail_called'),
 		new StructField(SimpleItem, 'proposed_max_serv_outstanding_calling'),
@@ -945,27 +794,16 @@ const InitiateResponsePDU = new Struct(
 		new BlankStructField(new BerTLField('init_response_detail_tl')),
 		new StructField(InitDetailResponse, 'init_response_detail'),
 	]
-)
-structs.push(InitiateResponsePDU)
 
 const MmsPduChoice = new StructEnum(
 	'MmsPduChoice',
 	[
-		new AnonymousStructVariant(0x00, 'ConfirmedRequest', [
-			new StructField(ConfirmedRequestPDU, 'value')
-		]),
-		new AnonymousStructVariant(0x01, 'ConfirmedResponse', [
-			new StructField(ConfirmedResponsePDU, 'value')
-		]),
-		new AnonymousStructVariant(0x03, 'UnConfirmed', [
-			new StructField(UnConfirmedPDU, 'value')
-		]),
-		new AnonymousStructVariant(0x08, 'InitiateRequest', [
-			new StructField(InitiateRequestPDU, 'value')
-		]),
-		new AnonymousStructVariant(0x09, 'InitiateResponse', [
-			new StructField(InitiateResponsePDU, 'value')
-		]),
+		new AnonymousStructVariant(0x00, 'ConfirmedRequest', ConfirmedRequestPDU),
+		new AnonymousStructVariant(0x01, 'ConfirmedResponse', ConfirmedResponsePDU),
+		new AnonymousStructVariant(0x03, 'UnConfirmed', UnConfirmedPDU),
+		new AnonymousStructVariant(0x08, 'InitiateRequest', InitiateRequestPDU),
+		new AnonymousStructVariant(0x09, 'InitiateResponse', InitiateResponsePDU),
+		new EmptyVariant(0x0b, 'ConcludeRequest'),
 	],
 	new StructBitOperatorChoice(
 		new StructMemberField(new BlankStructField(new BerTLField('mms_pdu_choice_tl')), numeric('tag', 'u8')),

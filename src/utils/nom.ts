@@ -50,6 +50,7 @@ export function generateNomImport(): string {
 		'nom::number::complete::{be_u16, le_u16, be_u24, be_u64, le_u24, be_u32, le_u32, u8, le_u64}',
 		'nom::sequence::tuple',
 		'nom::IResult',
+		'tracing::{error, warn, info, debug}',
 	]
 
 	const nom_imports_code = nom_imports.map(v => {

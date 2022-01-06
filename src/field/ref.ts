@@ -2,8 +2,11 @@ import { CountVariable } from "../utils/variables"
 import { NomBytesFunction } from "../utils/nom"
 import { BaseField } from "./base"
 import endent from "endent"
-export const BYTES_REF_TYPENAME = `&'a [u8]`
-export const STR_REF_TYPENAME = `&'a str`
+
+export const BYTES_REF_TYPENAME = `&[u8]`
+export const BYTES_REF_TYPENAME_LIFETIME = `&'a [u8]`
+export const STR_REF_TYPENAME = `&str`
+export const STR_REF_TYPENAME_LIFETIME = `&'a str`
 
 export class BytesReferenceField extends BaseField {
     constructor(
@@ -21,8 +24,11 @@ export class BytesReferenceField extends BaseField {
         return false
     }
 
-    typeName(): string {
-        return BYTES_REF_TYPENAME
+    typeName(withLifetime: boolean): string {
+        if (withLifetime) 
+            return BYTES_REF_TYPENAME_LIFETIME
+        else
+            return BYTES_REF_TYPENAME
     }
 
     parserInvocation(): string {
@@ -38,8 +44,11 @@ export class StrReferenceField extends BytesReferenceField {
         super(name, lengthVariable)
     }
 
-    typeName(): string {
-        return STR_REF_TYPENAME
+    typeName(withLifetime: boolean): string {
+        if (withLifetime) 
+            return STR_REF_TYPENAME_LIFETIME
+        else
+            return STR_REF_TYPENAME
     }
 
     generateParseStatement(): string {
