@@ -720,19 +720,19 @@ const ConfirmedServiceResponseChoice = new StructEnum(
 )
 structs.push(ConfirmedServiceResponseChoice)
 
-const ConfirmedServiceResponseStruct = new StructEnum(
-	'ConfirmedServiceResponseStruct',
+const ConfirmedServiceResponseEnum = new StructEnum(
+	'ConfirmedServiceResponseEnum',
 	[
-		new AnonymousStructVariant(0x00, 'ConfirmedServiceResponseStructNone', [
+		new AnonymousStructVariant(0x00, 'None', [
 		]),
-		new AnonymousStructVariant('_', 'ConfirmedServiceResponseStructWithData', [
+		new AnonymousStructVariant('_', 'WithData', [
 			new BlankStructField(new BerTLField('service_tl')),
 			new EnumField(ConfirmedServiceResponseChoice, 'service')
 		]),
 	],
 	new InputLengthChoice()
 )
-structs.push(ConfirmedServiceResponseStruct)
+structs.push(ConfirmedServiceResponseEnum)
 
 const UnConfirmedChoice = new StructEnum(
 	'UnConfirmedChoice',
@@ -796,8 +796,7 @@ const ConfirmedResponsePDU =
 	.concat(InvokeId)
 	.concat(
 		[
-			new BlankStructField(new BerTLField('service_tl')),
-			new EnumField(ConfirmedServiceResponseStruct, 'service'),
+			new EnumField(ConfirmedServiceResponseEnum, 'service'),
 		]
 	)
 
