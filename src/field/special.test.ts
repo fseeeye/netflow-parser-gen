@@ -1,6 +1,6 @@
 import { Struct } from "../types/struct"
 import { AssertField, BlankStructField, CodeField, CodeGenField, CodeVarField, SkipField } from "./special"
-import { BerTLField } from "./ber-tl"
+import { BerTLField } from "./ber-tlv"
 import endent from "endent"
 import { StructParserGenerator } from "../parser/struct"
 import { numeric } from "../api"

@@ -5,14 +5,14 @@ import {
 } from "../../api/input"
 import { BasicEnumChoice, StructBitOperatorChoice, InputLengthChoice, InlineChoice, StructChoice } from "../../field/choice"
 import { EnumField } from "../../field/enum"
-import { BerTLField } from "../../field/ber-tl"
+import { BerTLField, BerVField } from "../../field/ber-tlv"
 import { StructField, StructMemberField } from "../../field/struct"
 import { LimitedLenVecLoopField } from "../../field/vec"
 import { AnonymousStructVariant, StructEnum, EmptyPayloadEnum, EmptyVariant } from "../../types/enum"
 import { Struct } from "../../types/struct"
 import { ProtocolInfo } from "../protocol-info"
 import { Protocol } from "../protocol"
-import { BlankStructField, CodeField } from "../../field/special"
+import { BlankStructField, CodeField, CodeGenField, CodeVarField } from "../../field/special"
 import endent from "endent"
 import { Field } from "../../field/base"
 
@@ -21,15 +21,6 @@ const headerName = `${protocolName}Header`
 const payloadName = `${protocolName}Payload`
 
 const structs: (Struct | StructEnum)[] = []
-
-const SimpleItem = new Struct(
-	'SimpleItem',
-	[
-		new BlankStructField(new BerTLField('simple_item_tl')),
-		bytesRef('data', createCountVar('_simple_item_tl.length'))
-	]
-)
-structs.push(SimpleItem)
 
 const SimpleU8Data = new Struct(
 	'SimpleU8Data',
@@ -108,6 +99,16 @@ const OsiSesConnectRequest = new Struct(
 )
 structs.push(OsiSesConnectRequest)
 
+const OsiSesConnectResponse = new Struct(
+	'OsiSesConnectResponse',
+	[
+		new StructField(OsiSesConnectAcceptItem, 'connect_accept_item'),
+		new StructField(OsiSesSessionRequirement, 'session_requirement'),
+		new StructField(OsiSesSessionUserData, 'session_user_data'),
+	]
+)
+structs.push(OsiSesConnectResponse)
+
 const OsiPresUserData = new Struct(
 	'OsiPresUserData',
 	[
@@ -121,11 +122,11 @@ structs.push(OsiPresUserData)
 const NormalModeParametersCpWithProtocolVersion = new Struct(
 	'NormalModeParametersCpWithProtocolVersion',
 	[
-		new StructField(SimpleItem, 'protocol_version'),
-		new StructField(SimpleItem, 'calling_presentation_selector'),
-		new StructField(SimpleItem, 'called_presentation_selector'),
-		new StructField(SimpleItem, 'presentation_context_definition_list'),
-		new StructField(SimpleItem, 'presentation_requirements'),
+		new BerVField('protocol_version'),
+		new BerVField('calling_presentation_selector'),
+		new BerVField('called_presentation_selector'),
+		new BerVField('presentation_context_definition_list'),
+		new BerVField('presentation_requirements'),
 		new BlankStructField(new BerTLField('user_data_tl')),
 		new StructField(OsiPresUserData, 'user_data')
 	]
@@ -135,9 +136,9 @@ structs.push(NormalModeParametersCpWithProtocolVersion)
 const NormalModeParametersCpaWithProtocolVersion = new Struct(
 	'NormalModeParametersCpaWithProtocolVersion',
 	[
-		new StructField(SimpleItem, 'protocol_version'),
-		new StructField(SimpleItem, 'responding_presentation_selector'),
-		new StructField(SimpleItem, 'presentation_context_definition_result_list'),
+		new BerVField('protocol_version'),
+		new BerVField('responding_presentation_selector'),
+		new BerVField('presentation_context_definition_result_list'),
 		new BlankStructField(new BerTLField('user_data_tl')),
 		new StructField(OsiPresUserData, 'user_data')
 	]
@@ -147,10 +148,10 @@ structs.push(NormalModeParametersCpaWithProtocolVersion)
 const OsiPresPduNormalModeParametersCp = new Struct(
 	'OsiPresPduNormalModeParametersCp',
 	[
-		new StructField(SimpleItem, 'calling_presentation_selector'),
-		new StructField(SimpleItem, 'called_presentation_selector'),
-		new StructField(SimpleItem, 'presentation_context_definition_list'),
-		new StructField(SimpleItem, 'presentation_requirements'),
+		new BerVField('calling_presentation_selector'),
+		new BerVField('called_presentation_selector'),
+		new BerVField('presentation_context_definition_list'),
+		new BerVField('presentation_requirements'),
 		new BlankStructField(new BerTLField('user_data_tl')),
 		new StructField(OsiPresUserData, 'user_data')
 	]
@@ -160,8 +161,8 @@ structs.push(OsiPresPduNormalModeParametersCp)
 const OsiPresPduNormalModeParametersCpa = new Struct(
 	'OsiPresPduNormalModeParametersCpa',
 	[
-		new StructField(SimpleItem, 'responding_presentation_selector'),
-		new StructField(SimpleItem, 'presentation_context_definition_result_list'),
+		new BerVField('responding_presentation_selector'),
+		new BerVField('presentation_context_definition_result_list'),
 		new BlankStructField(new BerTLField('user_data_tl')),
 		new StructField(OsiPresUserData, 'user_data')
 	]
@@ -212,7 +213,7 @@ const OsiPresCp = new Struct(
 	[
 		new BlankStructField(new BerTLField('pres_tl')),
 		new BlankStructField(new BerTLField('pres_cp_tl')),
-		new StructField(SimpleItem, 'pres_cp_mode_selector'),
+		new BerVField('pres_cp_mode_selector'),
 		new BlankStructField(new BerTLField('normal_mode_parameters_tl')),
 		new EnumField(OsiPresPduNormalModeParametersCpChoice, 'normal_mode_parameters')
 	]
@@ -224,7 +225,7 @@ const OsiPresCpa = new Struct(
 	[
 		new BlankStructField(new BerTLField('pres_tl')),
 		new BlankStructField(new BerTLField('pres_cpa_tl')),
-		new StructField(SimpleItem, 'pres_cp_mode_selector'),
+		new BerVField('pres_cp_mode_selector'),
 		new BlankStructField(new BerTLField('normal_mode_parameters_tl')),
 		new EnumField(OsiPresPduNormalModeParametersCpaChoice, 'normal_mode_parameters')
 	]
@@ -235,23 +236,24 @@ const OsiAcseAarq = new Struct(
 	'OsiAcseAarq',
 	[
 		new BlankStructField(new BerTLField('acse_aarq_tl')),
-		new StructField(SimpleItem, 'protocol_version'),
-		new StructField(SimpleItem, 'aso_context_name'),
-		new StructField(SimpleItem, 'called_ap_title'),
-		new StructField(SimpleItem, 'called_ae_qualifier'),
+		new BerVField('protocol_version'),
+		new BerVField('aso_context_name'),
+		new BerVField('called_ap_title'),
+		new BerVField('called_ae_qualifier'),
 		new CodeField(endent`
+			// parse optional "calling ap title" & "calling ae qulifier"
 			let (_, _tag) = peek(u8)(input)?;
 			let mut input = input;
 			if _tag.bitand(0xf0) == 0xa0 {
-				// parse calling ap title / calling ae qulifier
-				(input, ..) = parse_simple_item(input)?;
-				(input, ..) = parse_simple_item(input)?;
+				(input, ..) = ber_tl_v(input)?; // calling_ap_title
+				(input, ..) = ber_tl_v(input)?; // calling_ae_qulifier
 			}
 		`),
+		/* user information - request */
 		new BlankStructField(new BerTLField('user_information_tl')),
 		new BlankStructField(new BerTLField('association_data_tl')),
-		new StructField(SimpleItem, 'direct_ref'),
-		new StructField(SimpleItem, 'indirect_ref'),
+		new BerVField('direct_ref'),
+		new BerVField('indirect_ref'),
 		new BlankStructField(new BerTLField('encoding_tl')),
 	]
 )
@@ -261,13 +263,17 @@ const OsiAcseAare = new Struct(
 	'OsiAcseAare',
 	[
 		new BlankStructField(new BerTLField('acse_aare_tl')),
-		new StructField(SimpleItem, 'protocol_version'),
-		new StructField(SimpleItem, 'aso_context_name'),
-		new StructField(SimpleItem, 'result'),
-		new StructField(SimpleItem, 'result_source_diagnostic'),
-		new StructField(SimpleItem, 'responsding_ap_title'),
-		new StructField(SimpleItem, 'responsding_ae_qualifier'),
-		new StructField(SimpleItem, 'user_information'),
+		new BerVField('protocol_version'),
+		new BerVField('aso_context_name'),
+		new BerVField('result'),
+		new BerVField('result_source_diagnostic'),
+		new BerVField('responsding_ap_title'),
+		new BerVField('responsding_ae_qualifier'),
+		/* user information - response */
+		new BlankStructField(new BerTLField('user_information_tl')),
+		new BlankStructField(new BerTLField('association_data_tl')),
+		new BerVField('indirect_ref'),
+		new BlankStructField(new BerTLField('encoding_tl')),
 	]
 )
 structs.push(OsiAcseAare)
@@ -281,7 +287,7 @@ const OsiSesChoice = new StructEnum(
 			new StructField(OsiAcseAarq, 'acse'),
 		]),
 		new AnonymousStructVariant(0x0e, 'Response', [
-			new StructField(OsiSesConnectRequest, 'accept'),
+			new StructField(OsiSesConnectResponse, 'accept'),
 			new StructField(OsiPresCpa, 'pres_cpa'),
 			new StructField(OsiAcseAare, 'acse'),
 		]),
@@ -314,40 +320,40 @@ const ObjectClass = new StructEnum(
 	'ObjectClass',
 	[
 		new AnonymousStructVariant(0x00, 'NamedVariable', [
-			new StructField(SimpleItem, 'named_variable'),
+			new BerVField('named_variable'),
 		]),
 		new AnonymousStructVariant(0x01, 'ScatteredAccess', [
-			new StructField(SimpleItem, 'scattered_access'),
+			new BerVField('scattered_access'),
 		]),
 		new AnonymousStructVariant(0x02, 'NamedVariableList', [
-			new StructField(SimpleItem, 'named_variable_list'),
+			new BerVField('named_variable_list'),
 		]),
 		new AnonymousStructVariant(0x03, 'NamedType', [
-			new StructField(SimpleItem, 'named_type'),
+			new BerVField('named_type'),
 		]),
 		new AnonymousStructVariant(0x04, 'Semaphore', [
-			new StructField(SimpleItem, 'semaphore'),
+			new BerVField('semaphore'),
 		]),
 		new AnonymousStructVariant(0x05, 'EventCondition', [
-			new StructField(SimpleItem, 'event_condition'),
+			new BerVField('event_condition'),
 		]),
 		new AnonymousStructVariant(0x06, 'EventAction', [
-			new StructField(SimpleItem, 'event_action'),
+			new BerVField('event_action'),
 		]),
 		new AnonymousStructVariant(0x07, 'EventEnrollment', [
-			new StructField(SimpleItem, 'event_enrollment'),
+			new BerVField('event_enrollment'),
 		]),
 		new AnonymousStructVariant(0x08, 'Journal', [
-			new StructField(SimpleItem, 'journal'),
+			new BerVField('journal'),
 		]),
 		new AnonymousStructVariant(0x09, 'Domain', [
-			new StructField(SimpleItem, 'domain'),
+			new BerVField('domain'),
 		]),
 		new AnonymousStructVariant(0x0a, 'ProgramInvocation', [
-			new StructField(SimpleItem, 'program_invocation'),
+			new BerVField('program_invocation'),
 		]),
 		new AnonymousStructVariant(0x0b, 'OperatorStation', [
-			new StructField(SimpleItem, 'operator_station'),
+			new BerVField('operator_station'),
 		]),
 	],
 	new StructBitOperatorChoice(
@@ -510,7 +516,7 @@ const AccessResult = new StructEnum(
 	[
 		new AnonymousStructVariant(0x00, 'AccessResultFailure', DataAccessErrorConstruct),
 		new AnonymousStructVariant(0x01, 'AccessResultSuccess', [
-			new StructField(SimpleItem, 'data')
+			new BerVField('data')
 		]),
 	],
 	new StructBitOperatorChoice(
@@ -551,9 +557,9 @@ structs.push(ListOfIdentifier)
 const InitDetailRequest = new Struct(
 	'InitDetailRequest',
 	[
-		new StructField(SimpleItem, 'proposed_version_number'),
-		new StructField(SimpleItem, 'proposed_parameter_cbb'),
-		new StructField(SimpleItem, 'service_supported_calling'),
+		new BerVField('proposed_version_number'),
+		new BerVField('proposed_parameter_cbb'),
+		new BerVField('service_supported_calling'),
 	]
 )
 structs.push(InitDetailRequest)
@@ -561,20 +567,12 @@ structs.push(InitDetailRequest)
 const InitDetailResponse = new Struct(
 	'InitDetailResponse',
 	[
-		new StructField(SimpleItem, 'proposed_version_number'),
-		new StructField(SimpleItem, 'proposed_parameter_cbb'),
-		new StructField(SimpleItem, 'service_supported_called'),
+		new BerVField('proposed_version_number'),
+		new BerVField('proposed_parameter_cbb'),
+		new BerVField('service_supported_called'),
 	]
 )
 structs.push(InitDetailResponse)
-
-const InvokeId = new Struct(
-	'InvokeId',
-	[
-		numeric('invoke_id', 'u8')
-	]
-)
-structs.push(InvokeId)
 
 const VariableAccessSpecificationChoice = new StructEnum(
 	'VariableAccessSpecificationChoice',
@@ -666,7 +664,7 @@ const ConfirmedServiceRequestChoice = new StructEnum(
 			new EnumField(VariableAccessSpecificationChoice, 'variable_access_specification_choice'),
 			new BlankStructField(new BerTLField('list_of_data_tl')),
 			new BlankStructField(new BerTLField('lod_tl')),
-			new LimitedLenVecLoopField('lod', createCountVar('_lod_tl.length'), new StructField(SimpleItem))
+			new LimitedLenVecLoopField('lod', createCountVar('_lod_tl.length'), new BerVField('tmp'))
 		]),
 		new AnonymousStructVariant(0x0c, 'GetNamedVariableListAttributesRequest', [
 			new BlankStructField(new BerTLField('object_name_tl')),
@@ -693,11 +691,11 @@ const ConfirmedServiceResponseChoice = new StructEnum(
 		]),
 		new AnonymousStructVariant(0x02, 'IdentifyResponse', [
 			new BlankStructField(new BerTLField('vendor_name_tl')),
-			new StructField(SimpleItem, 'vendor_name'),
+			new BerVField('vendor_name'),
 			new BlankStructField(new BerTLField('model_name_tl')),
-			new StructField(SimpleItem, 'model_name'),
+			new BerVField('model_name'),
 			new BlankStructField(new BerTLField('revision_tl')),
-			new StructField(SimpleItem, 'revision'),
+			new BerVField('revision'),
 		]),
 		new AnonymousStructVariant(0x04, 'ReadResponse', [
 			new BlankStructField(new BerTLField('read_response_choice_tl')),
@@ -754,20 +752,54 @@ const UnConfirmedChoice = new StructEnum(
 )
 structs.push(UnConfirmedChoice)
 
-const ConfirmedRequestPDU = 
+const InvokeId: Field[] = 
 	[
-		new BlankStructField(new BerTLField('invoke_id_tl')),
-		new StructField(InvokeId, 'invoke_id'),
-		new BlankStructField(new BerTLField('service_tl')),
-		new EnumField(ConfirmedServiceRequestChoice, 'service'),
+		new CodeField(endent`
+			let invoke_id: u16;
+			let _invoke_id_u8: u8;
+			let mut input = input;
+			if _invoke_id_tl.length == 1 {
+				(input, _invoke_id_u8) = u8(input)?;
+				invoke_id = _invoke_id_u8 as u16;
+			} else if _invoke_id_tl.length == 2 {
+				(input, invoke_id) = be_u16(input)?;
+			} else {
+				return Err(nom::Err::Error(nom::error::Error::new(
+					input,
+					nom::error::ErrorKind::Verify,
+				)));
+			}
+		`),
+		new CodeVarField(numeric('invoke_id', 'be_u16')),
 	]
 
+const ConfirmedRequestPDU = 
+	(<Field[]>
+		[
+			new BlankStructField(new BerTLField('invoke_id_tl')),
+		]
+	)
+	.concat(InvokeId)
+	.concat(
+		[
+			new BlankStructField(new BerTLField('service_tl')),
+			new EnumField(ConfirmedServiceRequestChoice, 'service'),
+		]
+	)
+
 const ConfirmedResponsePDU = 
-	[
-		new BlankStructField(new BerTLField('invoke_id_tl')),
-		new StructField(InvokeId, 'invoke_id'),
-		new EnumField(ConfirmedServiceResponseStruct, 'service'),
-	]
+	(<Field[]>
+		[
+			new BlankStructField(new BerTLField('invoke_id_tl')),
+		]
+	)
+	.concat(InvokeId)
+	.concat(
+		[
+			new BlankStructField(new BerTLField('service_tl')),
+			new EnumField(ConfirmedServiceResponseStruct, 'service'),
+		]
+	)
 
 const UnConfirmedPDU = 
 	[
@@ -777,20 +809,20 @@ const UnConfirmedPDU =
 
 const InitiateRequestPDU = 
 	[
-		new StructField(SimpleItem, 'local_detail_calling'),
-		new StructField(SimpleItem, 'proposed_max_serv_outstanding_calling'),
-		new StructField(SimpleItem, 'proposed_max_serv_outstanding_called'),
-		new StructField(SimpleItem, 'proposed_data_structure_nesting_level'),
+		new BerVField('local_detail_calling'),
+		new BerVField('proposed_max_serv_outstanding_calling'),
+		new BerVField('proposed_max_serv_outstanding_called'),
+		new BerVField('proposed_data_structure_nesting_level'),
 		new BlankStructField(new BerTLField('init_request_detail_tl')),
 		new StructField(InitDetailRequest, 'init_request_detail'),
 	]
 
 const InitiateResponsePDU = 
 	[
-		new StructField(SimpleItem, 'local_detail_called'),
-		new StructField(SimpleItem, 'proposed_max_serv_outstanding_calling'),
-		new StructField(SimpleItem, 'proposed_max_serv_outstanding_called'),
-		new StructField(SimpleItem, 'proposed_data_structure_nesting_level'),
+		new BerVField('local_detail_called'),
+		new BerVField('proposed_max_serv_outstanding_calling'),
+		new BerVField('proposed_max_serv_outstanding_called'),
+		new BerVField('proposed_data_structure_nesting_level'),
 		new BlankStructField(new BerTLField('init_response_detail_tl')),
 		new StructField(InitDetailResponse, 'init_response_detail'),
 	]
