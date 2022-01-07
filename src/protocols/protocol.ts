@@ -97,7 +97,8 @@ export class Protocol {
             ${this.definition.info.returnLevelPacket()}
         };`
 
-        return endent`pub fn parse_${snakeCase(this.getName())}_layer${this.definition.info.getLevelLifeTime()}${this.definition.info.getLevelLayerArgs()} -> QuinPacket${this.definition.info.getLevelLifeTime()} {
+        return endent`pub fn parse_${protocolLowcaseName}_layer${this.definition.info.getLevelLifeTime()}${this.definition.info.getLevelLayerArgs()} -> QuinPacket${this.definition.info.getLevelLifeTime()} {
+            info!(target: "PARSER(${protocolLowcaseName}::parse_${protocolLowcaseName}_layer)", "parsing ${protocolName} protocol.");
             let current_prototype = ${this.definition.info.getLevelProtocolTypeName()}(${this.definition.info.getLevelProtocolTypeName(0)}::${protocolName});
 
             ${parseHeaderBlock}

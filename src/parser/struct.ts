@@ -90,24 +90,25 @@ export class StructParserGenerator {
     generateParser(pub = true): string {
         const visibilitySpecifier = pub ? `pub ` : ``
         const functionSignature = `${visibilitySpecifier}${this.generateFunctionSignature()}`
+        const debugStatement = `debug!(target: "PARSER(${this.struct.parserFunctionName()})", "struct ${this.struct.name}");`
         const parserBlock = this.generateParserBlock()
 
         const fieldFuction: (string)[] = this.generateFieldFunction()
+        const structParser = endent`
+        ${functionSignature} {
+            ${debugStatement}
+            ${parserBlock}
+        }
+        `
 
         if (fieldFuction.length !== 0) {
             return endent`
             ${fieldFuction.join("\n")}
 
-            ${functionSignature} {
-                ${parserBlock}
-            }
+            ${structParser}
             `
         } else {
-            return endent`
-            ${functionSignature} {
-                ${parserBlock}
-            }
-            `
+            return structParser
         }
         
     }

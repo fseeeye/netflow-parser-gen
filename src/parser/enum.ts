@@ -166,9 +166,10 @@ export class StructEnumParserGenerator {
 
     private functionBody(allInOne = false) {
         const choice = this.structEnum.choiceField
+        const debugStatement = `debug!(target: "PARSER(parse_${this.structEnum.snakeCaseName()})", "enum ${this.structEnum.name}");`
         const parseAheadStatement = (choice.isInline() && choice.generateParseAheadStatement !== undefined) ? choice.generateParseAheadStatement() : ``
         const matchBlock = this.generateMatchBlock(allInOne)
-        const statements = parseAheadStatement !== `` ? [parseAheadStatement, matchBlock] : [matchBlock]
+        const statements = parseAheadStatement !== `` ? [debugStatement, parseAheadStatement, matchBlock] : [debugStatement, matchBlock]
         return statements.join(`\n`)
     }
 

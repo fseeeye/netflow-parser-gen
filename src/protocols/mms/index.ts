@@ -8,13 +8,14 @@ import { EnumField } from "../../field/enum"
 import { BerTLField } from "../../field/ber-tl"
 import { StructField, StructMemberField } from "../../field/struct"
 import { LimitedLenVecLoopField } from "../../field/vec"
-import { AnonymousStructVariant, StructEnum, EmptyPayloadEnum, EofVariant, EmptyVariant } from "../../types/enum"
+import { AnonymousStructVariant, StructEnum, EmptyPayloadEnum, EmptyVariant } from "../../types/enum"
 import { Struct } from "../../types/struct"
 import { ProtocolInfo } from "../protocol-info"
 import { Protocol } from "../protocol"
 import { BlankStructField, CodeField } from "../../field/special"
 import endent from "endent"
 import { Field } from "../../field/base"
+import { OptionField } from "../../field/option"
 
 const protocolName = 'Mms'
 const headerName = `${protocolName}Header`

@@ -92,8 +92,10 @@ export class EofVariant extends BasicEnumVariant implements EnumVariant {
     parserImplementation(enumName: string, isIncludeSig = true): string {
         const typeName = `${enumName}::${this.name}`
         const functionSignature = endent`fn ${this.parserFunctionName(enumName)}(input: &[u8]) -> IResult<&[u8], ${enumName}>`
+        const debugStatement = `debug!(target: "PARSER(${this.parserFunctionName(enumName)})", "eof variant of ${enumName}");`
         // 调用nom::combinator::eof
         const parserBlock = endent`
+            ${debugStatement}
             let (input, _) = eof(input)?;
             Ok((
                 input,
@@ -135,8 +137,10 @@ export class EmptyVariant extends EofVariant {
     parserImplementation(enumName: string, isIncludeSig = true): string {
         const typeName = `${enumName}::${this.name}`
         const functionSignature = endent`fn ${this.parserFunctionName(enumName)}(input: &[u8]) -> IResult<&[u8], ${enumName}>`
-        // 调用nom::combinator::eof
+        const debugStatement = `debug!(target: "PARSER(${this.parserFunctionName(enumName)})", "empty variant of ${enumName}");`
+        
         const parserBlock = endent`
+            ${debugStatement}
             Ok((
                 input,
                 ${typeName} {}
