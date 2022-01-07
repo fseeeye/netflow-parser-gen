@@ -36,6 +36,7 @@ test('test struct with vec of primitive field', () => {
     // console.log(gen.compileParser())
     expect(gen.generateParser()).toEqual(endent`
     pub fn parse_write_multiple_registers(input: &[u8]) -> IResult<&[u8], WriteMultipleRegisters> {
+        debug!(target: "PARSER(parse_write_multiple_registers)", "struct WriteMultipleRegisters");
         let (input, start_address) = u8(input)?;
         let (input, output_count) = be_u16(input)?;
         let (input, byte_count) = u8(input)?;
@@ -74,6 +75,7 @@ test('test struct with vec field of user defined type', () => {
     // console.log(subGen.compileParser())
     expect(subGen.generateParser()).toEqual(endent`
     pub fn parse_read_file_sub_request(input: &[u8]) -> IResult<&[u8], ReadFileSubRequest> {
+        debug!(target: "PARSER(parse_read_file_sub_request)", "struct ReadFileSubRequest");
         let (input, ref_type) = u8(input)?;
         let (input, file_number) = be_u16(input)?;
         let (input, record_number) = be_u16(input)?;
@@ -105,6 +107,7 @@ test('test struct with vec field of user defined type', () => {
     // console.log(gen.compileParser())
     expect(gen.generateParser()).toEqual(endent`
     pub fn parse_read_file_record(input: &[u8]) -> IResult<&[u8], ReadFileRecord> {
+        debug!(target: "PARSER(parse_read_file_record)", "struct ReadFileRecord");
         let (input, byte_count) = u8(input)?;
         let (input, sub_requests) = count(parse_read_file_sub_request, (byte_count as usize / 7 as usize) as usize)(input)?;
         Ok((
@@ -129,6 +132,7 @@ test('test struct with vec loop (with lengthNum)', () => {
     const subgen = new StructParserGenerator(WriteFileRecordSubRequest)
     expect(subgen.generateParser()).toEqual(endent`
     pub fn parse_write_file_record_sub_request(input: &[u8]) -> IResult<&[u8], WriteFileRecordSubRequest> {
+        debug!(target: "PARSER(parse_write_file_record_sub_request)", "struct WriteFileRecordSubRequest");
         let (input, ref_type) = u8(input)?;
         let (input, file_number) = be_u16(input)?;
         let (input, record_number) = be_u16(input)?;
@@ -167,6 +171,7 @@ test('test struct with vec loop (with lengthNum)', () => {
     const gen = new StructParserGenerator(WriteFileRecord)
     expect(gen.generateParser()).toEqual(endent`
     pub fn parse_write_file_record(input: &[u8]) -> IResult<&[u8], WriteFileRecord> {
+        debug!(target: "PARSER(parse_write_file_record)", "struct WriteFileRecord");
         let (input, byte_count) = u8(input)?;
         /* LimitedLenVecLoopField Start */
         let mut sub_req = Vec::new();
@@ -216,6 +221,7 @@ test('test struct with vec loop (without lengthNum)', () => {
     const gen1 = new StructEnumParserGenerator(MultipleMemoryAreaReadItemChoice)
     expect(gen1.generateParser()).toEqual(endent`
     fn parse_multiple_memory_area_read_item_choice_variant1(input: &[u8]) -> IResult<&[u8], MultipleMemoryAreaReadItemChoice> {
+        debug!(target: "PARSER(parse_multiple_memory_area_read_item_choice_variant1)", "struct Variant1");
         let (input, item) = take(1 as usize)(input)?;
         Ok((
             input,
@@ -226,6 +232,7 @@ test('test struct with vec loop (without lengthNum)', () => {
     }
 
     fn parse_multiple_memory_area_read_item_choice_variant2(input: &[u8]) -> IResult<&[u8], MultipleMemoryAreaReadItemChoice> {
+        debug!(target: "PARSER(parse_multiple_memory_area_read_item_choice_variant2)", "struct Variant2");
         let (input, item) = take(2 as usize)(input)?;
         Ok((
             input,
@@ -236,6 +243,7 @@ test('test struct with vec loop (without lengthNum)', () => {
     }
 
     fn parse_multiple_memory_area_read_item_choice_variant4(input: &[u8]) -> IResult<&[u8], MultipleMemoryAreaReadItemChoice> {
+        debug!(target: "PARSER(parse_multiple_memory_area_read_item_choice_variant4)", "struct Variant4");
         let (input, item) = take(4 as usize)(input)?;
         Ok((
             input,
@@ -246,6 +254,7 @@ test('test struct with vec loop (without lengthNum)', () => {
     }
 
     pub fn parse_multiple_memory_area_read_item_choice(input: &[u8], memory_area_code: u8) -> IResult<&[u8], MultipleMemoryAreaReadItemChoice> {
+        debug!(target: "PARSER(parse_multiple_memory_area_read_item_choice)", "enum MultipleMemoryAreaReadItemChoice");
         let (input, multiple_memory_area_read_item_choice) = match memory_area_code {
             0x00 | 0x01 | 0x02 | 0x03 | 0x04 | 0x05 | 0x06 | 0x07 | 0x09 | 0x1B | 0x20 | 0x21 | 0x22 | 0x23 | 0x24 | 0x25 | 0x26 | 0x27 | 0x28 | 0x29 | 0x2A | 0x2B | 0x2C | 0x30 | 0x31 | 0x32 | 0x33 | 0x40 | 0x41 | 0x43 | 0x44 | 0x46 | 0x49 | 0x70 | 0x71 | 0x72 => parse_multiple_memory_area_read_item_choice_variant1(input),
             0x80 | 0x81 | 0x82 | 0x84 | 0x85 | 0x89 | 0x90 | 0x91 | 0x92 | 0x93 | 0x94 | 0x95 | 0x96 | 0x97 | 0x98 | 0x9C | 0xA0 | 0xA1 | 0xA2 | 0xA3 | 0xA4 | 0xA5 | 0xA6 | 0xA7 | 0xA8 | 0xA9 | 0xAA | 0xAB | 0xAC | 0xB0 | 0xB1 | 0xB2 | 0xB3 | 0xBC => parse_multiple_memory_area_read_item_choice_variant2(input),
@@ -267,6 +276,7 @@ test('test struct with vec loop (without lengthNum)', () => {
 
     const gen2 = new StructParserGenerator(MultipleMemoryAreaReadItem)
     expect(gen2.generateParser()).toEqual(endent`pub fn parse_multiple_memory_area_read_item(input: &[u8]) -> IResult<&[u8], MultipleMemoryAreaReadItem> {
+        debug!(target: "PARSER(parse_multiple_memory_area_read_item)", "struct MultipleMemoryAreaReadItem");
         let (input, memory_area_code) = u8(input)?;
         let (input, multiple_memory_area_read_item_choice) = parse_multiple_memory_area_read_item_choice(input, memory_area_code)?;
         Ok((
@@ -297,6 +307,7 @@ test('test struct with vec loop (without lengthNum)', () => {
     const gen3 = new StructParserGenerator(MultipleMemoryAreaRead)
     expect(gen3.generateParser()).toEqual(endent`
     pub fn parse_multiple_memory_area_read(input: &[u8]) -> IResult<&[u8], MultipleMemoryAreaRead> {
+        debug!(target: "PARSER(parse_multiple_memory_area_read)", "struct MultipleMemoryAreaRead");
         let (input, rsp_code) = be_u16(input)?;
         /* UnlimitedVecLoopField Start */
         let mut data = Vec::new();

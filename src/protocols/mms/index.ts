@@ -15,7 +15,6 @@ import { Protocol } from "../protocol"
 import { BlankStructField, CodeField } from "../../field/special"
 import endent from "endent"
 import { Field } from "../../field/base"
-import { OptionField } from "../../field/option"
 
 const protocolName = 'Mms'
 const headerName = `${protocolName}Header`

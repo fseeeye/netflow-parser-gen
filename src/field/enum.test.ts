@@ -23,6 +23,7 @@ test('test struct with enum field', () => {
     const gen = new StructParserGenerator(request)
     expect(gen.generateParserWithUserDefinedFields()).toEqual(endent`
     fn parse_request_data_read_coils(input: &[u8]) -> IResult<&[u8], RequestData> {
+        debug!(target: "PARSER(parse_request_data_read_coils)", "struct ReadCoils");
         let (input, start_address) = be_u16(input)?;
         let (input, count) = be_u16(input)?;
         Ok((
@@ -35,6 +36,7 @@ test('test struct with enum field', () => {
     }
     
     fn parse_request_data_read_discrete_inputs(input: &[u8]) -> IResult<&[u8], RequestData> {
+        debug!(target: "PARSER(parse_request_data_read_discrete_inputs)", "struct ReadDiscreteInputs");
         let (input, start_address) = be_u16(input)?;
         let (input, count) = be_u16(input)?;
         Ok((
@@ -47,6 +49,7 @@ test('test struct with enum field', () => {
     }
     
     fn parse_request_data_read_holding_registers(input: &[u8]) -> IResult<&[u8], RequestData> {
+        debug!(target: "PARSER(parse_request_data_read_holding_registers)", "struct ReadHoldingRegisters");
         let (input, start_address) = be_u16(input)?;
         let (input, count) = be_u16(input)?;
         Ok((
@@ -59,6 +62,7 @@ test('test struct with enum field', () => {
     }
     
     fn parse_request_data_read_input_registers(input: &[u8]) -> IResult<&[u8], RequestData> {
+        debug!(target: "PARSER(parse_request_data_read_input_registers)", "struct ReadInputRegisters");
         let (input, start_address) = be_u16(input)?;
         let (input, count) = be_u16(input)?;
         Ok((
@@ -71,6 +75,7 @@ test('test struct with enum field', () => {
     }
     
     fn parse_request_data_write_single_coil(input: &[u8]) -> IResult<&[u8], RequestData> {
+        debug!(target: "PARSER(parse_request_data_write_single_coil)", "struct WriteSingleCoil");
         let (input, output_address) = be_u16(input)?;
         let (input, output_value) = be_u16(input)?;
         Ok((
@@ -83,6 +88,7 @@ test('test struct with enum field', () => {
     }
     
     pub fn parse_request_data(input: &[u8], function_code: u8) -> IResult<&[u8], RequestData> {
+        debug!(target: "PARSER(parse_request_data)", "enum RequestData");
         let (input, request_data) = match function_code {
             0x01 => parse_request_data_read_coils(input),
             0x02 => parse_request_data_read_discrete_inputs(input),
@@ -95,6 +101,7 @@ test('test struct with enum field', () => {
     }
     
     pub fn parse_request(input: &[u8]) -> IResult<&[u8], Request> {
+        debug!(target: "PARSER(parse_request)", "struct Request");
         let (input, function_code) = u8(input)?;
         let (input, request_data) = parse_request_data(input, function_code)?;
         Ok((
@@ -121,6 +128,7 @@ test('test struct with enum field with lifetime', () => {
     const gen = new StructParserGenerator(request)
     expect(gen.generateParserWithUserDefinedFields()).toEqual(endent`
     fn parse_request_data_write_file_record_sub_request(input: &[u8]) -> IResult<&[u8], RequestData> {
+        debug!(target: "PARSER(parse_request_data_write_file_record_sub_request)", "struct WriteFileRecordSubRequest");
         let (input, ref_type) = u8(input)?;
         let (input, file_number) = be_u16(input)?;
         let (input, record_number) = be_u16(input)?;
@@ -139,6 +147,7 @@ test('test struct with enum field with lifetime', () => {
     }
     
     fn parse_request_data_write_single_register(input: &[u8]) -> IResult<&[u8], RequestData> {
+        debug!(target: "PARSER(parse_request_data_write_single_register)", "struct WriteSingleRegister");
         let (input, register_address) = be_u16(input)?;
         let (input, register_value) = be_u16(input)?;
         Ok((
@@ -151,6 +160,7 @@ test('test struct with enum field with lifetime', () => {
     }
     
     pub fn parse_request_data(input: &[u8], function_code: u8) -> IResult<&[u8], RequestData> {
+        debug!(target: "PARSER(parse_request_data)", "enum RequestData");
         let (input, request_data) = match function_code {
             0x17 => parse_request_data_write_file_record_sub_request(input),
             0x06 => parse_request_data_write_single_register(input),
@@ -160,6 +170,7 @@ test('test struct with enum field with lifetime', () => {
     }
     
     pub fn parse_request(input: &[u8]) -> IResult<&[u8], Request> {
+        debug!(target: "PARSER(parse_request)", "struct Request");
         let (input, function_code) = u8(input)?;
         let (input, request_data) = parse_request_data(input, function_code)?;
         Ok((
@@ -228,6 +239,7 @@ test('test struct with empty variant', () => {
     const gen = new StructParserGenerator(request)
     expect(gen.generateParserWithUserDefinedFields()).toEqual(endent`
     fn parse_request_data_read_coils(input: &[u8]) -> IResult<&[u8], RequestData> {
+        debug!(target: "PARSER(parse_request_data_read_coils)", "struct ReadCoils");
         let (input, start_address) = be_u16(input)?;
         let (input, count) = be_u16(input)?;
         Ok((
@@ -240,6 +252,7 @@ test('test struct with empty variant', () => {
     }
     
     fn parse_request_data_read_discrete_inputs(input: &[u8]) -> IResult<&[u8], RequestData> {
+        debug!(target: "PARSER(parse_request_data_read_discrete_inputs)", "struct ReadDiscreteInputs");
         let (input, start_address) = be_u16(input)?;
         let (input, count) = be_u16(input)?;
         Ok((
@@ -252,6 +265,7 @@ test('test struct with empty variant', () => {
     }
     
     fn parse_request_data_read_holding_registers(input: &[u8]) -> IResult<&[u8], RequestData> {
+        debug!(target: "PARSER(parse_request_data_read_holding_registers)", "struct ReadHoldingRegisters");
         let (input, start_address) = be_u16(input)?;
         let (input, count) = be_u16(input)?;
         Ok((
@@ -264,6 +278,7 @@ test('test struct with empty variant', () => {
     }
     
     fn parse_request_data_read_input_registers(input: &[u8]) -> IResult<&[u8], RequestData> {
+        debug!(target: "PARSER(parse_request_data_read_input_registers)", "struct ReadInputRegisters");
         let (input, start_address) = be_u16(input)?;
         let (input, count) = be_u16(input)?;
         Ok((
@@ -276,6 +291,7 @@ test('test struct with empty variant', () => {
     }
     
     fn parse_request_data_write_single_coil(input: &[u8]) -> IResult<&[u8], RequestData> {
+        debug!(target: "PARSER(parse_request_data_write_single_coil)", "struct WriteSingleCoil");
         let (input, output_address) = be_u16(input)?;
         let (input, output_value) = be_u16(input)?;
         Ok((
@@ -289,6 +305,7 @@ test('test struct with empty variant', () => {
     
     #[inline(always)]
     fn parse_request_data_read_exception_status(input: &[u8]) -> IResult<&[u8], RequestData> {
+        debug!(target: "PARSER(parse_request_data_read_exception_status)", "eof variant of RequestData");
         let (input, _) = eof(input)?;
         Ok((
             input,
@@ -298,6 +315,7 @@ test('test struct with empty variant', () => {
 
     #[inline(always)]
     fn parse_request_data_get_comm_event_counter(input: &[u8]) -> IResult<&[u8], RequestData> {
+        debug!(target: "PARSER(parse_request_data_get_comm_event_counter)", "empty variant of RequestData");
         Ok((
             input,
             RequestData::GetCommEventCounter {}
@@ -305,6 +323,7 @@ test('test struct with empty variant', () => {
     }
     
     pub fn parse_request_data(input: &[u8], function_code: u8) -> IResult<&[u8], RequestData> {
+        debug!(target: "PARSER(parse_request_data)", "enum RequestData");
         let (input, request_data) = match function_code {
             0x01 => parse_request_data_read_coils(input),
             0x02 => parse_request_data_read_discrete_inputs(input),
@@ -319,6 +338,7 @@ test('test struct with empty variant', () => {
     }
     
     pub fn parse_request(input: &[u8]) -> IResult<&[u8], Request> {
+        debug!(target: "PARSER(parse_request)", "struct Request");
         let (input, function_code) = u8(input)?;
         let (input, request_data) = parse_request_data(input, function_code)?;
         Ok((

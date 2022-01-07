@@ -86,6 +86,7 @@ test('test enum definition without reference', () => {
     // console.log(gen.compile())
     expect(gen.generateParser()).toEqual(endent`
     fn parse_request_data_read_coils(input: &[u8]) -> IResult<&[u8], RequestData> {
+        debug!(target: "PARSER(parse_request_data_read_coils)", "struct ReadCoils");
         let (input, start_address) = be_u16(input)?;
         let (input, count) = be_u16(input)?;
         Ok((
@@ -98,6 +99,7 @@ test('test enum definition without reference', () => {
     }
     
     fn parse_request_data_read_discrete_inputs(input: &[u8]) -> IResult<&[u8], RequestData> {
+        debug!(target: "PARSER(parse_request_data_read_discrete_inputs)", "struct ReadDiscreteInputs");
         let (input, start_address) = be_u16(input)?;
         let (input, count) = be_u16(input)?;
         Ok((
@@ -110,6 +112,7 @@ test('test enum definition without reference', () => {
     }
     
     fn parse_request_data_read_holding_registers(input: &[u8]) -> IResult<&[u8], RequestData> {
+        debug!(target: "PARSER(parse_request_data_read_holding_registers)", "struct ReadHoldingRegisters");
         let (input, start_address) = be_u16(input)?;
         let (input, count) = be_u16(input)?;
         Ok((
@@ -122,6 +125,7 @@ test('test enum definition without reference', () => {
     }
     
     fn parse_request_data_read_input_registers(input: &[u8]) -> IResult<&[u8], RequestData> {
+        debug!(target: "PARSER(parse_request_data_read_input_registers)", "struct ReadInputRegisters");
         let (input, start_address) = be_u16(input)?;
         let (input, count) = be_u16(input)?;
         Ok((
@@ -134,6 +138,7 @@ test('test enum definition without reference', () => {
     }
     
     fn parse_request_data_write_single_coil(input: &[u8]) -> IResult<&[u8], RequestData> {
+        debug!(target: "PARSER(parse_request_data_write_single_coil)", "struct WriteSingleCoil");
         let (input, output_address) = be_u16(input)?;
         let (input, output_value) = be_u16(input)?;
         Ok((
@@ -146,6 +151,7 @@ test('test enum definition without reference', () => {
     }
     
     pub fn parse_request_data(input: &[u8], function_code: u8) -> IResult<&[u8], RequestData> {
+        debug!(target: "PARSER(parse_request_data)", "enum RequestData");
         let (input, request_data) = match function_code {
             0x01 => parse_request_data_read_coils(input),
             0x02 => parse_request_data_read_discrete_inputs(input),
@@ -208,6 +214,7 @@ test('enum definition with reference', () => {
     // console.log(gen.compile())
     expect(gen.generateParser()).toEqual(endent`
     fn parse_request_data_write_file_record_sub_request(input: &[u8]) -> IResult<&[u8], RequestData> {
+        debug!(target: "PARSER(parse_request_data_write_file_record_sub_request)", "struct WriteFileRecordSubRequest");
         let (input, ref_type) = u8(input)?;
         let (input, file_number) = be_u16(input)?;
         let (input, record_number) = be_u16(input)?;
@@ -226,6 +233,7 @@ test('enum definition with reference', () => {
     }
     
     fn parse_request_data_write_single_register(input: &[u8]) -> IResult<&[u8], RequestData> {
+        debug!(target: "PARSER(parse_request_data_write_single_register)", "struct WriteSingleRegister");
         let (input, register_address) = be_u16(input)?;
         let (input, register_value) = be_u16(input)?;
         Ok((
@@ -238,6 +246,7 @@ test('enum definition with reference', () => {
     }
     
     pub fn parse_request_data(input: &[u8], function_code: u8) -> IResult<&[u8], RequestData> {
+        debug!(target: "PARSER(parse_request_data)", "enum RequestData");
         let (input, request_data) = match function_code {
             0x17 => parse_request_data_write_file_record_sub_request(input),
             0x06 => parse_request_data_write_single_register(input),
@@ -295,6 +304,7 @@ test('enum with user defined variants', () => {
     const gen = new StructEnumParserGenerator(payload)
     expect(gen.generateEnumParser()).toEqual(endent`
     pub fn parse_payload(input: &[u8], function_code: u8) -> IResult<&[u8], Payload> {
+        debug!(target: "PARSER(parse_payload)", "enum Payload");
         let (input, payload) = match function_code & 0b10000000 {
             0x0 => {
                 let (input, request_data) = parse_request_data(input, function_code)?;
@@ -357,6 +367,7 @@ test('enum with user defined variants with reference', () => {
     // console.log(gen.generateParser())
     expect(gen.generateParser()).toEqual(endent`
     fn parse_payload_write_multiple_registers(input: &[u8]) -> IResult<&[u8], Payload> {
+        debug!(target: "PARSER(parse_payload_write_multiple_registers)", "struct WriteMultipleRegisters");
         let (input, write_start_address) = be_u16(input)?;
         let (input, write_count) = be_u16(input)?;
         let (input, write_register_values) = take(write_count as usize)(input)?;
@@ -371,6 +382,7 @@ test('enum with user defined variants with reference', () => {
     }
     
     pub fn parse_payload(input: &[u8], function_code: u8) -> IResult<&[u8], Payload> {
+        debug!(target: "PARSER(parse_payload)", "enum Payload");
         let (input, payload) = match function_code & 0b10000000 {
             0x0 => {
                 let (input, request_data) = parse_request_data(input, function_code)?;
@@ -414,6 +426,7 @@ test('test if enum', () => {
     // console.log(gen.compile())
     expect(gen.generateParser()).toEqual(endent`
         fn parse_if_struct_enum_test_anony_variant(input: &[u8]) -> IResult<&[u8], IfStructEnumTest> {
+            debug!(target: "PARSER(parse_if_struct_enum_test_anony_variant)", "struct AnonyVariant");
             let (input, num1) = u8(input)?;
             Ok((
                 input,
@@ -425,6 +438,7 @@ test('test if enum', () => {
         
         #[inline(always)]
         fn parse_if_struct_enum_test_empty_variant(input: &[u8]) -> IResult<&[u8], IfStructEnumTest> {
+            debug!(target: "PARSER(parse_if_struct_enum_test_empty_variant)", "empty variant of IfStructEnumTest");
             Ok((
                 input,
                 IfStructEnumTest::EmptyVariant {}
@@ -432,6 +446,7 @@ test('test if enum', () => {
         }
 
         pub fn parse_if_struct_enum_test(input: &[u8], input_choice: u8) -> IResult<&[u8], IfStructEnumTest> {
+            debug!(target: "PARSER(parse_if_struct_enum_test)", "if enum IfStructEnumTest");
             if input_choice & 0x20 == 0x20 {
                 parse_if_struct_enum_test_anony_variant(input)
             }

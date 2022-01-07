@@ -204,10 +204,15 @@ export class AnonymousStructVariant extends Struct implements EnumVariant {
 
     parserImplementation(enumName: string, isIncludeSig = true): string {
         const gen = new StructEnumVariantParserGenerator(this, enumName)
-        if (isIncludeSig === false) {
-            return gen.generateParserBlock()
-        } else {
+        if (isIncludeSig === true) {
             return gen.generateParser(false)
+        } else {
+            const debugStatement = `debug!(target: "PARSER(${this.parserFunctionNameOverwrite(enumName)})", "anony struct variant of ${enumName}");`
+    
+            return endent`
+            ${debugStatement}
+            ${gen.generateParserBlock()}
+            `
         }
     }
 

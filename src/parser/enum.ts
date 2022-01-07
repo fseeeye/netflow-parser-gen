@@ -6,19 +6,19 @@ import { StructParserGenerator } from "./struct"
 
 export class StructEnumVariantParserGenerator extends StructParserGenerator {
     constructor(
-        readonly struct: AnonymousStructVariant,
+        readonly structVariant: AnonymousStructVariant,
         readonly enumName: string,
     ) {
-        super(struct)
+        super(structVariant)
     }
 
     protected generateResultSection(): string {
-        const variantType = `${this.enumName}::${this.struct.name}`
+        const variantType = `${this.enumName}::${this.structVariant.name}`
         const code = endent`
         Ok((
             input,
             ${variantType} {
-                ${this.struct.fields.map((field) => field.name)
+                ${this.structVariant.fields.map((field) => field.name)
                     .filter((filedName) => filedName !== '' && !filedName.startsWith('_'))
                     .join(',\n')
                 }
@@ -29,8 +29,12 @@ export class StructEnumVariantParserGenerator extends StructParserGenerator {
     }
 
     protected generateFunctionSignature(): string {
-        const name = this.struct.parserFunctionNameOverwrite(this.enumName)
+        const name = this.structVariant.parserFunctionNameOverwrite(this.enumName)
         return `fn ${name}(input: &[u8]) -> IResult<&[u8], ${this.enumName}>`
+    }
+
+    protected generateDebugStatement(): string {
+        return `debug!(target: "PARSER(${this.structVariant.parserFunctionNameOverwrite(this.enumName)})", "struct ${this.structVariant.name}");`
     }
 }
 
@@ -298,7 +302,7 @@ export class IfStructEnumParserGenerator {
         const returnType = (structEnum.choiceField.isFieldRef() && structEnum.isRef()) ? `${structEnum.name}${lifetimeSpecifier}` : structEnum.name
 
         if (structEnum.choiceField.isWithoutInput()) {
-            return `pub fn parse_${structEnum.snakeCaseName()}${lifetimeSpecifier}(input: &${lifetimeRefSpecifier}[u8]) -> IResult<&${lifetimeRefSpecifier}[u8], ${returnType}>`
+            return `pub fn ${this.functionName()}${lifetimeSpecifier}(input: &${lifetimeRefSpecifier}[u8]) -> IResult<&${lifetimeRefSpecifier}[u8], ${returnType}>`
         } else {
             // 如果 choice 是用户自定义类型，就接受引用作为参数
             // const choiceParameterType = choiceField.isUserDefined() ? `&${choiceField.typeName()}` : choiceField.typeName()
@@ -309,8 +313,12 @@ export class IfStructEnumParserGenerator {
                 lifetimeRefSpecifier = `'a`
             }
 
-            return `pub fn parse_${structEnum.snakeCaseName()}${lifetimeSpecifier}(input: &${lifetimeRefSpecifier}[u8], ${choiceParameter}) -> IResult<&${lifetimeRefSpecifier}[u8], ${returnType}>`
+            return `pub fn ${this.functionName()}${lifetimeSpecifier}(input: &${lifetimeRefSpecifier}[u8], ${choiceParameter}) -> IResult<&${lifetimeRefSpecifier}[u8], ${returnType}>`
         }
+    }
+
+    protected functionName(): string {
+        return `parse_${this.ifStructEnum.snakeCaseName()}`
     }
 
     protected generateErrorElseArm(errorKind = 'Verify'): string {
@@ -449,7 +457,9 @@ export class IfStructEnumParserGenerator {
 
     generateEnumParser(allInOne: boolean): string {
         const signature = this.functionSignature()
+        const debugStatement = `debug!(target: "PARSER(${this.functionName()})", "if enum ${this.ifStructEnum.name}");`
         const parserBlock = endent`{
+            ${debugStatement}
             ${this.generateIfBlock(allInOne)}
         }`
 

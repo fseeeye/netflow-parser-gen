@@ -30,6 +30,7 @@ test('test struct with reference', () => {
     const gen = new StructParserGenerator(writeFileRecordSubRequest)
     expect(gen.generateParser()).toEqual(endent`
     pub fn parse_write_file_record_sub_request(input: &[u8]) -> IResult<&[u8], WriteFileRecordSubRequest> {
+        debug!(target: "PARSER(parse_write_file_record_sub_request)", "struct WriteFileRecordSubRequest");
         let (input, ref_type) = u8(input)?;
         let (input, file_number) = be_u16(input)?;
         let (input, record_number) = be_u16(input)?;
@@ -70,6 +71,7 @@ test('test struct with numeric types only', () => {
     const gen = new StructParserGenerator(header)
     expect(gen.generateParser()).toEqual(endent`
     pub fn parse_mbap_header(input: &[u8]) -> IResult<&[u8], MBAPHeader> {
+        debug!(target: "PARSER(parse_mbap_header)", "struct MBAPHeader");
         let (input, transaction_id) = u8(input)?;
         let (input, protocol_id) = be_u16(input)?;
         let (input, length) = be_u16(input)?;

@@ -41,6 +41,7 @@ test('test struct with struct field', () => {
     const gen = new StructParserGenerator(mdobusPacketPartial)
     expect(gen.generateParserWithUserDefinedFields()).toEqual(endent`
     pub fn parse_mbap_header(input: &[u8]) -> IResult<&[u8], MBAPHeader> {
+        debug!(target: "PARSER(parse_mbap_header)", "struct MBAPHeader");
         let (input, transaction_id) = u8(input)?;
         let (input, protocol_id) = be_u16(input)?;
         let (input, length) = be_u16(input)?;
@@ -57,6 +58,7 @@ test('test struct with struct field', () => {
     }
 
     pub fn parse_modbus_packet_partial(input: &[u8]) -> IResult<&[u8], ModbusPacketPartial> {
+        debug!(target: "PARSER(parse_modbus_packet_partial)", "struct ModbusPacketPartial");
         let (input, header) = parse_mbap_header(input)?;
         let (input, function_code) = u8(input)?;
         Ok((
@@ -104,6 +106,7 @@ test('test struct with struct field with reference', () => {
     const gen = new StructParserGenerator(mdobusPacketPartialV2)
     expect(gen.generateParserWithUserDefinedFields()).toEqual(endent`
     pub fn parse_mbap_header_v2(input: &[u8]) -> IResult<&[u8], MBAPHeaderV2> {
+        debug!(target: "PARSER(parse_mbap_header_v2)", "struct MBAPHeaderV2");
         let (input, transaction_id) = u8(input)?;
         let (input, protocol_id) = be_u16(input)?;
         let (input, length) = be_u16(input)?;
@@ -122,6 +125,7 @@ test('test struct with struct field with reference', () => {
     }
 
     pub fn parse_modbus_packet_partial_v2(input: &[u8]) -> IResult<&[u8], ModbusPacketPartialV2> {
+        debug!(target: "PARSER(parse_modbus_packet_partial_v2)", "struct ModbusPacketPartialV2");
         let (input, header) = parse_mbap_header_v2(input)?;
         let (input, function_code) = u8(input)?;
         Ok((

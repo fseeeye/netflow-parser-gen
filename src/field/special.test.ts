@@ -25,6 +25,7 @@ test("test blank struct field", () => {
     const gen = new StructParserGenerator(TestSturct)
     expect(gen.generateParser()).toEqual(endent`
         pub fn parse_blank_struct_field_struct(input: &[u8]) -> IResult<&[u8], BlankStructFieldStruct> {
+            debug!(target: "PARSER(parse_blank_struct_field_struct)", "struct BlankStructFieldStruct");
             let (input, _user_data_tl) = ber_tl(input)?;
             let (input, num) = u8(input)?;
             Ok((
@@ -57,6 +58,7 @@ test("test skip field", () => {
     const gen = new StructParserGenerator(TestSturct)
     expect(gen.generateParser()).toEqual(endent`
         pub fn parse_skip_field_struct(input: &[u8]) -> IResult<&[u8], SkipFieldStruct> {
+            debug!(target: "PARSER(parse_skip_field_struct)", "struct SkipFieldStruct");
             let (input, _) = u8(input)?;
             let (input, num) = u8(input)?;
             Ok((
@@ -88,6 +90,7 @@ test("test assert field", () => {
     const gen = new StructParserGenerator(TestSturct)
     expect(gen.generateParser()).toEqual(endent`
         pub fn parse_assert_field_struct(input: &[u8]) -> IResult<&[u8], AssertFieldStruct> {
+            debug!(target: "PARSER(parse_assert_field_struct)", "struct AssertFieldStruct");
             let (input, num) = u8(input)?;
             if !(num == 0x01) {
                 return Err(nom::Err::Error(nom::error::Error::new(input, nom::error::ErrorKind::Verify)))
@@ -123,6 +126,7 @@ test("test code field", () => {
     const gen = new StructParserGenerator(TestSturct)
     expect(gen.generateParser()).toEqual(endent`
         pub fn parse_code_field_struct(input: &[u8]) -> IResult<&[u8], CodeFieldStruct> {
+            debug!(target: "PARSER(parse_code_field_struct)", "struct CodeFieldStruct");
             let (input, num1) = u8(input)?;
             let num2: u8 = 1;
             Ok((

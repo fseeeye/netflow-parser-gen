@@ -5,11 +5,11 @@ import { removeDuplicateByKey } from "../utils"
 export class StructParserGenerator {
 
     constructor(
-        readonly struct: Struct,
+        readonly structVariant: Struct,
     ) { }
 
     protected generateResultSection(): string {
-        const struct = this.struct
+        const struct = this.structVariant
         const code = endent`
         Ok((
             input,
@@ -25,7 +25,7 @@ export class StructParserGenerator {
     }
 
     generateParserBlock(): string {
-        const fieldParsers = this.struct.fields
+        const fieldParsers = this.structVariant.fields
             .map((field) => {
                 return field.generateParseStatement()
             })
@@ -41,7 +41,7 @@ export class StructParserGenerator {
 
     generateFieldFunction(): string[] {
         const fieldFuction: (string)[] = []
-        this.struct.fields.map((field) => {
+        this.structVariant.fields.map((field) => {
             if (field.generateFunction !== undefined) {
                 fieldFuction.push(field.generateFunction())
             }
@@ -59,12 +59,12 @@ export class StructParserGenerator {
     // }
 
     protected generateFunctionSignature(): string {
-        const funcName = this.struct.parserFunctionName()
-        if (this.struct.isWithoutInputs()) {
-            return `fn ${funcName}(input: &[u8]) -> IResult<&[u8], ${this.struct.name}>`
+        const funcName = this.structVariant.parserFunctionName()
+        if (this.structVariant.isWithoutInputs()) {
+            return `fn ${funcName}(input: &[u8]) -> IResult<&[u8], ${this.structVariant.name}>`
         } else {
             let refFlag = false
-            const extraParamClean = this.struct.extraInputs.map(
+            const extraParamClean = this.structVariant.extraInputs.map(
                 (field) => {
                     const splitedFiledName = field.name.split('.')
                     const fixedFiledName = splitedFiledName[splitedFiledName.length - 1]
@@ -80,17 +80,21 @@ export class StructParserGenerator {
 
             const lifetimeSpecifier = refFlag ? `<'a>` : ''
             const lifetimeRefSpecifier = refFlag ? `'a ` : ''
-            const returnType = (refFlag && this.struct.isRef()) ? `${this.struct.name}${lifetimeSpecifier}` : this.struct.name
+            const returnType = (refFlag && this.structVariant.isRef()) ? `${this.structVariant.name}${lifetimeSpecifier}` : this.structVariant.name
 
             return `fn ${funcName}${lifetimeSpecifier}(input: &${lifetimeRefSpecifier}[u8], ${extraParamClean}) -> IResult<&${lifetimeRefSpecifier}[u8], ${returnType}>`
         }
+    }
+
+    protected generateDebugStatement(): string {
+        return `debug!(target: "PARSER(${this.structVariant.parserFunctionName()})", "struct ${this.structVariant.name}");`
     }
 
     // 生成struct的parser函数内容
     generateParser(pub = true): string {
         const visibilitySpecifier = pub ? `pub ` : ``
         const functionSignature = `${visibilitySpecifier}${this.generateFunctionSignature()}`
-        const debugStatement = `debug!(target: "PARSER(${this.struct.parserFunctionName()})", "struct ${this.struct.name}");`
+        const debugStatement = this.generateDebugStatement()
         const parserBlock = this.generateParserBlock()
 
         const fieldFuction: (string)[] = this.generateFieldFunction()
@@ -123,7 +127,7 @@ export class StructParserGenerator {
     private generateUserDefinedFieldParsers() {
         // 由于存在多个字段使用同种field类型的情况，所以此处需要去重
         const userDefinedFields = removeDuplicateByKey(
-            this.struct.fields.filter((field) => field.isUserDefined()),
+            this.structVariant.fields.filter((field) => field.isUserDefined()),
             (field) => field.constructor.name
         )
         const userDefinedFieldParsers = userDefinedFields.map((field) => {

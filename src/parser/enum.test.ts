@@ -33,6 +33,7 @@ test('test struct enum with inline choice', () => {
     expect(gen.generateParser()).toEqual(`
 
 pub fn parse_l3(input: &[u8]) -> IResult<&[u8], L3> {
+    debug!(target: "PARSER(parse_l3)", "enum L3");
     let (input, version) = peek(u8)(input)?;
     let (input, l3) = match version >> 4 {
         0x04 => {
