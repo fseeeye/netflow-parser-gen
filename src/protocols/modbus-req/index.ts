@@ -147,7 +147,9 @@ const Data = new StructEnum(
                 numeric('write_start_address', 'be_u16'),
                 numeric('write_count', 'be_u16'),
                 numeric('write_byte_count', 'u8'),
-                bytesRef('write_register_values', createCountVarWithUnitSize('write_count', 2, 'mul')), 
+                numVec('write_register_values',
+                    createCountVar('write_byte_count'),
+                    'be_u16')
             ]
         ),
         new AnonymousStructVariant(
