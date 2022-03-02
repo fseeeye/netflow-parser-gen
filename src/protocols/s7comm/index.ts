@@ -91,7 +91,7 @@ const SyntaxIdEnum = new IfStructEnum(
             numeric('item_length', 'be_u16'),
             numeric('item_db_numer', 'be_u16'),
             numeric('item_area', 'u8'),
-            slice('item_address', 'u4_6'),
+            numeric('item_address', 'be_u24'),
             // new InlineChoice(slice('area_peek', 'u8_5'), (matchField) => matchField.concat('[4]'))
         ]),
         /* S7-400 special address mode (kind of cyclic read) */
