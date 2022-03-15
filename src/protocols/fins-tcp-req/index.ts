@@ -9,7 +9,7 @@ import { Field } from "../../field/base"
 import { VecField } from "../../field/vec"
 import { EnumField, } from "../../field/enum"
 import { StructField } from "../../field/struct"
-import { AnonymousStructVariant, StructEnum, EmptyPayloadEnum, EofVariant } from "../../types/enum"
+import { AnonymousStructVariant, StructEnum, EmptyPayloadEnum, EofVariant, EmptyVariant } from "../../types/enum"
 import { Struct } from "../../types/struct"
 import { Protocol } from "../protocol"
 import { ProtocolInfo } from "../protocol-info"
@@ -93,9 +93,15 @@ const Order = new StructEnum(
 		]),
 		new AnonymousStructVariant(0x0202, 'ParameterAreaWrite', [
 			numeric('parameter_area_code', 'be_u16'),
-			numeric('beginning_word', 'be_u32'),
+			numeric('beginning_word', 'be_u16'),
 			numeric('words_of_bytes', 'be_u16'),
 			bytesRef('command_data', createCountVar('input.len()'))
+		]),
+		new AnonymousStructVariant(0x0203, 'ParameterAreaClear', [
+			numeric("parameter_area_code", 'be_u16'),
+			numeric("beginning_word", 'be_u16'),
+			numeric('words_of_bytes', 'be_u16'),
+			bytesRef("command_data", createCountVar('input.len()')),
 		]),
 		new AnonymousStructVariant(0x0220, 'DataLinkTableRead', [
 			numeric('fixed', 'be_u16'),
@@ -111,21 +117,15 @@ const Order = new StructEnum(
 			numeric('link_nodes', 'u8'),
 			new VecField('block_data', createCountVarWithUnitSize("input.len()", 8, "div"), DLTBLockDataItem)
 		]),
-		new AnonymousStructVariant(0x0203, 'ParameterAreaClear', [
-			numeric("parameter_area_code", 'be_u16'),
-			numeric("beginning_word", 'be_u16'),
-			numeric('words_of_bytes', 'be_u16'),
-			bytesRef("command_data", createCountVar('input.len()')),
-		]),
-		new AnonymousStructVariant(0x0304, 'ParameterAreaProtect', [
-			numeric("parameter_number", 'be_u16'),
+		new AnonymousStructVariant(0x0304, 'ProgramAreaProtect', [
+			numeric("program_number", 'be_u16'),
 			numeric("protect_code", 'u8'),
 			numeric('beginning_word', 'be_u32'),
 			numeric('last_word', 'be_u32'),
 			numeric('pass_word', 'be_u32'),
 		]),
-		new AnonymousStructVariant(0x0305, 'ParameterAreaProtectClear', [
-			numeric("parameter_number", 'be_u16'),
+		new AnonymousStructVariant(0x0305, 'ProgramAreaProtectClear', [
+			numeric("program_number", 'be_u16'),
 			numeric("protect_code", 'u8'),
 			numeric('beginning_word', 'be_u32'),
 			numeric('last_word', 'be_u32'),
@@ -148,9 +148,10 @@ const Order = new StructEnum(
 		]),
 		new AnonymousStructVariant(0x0401, 'Run', [
 			numeric("program_number", 'be_u16'),
-			bytesRef('mode_code', createCountVar('input.len()'))
+			numeric('mode_code', 'u8')
 		]),
 		new EofVariant(0x0402, 'Stop'),
+		new EmptyVariant(0x0403, 'Reset'),
 		new AnonymousStructVariant(0x0501, 'ControllerDataRead', [
 			bytesRef('command_data', createCountVar('input.len()'))
 		]),
@@ -330,11 +331,11 @@ const FH = new Struct(
 		numeric('sys_save', 'u8'),
 		numeric('gateway', 'u8'),
 		numeric('dna', 'u8'),
-		numeric('da1', 'u8'),
-		numeric('da2', 'u8'),
+		numeric('dnn', 'u8'),
+		numeric('dua', 'u8'),
 		numeric('sna', 'u8'),
-		numeric('sa1', 'u8'),
-		numeric('sa2', 'u8'),
+		numeric('snn', 'u8'),
+		numeric('sua', 'u8'),
 		numeric('sid', 'u8'),
 		new StructField(CmdType)
 	]

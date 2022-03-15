@@ -319,11 +319,11 @@ const header = new Struct(
 		numeric('sys_save', 'u8'),
 		numeric('gateway', 'u8'),
 		numeric('dna', 'u8'),
-		numeric('da1', 'u8'),
-		numeric('da2', 'u8'),
+		numeric('dnn', 'u8'),
+		numeric('dua', 'u8'),
 		numeric('sna', 'u8'),
-		numeric('sa1', 'u8'),
-		numeric('sa2', 'u8'),
+		numeric('snn', 'u8'),
+		numeric('sua', 'u8'),
 		numeric('sid', 'u8'),
 		new StructField(CmdType)
 	]
