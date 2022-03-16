@@ -8,6 +8,8 @@ import { Ipv4 } from "../ipv4"
 import { Ipv6 } from "../ipv6"
 import { MacAddress } from "../../field/address"
 import { StructField } from "../../field/struct"
+import { Goose } from "../goose"
+import { Vlan } from "../vlan"
 
 const protocolName = 'Ethernet'
 const headerName = `${protocolName}Header`
@@ -29,7 +31,9 @@ const payload = new PayloadEnum(
     info,
     [
         new PayloadEnumVariant(0x0800, Ipv4),
+        new PayloadEnumVariant(0x8100, Vlan),
         new PayloadEnumVariant(0x86DD, Ipv6),
+        new PayloadEnumVariant(0x88B8, Goose),
     ],
     new PayloadEnumChoice(
         new StructField(header),

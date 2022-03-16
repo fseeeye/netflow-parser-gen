@@ -22,6 +22,8 @@ import { Dnp3 } from "./dnp3"
 import { Iec104 } from "./iec104"
 import { Opcua } from "./opcua"
 import { Goose } from "./goose"
+import { Vlan } from "./vlan"
+import { Sv } from "./sv"
 
 export const BuiltinProtocols = [
     Ethernet,
@@ -41,7 +43,9 @@ export const BuiltinProtocols = [
     Dnp3,
     Iec104,
     Opcua,
-    Goose
+    Goose,
+    Vlan,
+    Sv
 ]
 
 interface ProtocolParser {
@@ -335,6 +339,7 @@ export class ProtocolParserGenerator {
                     NetworkLayer::Ipv4(ipv4) => Some(IpAddr::V4(ipv4.dst_ip)),
                     NetworkLayer::Ipv6(ipv6) => Some(IpAddr::V6(ipv6.dst_ip)),
                     NetworkLayer::Goose(_) => None,
+                    NetworkLayer::Vlan(_) => None
                 }
             }
         
@@ -344,6 +349,7 @@ export class ProtocolParserGenerator {
                     NetworkLayer::Ipv4(ipv4) => Some(IpAddr::V4(ipv4.src_ip)),
                     NetworkLayer::Ipv6(ipv6) => Some(IpAddr::V6(ipv6.src_ip)),
                     NetworkLayer::Goose(_) => None,
+                    NetworkLayer::Vlan(_) => None
                 }
             }
         }`)
@@ -364,6 +370,7 @@ export class ProtocolParserGenerator {
                 match self {
                     TransportLayer::Tcp(tcp) => Some(tcp.dst_port),
                     TransportLayer::Udp(udp) => Some(udp.dst_port),
+                    TransportLayer::Sv(_) => None
                 }
             }
         
@@ -372,6 +379,7 @@ export class ProtocolParserGenerator {
                 match self {
                     TransportLayer::Tcp(tcp) => Some(tcp.src_port),
                     TransportLayer::Udp(udp) => Some(udp.src_port),
+                    TransportLayer::Sv(_) => None
                 }
             }
         }`)

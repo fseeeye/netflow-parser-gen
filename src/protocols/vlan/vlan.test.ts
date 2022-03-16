@@ -1,5 +1,5 @@
 const answer = ``
 
-test('test goose', () => {
+test('test virtual LAN', () => {
     expect(``).toEqual(answer)
 })
