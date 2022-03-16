@@ -66,54 +66,54 @@ structs.push(TransportControl)
 /****** Transport Control End. ******/
 
 /****** Data Chunks Part ******/
-const DataChunk = new Struct(
-    'DataChunk',
-    [
-        bytesRef('data_chunk', createCountVar('check_size')),
-        numeric('data_chunk_checksum', 'le_u16'),
-        new CRC16Field(
-            'data_chunk_checksum',
-            'data_chunk',
-        ),
-    ],
-    [
-        numeric('check_size', 'u8')
-    ]
-)
-structs.push(DataChunk)
+// const DataChunk = new Struct(
+//     'DataChunk',
+//     [
+//         bytesRef('data_chunk', createCountVar('check_size')),
+//         numeric('data_chunk_checksum', 'le_u16'),
+//         new CRC16Field(
+//             'data_chunk_checksum',
+//             'data_chunk',
+//         ),
+//     ],
+//     [
+//         numeric('check_size', 'u8')
+//     ]
+// )
+// structs.push(DataChunk)
 
-const DataChunks = new IfStructEnum(
-    'DataChunks',
-    [
-        new AnonymousStructVariant('dl_function != 0x09 && dl_function != 0x0B && dl_function != 0x00', 'WithData', [
-            new CodeVarField(new VecField('data_chunks', createCountVar('foo'), DataChunk)),
-            new CodeField(endent`
-                if !(length >= 5) {
-                    return Err(nom::Err::Error(nom::error::Error::new(input, nom::error::ErrorKind::Verify)))
-                }
+// const DataChunks = new IfStructEnum(
+//     'DataChunks',
+//     [
+//         new AnonymousStructVariant('dl_function != 0x09 && dl_function != 0x0B && dl_function != 0x00', 'WithData', [
+//             new CodeVarField(new VecField('data_chunks', createCountVar('foo'), DataChunk)),
+//             new CodeField(endent`
+//                 if !(length >= 5) {
+//                     return Err(nom::Err::Error(nom::error::Error::new(input, nom::error::ErrorKind::Verify)))
+//                 }
                 
-                let mut input = input;
-                let mut data_len = length - 5;
-                let mut data_chunks: Vec<DataChunk> = Vec::new();
-                let mut _data_chunk: DataChunk;
+//                 let mut input = input;
+//                 let mut data_len = length - 5;
+//                 let mut data_chunks: Vec<DataChunk> = Vec::new();
+//                 let mut _data_chunk: DataChunk;
 
-                while data_len > 0 {
-                    let check_size: u8 = std::cmp::min(data_len, 16);
-                    (input, _data_chunk) = parse_data_chunk(input, check_size)?;
-                    data_chunks.push(_data_chunk);
-                    data_len -= check_size;
-                }
-            `),
-        ]),
-        new AnonymousStructVariant('_', 'WithoutData', [])
-    ],
-    new EnumMultiChoice([
-        numeric('data_link_layer.dl_function', 'u8'),
-        numeric('data_link_layer.length', 'u8'),
-    ]),
-    true
-)
-structs.push(DataChunks)
+//                 while data_len > 0 {
+//                     let check_size: u8 = std::cmp::min(data_len, 16);
+//                     (input, _data_chunk) = parse_data_chunk(input, check_size)?;
+//                     data_chunks.push(_data_chunk);
+//                     data_len -= check_size;
+//                 }
+//             `),
+//         ]),
+//         new AnonymousStructVariant('_', 'WithoutData', [])
+//     ],
+//     new EnumMultiChoice([
+//         numeric('data_link_layer.dl_function', 'u8'),
+//         numeric('data_link_layer.length', 'u8'),
+//     ]),
+//     true
+// )
+// structs.push(DataChunks)
 /****** Data Chunks End. ******/
 
 // refs: https://gitlab.com/wireshark/wireshark/-/blob/master/epan/dissectors/packet-dnp.c#L3197
@@ -122,7 +122,7 @@ const protocolHeader = new Struct(
     [
         new StructField(DataLinkLayer),
         new StructField(TransportControl),
-        new EnumField(DataChunks),
+        // new EnumField(DataChunks),
         // Warning: unimpl parse Application Layer from DataChunks
     ]
 )

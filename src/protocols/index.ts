@@ -21,6 +21,7 @@ import { snakeCase } from "snake-case"
 import { Dnp3 } from "./dnp3"
 import { Iec104 } from "./iec104"
 import { Opcua } from "./opcua"
+import { Goose } from "./goose"
 
 export const BuiltinProtocols = [
     Ethernet,
@@ -40,6 +41,7 @@ export const BuiltinProtocols = [
     Dnp3,
     Iec104,
     Opcua,
+    Goose
 ]
 
 interface ProtocolParser {
@@ -66,11 +68,13 @@ export class ProtocolParserGenerator {
             .sort()
 
         code = code.concat('pub mod eof;\n')
+        code = code.concat('pub mod http;\n')
         code = code.concat(
             protocolNames.map((name) => `pub mod ${snakeCase(name)};`).join('\n')
         ).concat('\n\n')
 
         code = code.concat('pub use eof::*;\n')
+        code = code.concat('pub use http::{parse_http_layer, HttpHeader};\n')
         code = code.concat(
             protocolNames.map((name) => `pub use ${snakeCase(name)}::{parse_${snakeCase(name)}_layer, ${name}Header};`).join(`\n`)
         ).concat('\n')
@@ -159,12 +163,14 @@ export class ProtocolParserGenerator {
         ${attributeStr}
         pub enum ApplicationProtocol {
             ${appProtocol}
+            Http,
             IsoOnTcp,
         }
 
         ${attributeStr}
         pub enum ApplicationNaiveProtocol {
             ${appNaiveProtocol}
+            Http,
             IsoOnTcp,
         }
         
@@ -172,6 +178,7 @@ export class ProtocolParserGenerator {
             fn from(p: ApplicationProtocol) -> Self {
                 match p {
                     ${appProtocolsMatchArm}
+                    ApplicationProtocol::Http => ApplicationNaiveProtocol::Http,
                     ApplicationProtocol::IsoOnTcp => ApplicationNaiveProtocol::IsoOnTcp,
                 }
             }
@@ -181,6 +188,7 @@ export class ProtocolParserGenerator {
             fn from(p: &ApplicationProtocol) -> Self {
                 match p {
                     ${appProtocolsMatchArm}
+                    ApplicationProtocol::Http => ApplicationNaiveProtocol::Http,
                     ApplicationProtocol::IsoOnTcp => ApplicationNaiveProtocol::IsoOnTcp,
                 }
             }
@@ -260,6 +268,7 @@ export class ProtocolParserGenerator {
             fn from(app_layer: ApplicationLayer<'a>) -> Self {
                 match app_layer {
                     ${appLayerMatchArm}
+                    ApplicationLayer::Http(_) => ApplicationProtocol::Http,
                     ApplicationLayer::IsoOnTcp(_) => ApplicationProtocol::IsoOnTcp,
                 }
             }
@@ -295,16 +304,16 @@ export class ProtocolParserGenerator {
         
         impl LinkLayer {
             #[inline]
-            pub fn get_dst_mac(&self) -> &MacAddress {
+            pub fn get_dst_mac(&self) -> Option<MacAddress> {
                 match &self {
-                    LinkLayer::Ethernet(eth) => &eth.dst_mac,
+                    LinkLayer::Ethernet(eth) => Some(eth.dst_mac),
                 }
             }
         
             #[inline]
-            pub fn get_src_mac(&self) -> &MacAddress {
+            pub fn get_src_mac(&self) -> Option<MacAddress> {
                 match &self {
-                    LinkLayer::Ethernet(eth) => &eth.src_mac,
+                    LinkLayer::Ethernet(eth) => Some(eth.src_mac),
                 }
             }
         }`)
@@ -321,18 +330,20 @@ export class ProtocolParserGenerator {
         
         impl<'a> NetworkLayer<'a> {
             #[inline]
-            pub fn get_dst_ip(&self) -> IpAddr {
+            pub fn get_dst_ip(&self) -> Option<IpAddr> {
                 match self {
-                    NetworkLayer::Ipv4(ipv4) => IpAddr::V4(ipv4.dst_ip),
-                    NetworkLayer::Ipv6(ipv6) => IpAddr::V6(ipv6.dst_ip),
+                    NetworkLayer::Ipv4(ipv4) => Some(IpAddr::V4(ipv4.dst_ip)),
+                    NetworkLayer::Ipv6(ipv6) => Some(IpAddr::V6(ipv6.dst_ip)),
+                    NetworkLayer::Goose(_) => None,
                 }
             }
         
             #[inline]
-            pub fn get_src_ip(&self) -> IpAddr {
+            pub fn get_src_ip(&self) -> Option<IpAddr> {
                 match self {
-                    NetworkLayer::Ipv4(ipv4) => IpAddr::V4(ipv4.src_ip),
-                    NetworkLayer::Ipv6(ipv6) => IpAddr::V6(ipv6.src_ip),
+                    NetworkLayer::Ipv4(ipv4) => Some(IpAddr::V4(ipv4.src_ip)),
+                    NetworkLayer::Ipv6(ipv6) => Some(IpAddr::V6(ipv6.src_ip)),
+                    NetworkLayer::Goose(_) => None,
                 }
             }
         }`)
@@ -349,18 +360,18 @@ export class ProtocolParserGenerator {
         
         impl<'a> TransportLayer<'a> {
             #[inline]
-            pub fn get_dst_port(&self) -> u16 {
+            pub fn get_dst_port(&self) -> Option<u16> {
                 match self {
-                    TransportLayer::Tcp(tcp) => tcp.dst_port,
-                    TransportLayer::Udp(udp) => udp.dst_port,
+                    TransportLayer::Tcp(tcp) => Some(tcp.dst_port),
+                    TransportLayer::Udp(udp) => Some(udp.dst_port),
                 }
             }
         
             #[inline]
-            pub fn get_src_port(&self) -> u16 {
+            pub fn get_src_port(&self) -> Option<u16> {
                 match self {
-                    TransportLayer::Tcp(tcp) => tcp.src_port,
-                    TransportLayer::Udp(udp) => udp.src_port,
+                    TransportLayer::Tcp(tcp) => Some(tcp.src_port),
+                    TransportLayer::Udp(udp) => Some(udp.src_port),
                 }
             }
         }`)
@@ -373,6 +384,7 @@ export class ProtocolParserGenerator {
         #[derive(Debug, PartialEq, Clone)]
         pub enum ApplicationLayer<'a> {
             ${appProtocols}
+            Http(HttpHeader<'a>),
             IsoOnTcp(IsoOnTcpHeader),
         }`)
         code = code.concat('\n')

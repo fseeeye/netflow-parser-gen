@@ -66,7 +66,7 @@ export class ProtocolInfo {
         switch(this.level) {
             case 'L1': throw Error(`L1 dont have layer args`)
             case 'L2': return '(input: &[u8], options: &QuinPacketOptions)'
-            case 'L3': return '(input: &[u8], link_layer: LinkLayer, options: &QuinPacketOptions)'
+            case 'L3': return `(input: &'a [u8], link_layer: LinkLayer, options: &QuinPacketOptions)`
             case 'L4': return `(input: &'a [u8], link_layer: LinkLayer, network_layer: NetworkLayer<'a>, options: &QuinPacketOptions)`
             case 'L5': return `(input: &'a [u8], link_layer: LinkLayer, network_layer: NetworkLayer<'a>, transport_layer: TransportLayer<'a>, options: &QuinPacketOptions)`
         }
@@ -76,7 +76,7 @@ export class ProtocolInfo {
         switch(this.level) {
             case 'L1': throw Error(`L1 dont have level life time`)
             case 'L2': return ''
-            case 'L3': return ''
+            case 'L3': return `<'a>`
             case 'L4': return `<'a>`
             case 'L5': return `<'a>`
         }
