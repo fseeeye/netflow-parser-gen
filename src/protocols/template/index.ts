@@ -8,7 +8,8 @@ const protocolName = 'Template'
 const headerName = `${protocolName}Header`
 const payloadName = `${protocolName}Payload`
 
-const structs: (Struct|StructEnum)[] = [] // please push ALL addtional struct & enum to this structs (except Protocol Header.)
+// please push ALL addtional struct & enum to this structs (except Protocol Header.)
+const structs: (Struct|StructEnum)[] = []
 
 // Protocol Header
 const protocolHeader = new Struct(

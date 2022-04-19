@@ -7,14 +7,14 @@
 
 ## quick start
 
-1. 安装：依赖 node, yarn, ts-node。
+1. 安装：项目依赖于 node, yarn, ts-node。
 
 ```bash
 git clone https://gitee.com/BoleanTech/parser-gen.git
 yarn
 yarn test
 ```
-2. 命令行工具使用
+2. 命令行工具使用：
 ```bash
 # 生成所有协议
 ts-node ./src/tooling/cli.ts generate -o <Rust项目目录>

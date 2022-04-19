@@ -25,6 +25,7 @@ import { Goose } from "./goose"
 import { Vlan } from "./vlan"
 import { Sv } from "./sv"
 
+// Add all valid Protocols here.
 export const BuiltinProtocols = [
     Ethernet,
     Ipv4,
