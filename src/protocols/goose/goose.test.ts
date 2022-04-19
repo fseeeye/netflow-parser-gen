@@ -1,5 +1,3 @@
-const answer = ``
-
-test('test goose', () => {
-    expect(``).toEqual(answer)
+test('test Goose', () => {
+    expect(``).toEqual(``)
 })

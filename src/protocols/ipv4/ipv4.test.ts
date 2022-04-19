@@ -1,7 +1,5 @@
 // import { Ipv4 } from "./index"
 
-const answer = ``
-
 test('test ipv4 v2', () => {
     // console.log(Ipv4.generateParser())
     // expect(
@@ -9,5 +7,5 @@ test('test ipv4 v2', () => {
     // ).toEqual(
     //     answer
     // )
-    expect(``).toEqual(answer)
+    expect(``).toEqual(``)
 })
