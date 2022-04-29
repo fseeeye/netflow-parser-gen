@@ -119,7 +119,6 @@ export class ProtocolParserGenerator {
             Network(NetworkProtocol),
             Transport(TransportProtocol),
             Application(ApplicationProtocol),
-            Error(ParseError),
         }
 
         impl PartialEq for ProtocolType {
@@ -145,7 +144,6 @@ export class ProtocolParserGenerator {
                         }
                         _ => return false,
                     },
-                    Self::Error(_) => return false,
                 }
             }
         }
