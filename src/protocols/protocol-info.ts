@@ -95,7 +95,7 @@ export class ProtocolInfo {
     returnLevelPacket(error = false, lower = false): string {
         const error_code = error ? endent`Some(ParseError::ParsingHeader{
             protocol: current_prototype,
-            offset: input_size - input.len()
+            offset
         })` : 'None'
         const level = lower ? this.getLevelLower() : this.level
 

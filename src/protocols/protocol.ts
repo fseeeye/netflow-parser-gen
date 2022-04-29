@@ -89,6 +89,12 @@ export class Protocol {
                     target: "PARSER(${protocolLowcaseName}::${layerPaseFuncName})",
                     error = ?e
                 );
+
+                let offset = match e {
+                    nom::Err::Error(error) => input.len() - error.input.len(),
+                    _ => usize::MAX
+                };
+
                 ${this.definition.info.returnLevelPacket(true, true)}
             }
         };`
@@ -100,7 +106,6 @@ export class Protocol {
         return endent`pub fn parse_${protocolLowcaseName}_layer${this.definition.info.getLevelLifeTime()}${this.definition.info.getLevelLayerArgs()} -> QuinPacket${this.definition.info.getLevelLifeTime()} {
             info!(target: "PARSER(${protocolLowcaseName}::parse_${protocolLowcaseName}_layer)", "parsing ${protocolName} protocol.");
             let current_prototype = ${this.definition.info.getLevelProtocolTypeName()}(${this.definition.info.getLevelProtocolTypeName(0)}::${protocolName});
-            let input_size = input.len();
 
             ${parseHeaderBlock}
 
