@@ -420,8 +420,10 @@ export class ProtocolParserGenerator {
 
     generate(directory: string): void {
         this.protocols.forEach(p => {
+            // 协议解析代码生成
             const { filename, content } = this.generateProtocolParser(path.join(directory, `/crates/parsing_parser/src/parsers`), p)
             this.writeFile(filename, content)
+            // 工控白名单规则生成
             const { ICSRuleArgFilename, ICSRuleArgContent } = this.generateProtocolICSRulearg(path.join(directory, `/crates/parsing_icsrule/src/icsrule_arg`), p)
             this.writeFile(ICSRuleArgFilename, ICSRuleArgContent)
         })
@@ -436,6 +438,7 @@ export class ProtocolParserGenerator {
     debug(directory: string, protocolName: string): void {
         this.protocols.forEach(p => {
             if (p.getName() === protocolName) {
+                // 特定协议解析代码生成
                 const { filename, content } = this.generateProtocolParser(path.join(directory, `/crates/parsing_parser/src/parsers`), p)
                 this.writeFile(filename, content)
             }

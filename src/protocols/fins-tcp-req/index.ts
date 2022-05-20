@@ -80,7 +80,6 @@ const Order = new StructEnum(
 			numeric('memory_area_code_wc', 'u8'),
 			numeric('beginning_address', 'be_u16'),
 			numeric('beginning_address_bits', 'u8'),
-
 			numeric('memory_area_code_pv', 'u8'),
 			numeric('beginning_address_pv', 'be_u16'),
 			numeric('beginning_address_bits_pv', 'u8'),
